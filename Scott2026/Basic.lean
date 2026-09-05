@@ -165,6 +165,37 @@ theorem theorem_17_va_full {A : Type u} [CompleteBooleanAlgebra A]
     ∃ p : (powerB X).idx, Φ ((powerB X).child p) = a :=
   oid_powerB_full X Φ hcongr a ha
 
+/-- Proposition 28: `Oid(P^A(X))` is complete. Thin export of Theorem 17. This is
+not ground-type `theorem_17_complete`. -/
+theorem proposition_28_va_complete {A : Type u} [CompleteBooleanAlgebra A]
+    (X : AName.{u} A) : (oid (powerB X)).IsComplete :=
+  theorem_17_va_complete X
+
+/-- Proposition 28: `Oid(P^A(X))` is total. Thin export of Theorem 17. This is
+not ground-type `proposition_28_total`. -/
+theorem proposition_28_va_total {A : Type u} [CompleteBooleanAlgebra A]
+    (X : AName.{u} A) : (oid (powerB X)).IsTotal :=
+  theorem_17_va_total X
+
+/-- Proposition 28, canonical equality at `X = check Y`: Boolean equality of
+children implies equality of the canonical names. This is not index-level
+`IsStrict` and is not ground-type `proposition_28_strict`. -/
+theorem proposition_28_va_canonical_eq {A : Type u} [CompleteBooleanAlgebra A]
+    (Y : PSet.{u}) {p q : (powerB (AName.check (A := A) Y)).idx}
+    (h : (oid (powerB (AName.check (A := A) Y))).eq p q = ⊤) :
+    restrictName ((powerB (AName.check (A := A) Y)).child p)
+      (AName.check (A := A) Y) =
+    restrictName ((powerB (AName.check (A := A) Y)).child q)
+      (AName.check (A := A) Y) :=
+  oid_powerB_check_canonical_eq Y h
+
+/-- Definition 11 on `P^A(X)`: symmetrized Boolean inclusion is `Oid(P^A(X))`
+equality. -/
+theorem definition_11_powerB {A : Type u} [CompleteBooleanAlgebra A]
+    (X : AName.{u} A) (p q : (powerB X).idx) :
+    (powerBPoset X).eq p q = (oid (powerB X)).eq p q :=
+  powerBPoset_eq X p q
+
 /-- Corollary 18: `Oid(P^A(X ×_A Y))` is complete. -/
 theorem corollary_18_prod {A : Type u} [CompleteBooleanAlgebra A]
     (X Y : AName.{u} A) : (oid (powerB (prodB X Y))).IsComplete :=
@@ -221,6 +252,12 @@ theorem definition_13 {A : Type*} [CompleteBooleanAlgebra A] {X Y : Type*}
 -- proved only as functor data: fullness, faithfulness and essential surjectivity of
 -- `Oid`, hence `Set_A ≃ SetoidR_A`, are not claimed. Theorem 17 / Corollary 18 at
 -- the `Oid(P^A(X))` level are `theorem_17_va_*` / `corollary_18_*`
--- (`theorem_17_complete` / `proposition_28_*` remain ground-type).
+-- (`theorem_17_complete` / `proposition_28_total` / `proposition_28_strict`
+-- remain ground-type). Proposition 28 at `V^A` is `proposition_28_va_complete`
+-- / `proposition_28_va_total` (thin-export Theorem 17),
+-- `proposition_28_va_canonical_eq` (canonical names on `check Y`, not
+-- `IsStrict`), and `definition_11_powerB` / `powerBPoset`.
+-- The continuous-lattice-with-base clause is not stated (no internal
+-- formula language for way-below / continuous lattices in `V^A`).
 
 end Scott2026

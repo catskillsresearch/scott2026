@@ -17,7 +17,9 @@ turns a function name `F : X →_A Y` into a relational function `Oid(X) → Oid
 Only the functor *data* of Definition 16 is proved here (identity and composition);
 fullness, faithfulness and essential surjectivity — hence `Set_A ≃ SetoidR_A` — are
 not claimed. Theorem 17 and Corollary 18 are the completeness (and fullness) of
-`Oid(P^A(X))` and of `Oid(P^A(X ×_A Y))` / `Oid({X →_A Y})`.
+`Oid(P^A(X))` and of `Oid(P^A(X ×_A Y))` / `Oid({X →_A Y})`. Proposition 28 adds
+the `A`-poset `powerBPoset` on the same carrier and canonical-name equality
+on `Oid(P^A(check Y))` (not index-level `IsStrict`).
 -/
 
 universe u
@@ -302,6 +304,12 @@ theorem oid_powerB_isTotal (X : AName.{u} A) :
   intro p
   rw [oid_eps, memB_child_powerB]
 
+/-- On `Oid(P^A(X))`, setoid equality is Boolean equality of the child names. -/
+theorem oid_eq_powerB (X : AName.{u} A) (p q : (powerB X).idx) :
+    (oid (powerB X)).eq p q =
+      eqB ((powerB X).child p) ((powerB X).child q) := by
+  simp only [oid_eq, memB_child_powerB, top_inf_eq]
+
 /-- Canonical representative of `S` as an element of `dom(P^A(X))`. -/
 noncomputable def restrictPowerIdx (S X : AName.{u} A) : (powerB X).idx :=
   ⟨fun i => X.val i ⊓ memB (X.child i) S, fun _ => inf_le_left⟩
@@ -420,5 +428,52 @@ theorem oid_funsB_full (X Y : AName.{u} A) (Φ : AName.{u} A → A)
         (le_inf (inf_le_left.trans (hfun.trans hsub)) (inf_le_left.trans hfun))
     rw [hchild]
     exact le_inf hmem hΦ
+
+/-!
+## Proposition 28: `P^A(X)` as an `A`-poset; canonical equality on `check Y`
+
+The continuous-lattice-with-base clause is not stated here: it would need an
+internal formula language for “continuous lattice” / way-below inside `V^A`.
+-/
+
+/-- Boolean inclusion is reflexive. -/
+theorem subsetB_self (x : AName.{u} A) : subsetB x x = ⊤ :=
+  iInf_eq_top.mpr fun i => himp_eq_top_iff.mpr (val_le_memB x i)
+
+/-- Definition 11 on `P^A(X)`: Boolean inclusion on the same carrier as `Oid(P^A(X))`. -/
+noncomputable def powerBPoset (X : AName.{u} A) : APoset (A := A) (powerB X).idx where
+  le p q := subsetB ((powerB X).child p) ((powerB X).child q)
+  trans p q r :=
+    subsetB_trans ((powerB X).child p) ((powerB X).child q) ((powerB X).child r)
+  le_le_refl p q := by
+    have hp : subsetB ((powerB X).child p) ((powerB X).child p) = ⊤ :=
+      subsetB_self _
+    have hq : subsetB ((powerB X).child q) ((powerB X).child q) = ⊤ :=
+      subsetB_self _
+    rw [hp, hq, inf_top_eq]
+    exact le_top
+
+/-- Definition 11, equation (1): symmetrized inclusion is `Oid(P^A(X))` equality. -/
+theorem powerBPoset_eq (X : AName.{u} A) (p q : (powerB X).idx) :
+    (powerBPoset X).eq p q = (oid (powerB X)).eq p q := by
+  unfold APoset.eq powerBPoset
+  rw [oid_eq_powerB, eqB_eq_subset]
+
+/-- Proposition 28, canonical equality at `X = check Y`: `‖S = T‖_{P^A(check Y)} = 1`
+    iff `‖S = T‖ = 1`, and the canonical names (same domain as `check Y`, values
+    `‖ŷ ∈ ·‖`) are then equal. `AName` has no `[ext]`; the `mk`s are equated by
+    `congr_arg` / `funext`. This is not index-level `IsStrict`: a pre-set may
+    repeat equivalent children, so two valuations can be Boolean-equal without
+    matching pointwise. -/
+theorem oid_powerB_check_canonical_eq (Y : PSet.{u})
+    {p q : (powerB (check (A := A) Y)).idx}
+    (h : (oid (powerB (check (A := A) Y))).eq p q = ⊤) :
+    restrictName ((powerB (check (A := A) Y)).child p) (check (A := A) Y) =
+    restrictName ((powerB (check (A := A) Y)).child q) (check (A := A) Y) := by
+  have heq : eqB ((powerB (check (A := A) Y)).child p)
+      ((powerB (check (A := A) Y)).child q) = ⊤ := by
+    rwa [oid_eq_powerB] at h
+  refine congr_arg (mk (check (A := A) Y).idx (check (A := A) Y).child) ?_
+  exact funext fun i => by rw [eqB_top_memB_right (A := A) heq]
 
 end Scott2026

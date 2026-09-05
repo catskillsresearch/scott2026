@@ -21,8 +21,11 @@ export Scott2026 (scaffold_placeholder lemma_12 proposition_27 proposition_27_co
   oidRel oidRel_val oidHom oidRel_congr oidRel_id oidRel_comp relCompVal
   functionalOfRel functionalOfRel_functional functionalOfRel_gamma
   theorem_17_va_complete theorem_17_va_total theorem_17_va_full
+  proposition_28_va_complete proposition_28_va_total proposition_28_va_canonical_eq
+  powerBPoset definition_11_powerB
   corollary_18_prod corollary_18_funs corollary_18_prod_full corollary_18_funs_full
-  oid_powerB_isComplete oid_funsB_isComplete mixPowerB restrictPowerIdx)
+  oid_powerB_isComplete oid_funsB_isComplete mixPowerB restrictPowerIdx
+  oid_eq_powerB oid_powerB_check_canonical_eq powerBPoset_eq)
 
 /-!
 # Solution to the Challenge
