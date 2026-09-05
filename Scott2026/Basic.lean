@@ -12,6 +12,9 @@ import Scott2026.Domain
 import Scott2026.Lambda
 import Scott2026.Engeler
 import Scott2026.Random
+import Scott2026.VA
+
+universe u
 
 /-!
 # Scott 2026 — Interpreting Lambda Calculus in Domain-Valued Random Variables
@@ -74,5 +77,17 @@ theorem proposition_29 {E : Type*} [DecidableEq E] (pair : Finset E × E → E)
 theorem lemma_41_const {X Y : Type*} [MeasurableSpace X] (S : Set Y) :
     G_pre (constRV (X := X) S) = checkSet (A := Set X) S :=
   lemma_41 S
+
+/-- Jech 14.15: `‖x = x‖ = 1` in `V^A`. -/
+theorem jech_lemma_14_15 {A : Type*} [CompleteBooleanAlgebra A] (x : AName A) :
+    AName.eqB x x = ⊤ :=
+  AName.eqB_self x
+
+/-- Jech 14.18: mix of an antichain of names. -/
+theorem jech_lemma_14_18 {A ι : Type u} [CompleteBooleanAlgebra A]
+    (u : ι → A) (xs : ι → AName A)
+    (hdis : Pairwise fun i j => u i ⊓ u j = ⊥) (i : ι) :
+    u i ≤ AName.eqB (AName.mix u xs) (xs i) :=
+  AName.mix_le_eqB u xs hdis i
 
 end Scott2026

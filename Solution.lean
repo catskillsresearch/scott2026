@@ -7,7 +7,7 @@ import Scott2026.Basic
 
 export Scott2026 (scaffold_placeholder lemma_12 proposition_27 proposition_27_continuous
   proposition_28_total proposition_28_strict proposition_29 theorem_17_mix
-  theorem_17_complete lemma_41_const)
+  theorem_17_complete lemma_41_const jech_lemma_14_15 jech_lemma_14_18)
 
 /-!
 # Solution to the Challenge
