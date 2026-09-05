@@ -9,6 +9,7 @@ import Scott2026.Setoid
 import Scott2026.RelFun
 import Scott2026.PowerSet
 import Scott2026.Oid
+import Scott2026.RawPowerStrict
 import Scott2026.Domain
 import Scott2026.Lambda
 import Scott2026.Engeler
@@ -196,6 +197,34 @@ theorem definition_11_powerB {A : Type u} [CompleteBooleanAlgebra A]
     (powerBPoset X).eq p q = (oid (powerB X)).eq p q :=
   powerBPoset_eq X p q
 
+/-- Proposition 28, totality of the canonical (fixed-point) carrier of `P^A(X)`.
+This is not raw `proposition_28_va_total`. -/
+theorem proposition_28_va_canonical_total {A : Type u} [CompleteBooleanAlgebra A]
+    (X : AName.{u} A) : (canonicalPowerSetoid X).IsTotal :=
+  canonicalPowerSetoid_isTotal X
+
+/-- Proposition 28, strictness of the canonical (fixed-point) carrier of
+`P^A(X)`. Boolean equality at `⊤` equates membership values; fixed-point
+hypotheses equate indices. This is not raw index-level `IsStrict` and is not
+ground-type `proposition_28_strict`. -/
+theorem proposition_28_va_canonical_strict {A : Type u} [CompleteBooleanAlgebra A]
+    (X : AName.{u} A) : (canonicalPowerSetoid X).IsStrict :=
+  canonicalPowerSetoid_isStrict X
+
+/-- Proposition 28, completeness of the canonical carrier: mix on the raw
+carrier, then normalize. This is not raw `proposition_28_va_complete`. -/
+theorem proposition_28_va_canonical_complete {A : Type u}
+    [CompleteBooleanAlgebra A] (X : AName.{u} A) :
+    (canonicalPowerSetoid X).IsComplete :=
+  canonicalPowerSetoid_isComplete X
+
+/-- Definition 11 on the canonical carrier: symmetrized inclusion is canonical
+`Oid` equality. -/
+theorem definition_11_canonicalPowerB {A : Type u} [CompleteBooleanAlgebra A]
+    (X : AName.{u} A) (p q : CanonicalPowerIdx X) :
+    (canonicalPowerPoset X).eq p q = (canonicalPowerSetoid X).eq p q :=
+  canonicalPowerPoset_eq X p q
+
 /-- Corollary 18: `Oid(P^A(X ×_A Y))` is complete. -/
 theorem corollary_18_prod {A : Type u} [CompleteBooleanAlgebra A]
     (X Y : AName.{u} A) : (oid (powerB (prodB X Y))).IsComplete :=
@@ -254,9 +283,13 @@ theorem definition_13 {A : Type*} [CompleteBooleanAlgebra A] {X Y : Type*}
 -- the `Oid(P^A(X))` level are `theorem_17_va_*` / `corollary_18_*`
 -- (`theorem_17_complete` / `proposition_28_total` / `proposition_28_strict`
 -- remain ground-type). Proposition 28 at `V^A` is `proposition_28_va_complete`
--- / `proposition_28_va_total` (thin-export Theorem 17),
--- `proposition_28_va_canonical_eq` (canonical names on `check Y`, not
--- `IsStrict`), and `definition_11_powerB` / `powerBPoset`.
+-- / `proposition_28_va_total` (thin-export Theorem 17 on the raw carrier),
+-- `proposition_28_va_canonical_eq` (canonical names on `check Y`, not raw
+-- `IsStrict`), `definition_11_powerB` / `powerBPoset`, and the fixed-point
+-- carrier `CanonicalPowerIdx` with `proposition_28_va_canonical_strict` /
+-- `proposition_28_va_canonical_total` / `proposition_28_va_canonical_complete`
+-- / `definition_11_canonicalPowerB`. Raw index-level `IsStrict` is false
+-- (`oid_powerB_not_strict`); there is no `proposition_28_va_strict`.
 -- The continuous-lattice-with-base clause is not stated (no internal
 -- formula language for way-below / continuous lattices in `V^A`).
 

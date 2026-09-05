@@ -18,8 +18,10 @@ Only the functor *data* of Definition 16 is proved here (identity and compositio
 fullness, faithfulness and essential surjectivity — hence `Set_A ≃ SetoidR_A` — are
 not claimed. Theorem 17 and Corollary 18 are the completeness (and fullness) of
 `Oid(P^A(X))` and of `Oid(P^A(X ×_A Y))` / `Oid({X →_A Y})`. Proposition 28 adds
-the `A`-poset `powerBPoset` on the same carrier and canonical-name equality
-on `Oid(P^A(check Y))` (not index-level `IsStrict`).
+the `A`-poset `powerBPoset` on the raw carrier, canonical-name equality on
+`Oid(P^A(check Y))`, and the fixed-point carrier `CanonicalPowerIdx` on which
+the induced setoid is strict (raw index-level `IsStrict` fails when a
+presentation repeats equivalent children).
 -/
 
 universe u
@@ -475,5 +477,184 @@ theorem oid_powerB_check_canonical_eq (Y : PSet.{u})
     rwa [oid_eq_powerB] at h
   refine congr_arg (mk (check (A := A) Y).idx (check (A := A) Y).child) ?_
   exact funext fun i => by rw [eqB_top_memB_right (A := A) heq]
+
+/-!
+## Proposition 28: canonical (fixed-point) carrier of `P^A(X)`
+
+A raw index `p : (powerB X).idx` stores a valuation `p.1 : X.idx → A`. Boolean
+equality at `⊤` only forces `‖t ∈ child p‖ = ‖t ∈ child q‖`, not `p.1 = q.1`,
+because `memB` joins over equivalent children. The fixed points of
+`restrictPowerIdx (child ·) X` store those membership values, so they are
+strict. Completeness is the raw mix followed by this normalization.
+-/
+
+/-- Restriction of `S` to `dom(X)` is idempotent as a `P^A(X)` index. -/
+theorem restrictPowerIdx_restrictName (S X : AName.{u} A) :
+    restrictPowerIdx (restrictName S X) X = restrictPowerIdx S X := by
+  refine Subtype.ext (funext fun i => ?_)
+  change X.val i ⊓ memB (X.child i) (restrictName S X) =
+    X.val i ⊓ memB (X.child i) S
+  refine le_antisymm (le_inf inf_le_left ?le) (le_inf inf_le_left ?ge)
+  · have hmem : memB (X.child i) (restrictName S X) =
+        ⨆ j, eqB (X.child i) (X.child j) ⊓ (X.val j ⊓ memB (X.child j) S) := by
+      rw [restrictName, memB_mk]
+    rw [hmem]
+    refine inf_le_right.trans (iSup_le fun j => ?_)
+    exact (memB_eqB_left' (X.child j) S (X.child i)).trans'
+      (le_inf inf_le_left (inf_le_of_right_le inf_le_right))
+  · have := val_le_memB (restrictName S X) i
+    change X.val i ⊓ memB (X.child i) S ≤
+      memB (X.child i) (restrictName S X) at this
+    exact this
+
+/-- Indices of `P^A(X)` that already store `‖t ∈ ·‖` on `dom(X)`. -/
+def CanonicalPowerIdx (X : AName.{u} A) : Type u :=
+  {p : (powerB X).idx // restrictPowerIdx ((powerB X).child p) X = p}
+
+/-- Every restricted index is a fixed point of restriction. -/
+theorem restrictPowerIdx_isCanonical (S X : AName.{u} A) :
+    restrictPowerIdx ((powerB X).child (restrictPowerIdx S X)) X =
+      restrictPowerIdx S X := by
+  rw [restrictPowerIdx_child, restrictPowerIdx_restrictName]
+
+/-- Normalize a raw `P^A(X)` index to the canonical carrier. -/
+noncomputable def normalizePowerIdx (X : AName.{u} A) (p : (powerB X).idx) :
+    CanonicalPowerIdx X :=
+  ⟨restrictPowerIdx ((powerB X).child p) X, restrictPowerIdx_isCanonical _ X⟩
+
+theorem normalizePowerIdx_val (X : AName.{u} A) (p : (powerB X).idx) :
+    (normalizePowerIdx X p).1 = restrictPowerIdx ((powerB X).child p) X :=
+  rfl
+
+/-- Normalization lands in the canonical carrier (packaged). -/
+theorem normalizePowerIdx_isCanonical (X : AName.{u} A) (p : (powerB X).idx) :
+    restrictPowerIdx ((powerB X).child (normalizePowerIdx X p).1) X =
+      (normalizePowerIdx X p).1 :=
+  (normalizePowerIdx X p).2
+
+/-- Normalization is idempotent on raw indices. -/
+theorem normalizePowerIdx_idem (X : AName.{u} A) (p : (powerB X).idx) :
+    normalizePowerIdx X (normalizePowerIdx X p).1 = normalizePowerIdx X p :=
+  Subtype.ext (restrictPowerIdx_isCanonical ((powerB X).child p) X)
+
+/-- A canonical index is a fixed point of normalization. -/
+theorem normalizePowerIdx_canonical (X : AName.{u} A) (p : CanonicalPowerIdx X) :
+    normalizePowerIdx X p.1 = p :=
+  Subtype.ext p.2
+
+/-- `S ⊆ X` implies `‖S = restrictName S X‖ = 1`. -/
+theorem eqB_restrictName_of_subsetB (S X : AName.{u} A) (h : subsetB S X = ⊤) :
+    eqB S (restrictName S X) = ⊤ :=
+  top_unique ((subsetB_le_eqB_restrict S X).trans' h.ge)
+
+/-- Each raw element is Boolean-equal at `⊤` to its normalization. -/
+theorem normalizePowerIdx_eqB (X : AName.{u} A) (p : (powerB X).idx) :
+    eqB ((powerB X).child p) ((powerB X).child (normalizePowerIdx X p).1) = ⊤ := by
+  rw [normalizePowerIdx_val, restrictPowerIdx_child]
+  exact eqB_restrictName_of_subsetB _ X (subsetB_child_powerB X p)
+
+theorem normalizePowerIdx_oid_eq (X : AName.{u} A) (p : (powerB X).idx) :
+    (oid (powerB X)).eq p (normalizePowerIdx X p).1 = ⊤ := by
+  rw [oid_eq_powerB]
+  exact normalizePowerIdx_eqB X p
+
+theorem eqB_top_subsetB_left {x y z : AName.{u} A} (h : eqB x y = ⊤) :
+    subsetB x z = subsetB y z := by
+  have hxy : subsetB x y = ⊤ := top_unique (h.symm ▸ eqB_le_subsetB x y)
+  have hyx : subsetB y x = ⊤ := by
+    rw [eqB_comm] at h
+    exact top_unique (h.symm ▸ eqB_le_subsetB y x)
+  refine le_antisymm ?_ ?_
+  · have := subsetB_trans y x z
+    rwa [hyx, top_inf_eq] at this
+  · have := subsetB_trans x y z
+    rwa [hxy, top_inf_eq] at this
+
+theorem eqB_top_subsetB_right {x y z : AName.{u} A} (h : eqB y z = ⊤) :
+    subsetB x y = subsetB x z :=
+  iInf_congr fun i => by rw [eqB_top_memB_right h]
+
+/-- Boolean inclusion is preserved by normalization. -/
+theorem normalizePowerIdx_subsetB (X : AName.{u} A) (p q : (powerB X).idx) :
+    subsetB ((powerB X).child (normalizePowerIdx X p).1)
+      ((powerB X).child (normalizePowerIdx X q).1) =
+    subsetB ((powerB X).child p) ((powerB X).child q) := by
+  rw [eqB_top_subsetB_left (normalizePowerIdx_eqB X p),
+    eqB_top_subsetB_right (normalizePowerIdx_eqB X q)]
+
+/-- Boolean equality is preserved by normalization. -/
+theorem normalizePowerIdx_eqB_eq (X : AName.{u} A) (p q : (powerB X).idx) :
+    eqB ((powerB X).child (normalizePowerIdx X p).1)
+      ((powerB X).child (normalizePowerIdx X q).1) =
+    eqB ((powerB X).child p) ((powerB X).child q) := by
+  rw [eqB_eq_subset, eqB_eq_subset, normalizePowerIdx_subsetB,
+    normalizePowerIdx_subsetB]
+
+/-- Definition 14 on the canonical carrier: restrict `Oid(P^A(X))`. -/
+noncomputable def canonicalPowerSetoid (X : AName.{u} A) :
+    ASetoid (A := A) (CanonicalPowerIdx X) where
+  eq p q := (oid (powerB X)).eq p.1 q.1
+  symm p q := (oid (powerB X)).symm p.1 q.1
+  trans p q r := (oid (powerB X)).trans p.1 q.1 r.1
+
+@[simp] theorem canonicalPowerSetoid_eq (X : AName.{u} A)
+    (p q : CanonicalPowerIdx X) :
+    (canonicalPowerSetoid X).eq p q = (oid (powerB X)).eq p.1 q.1 :=
+  rfl
+
+/-- Definition 11 on the canonical carrier: restrict `powerBPoset`. -/
+noncomputable def canonicalPowerPoset (X : AName.{u} A) :
+    APoset (A := A) (CanonicalPowerIdx X) where
+  le p q := (powerBPoset X).le p.1 q.1
+  trans p q r := (powerBPoset X).trans p.1 q.1 r.1
+  le_le_refl p q := (powerBPoset X).le_le_refl p.1 q.1
+
+@[simp] theorem canonicalPowerPoset_le (X : AName.{u} A)
+    (p q : CanonicalPowerIdx X) :
+    (canonicalPowerPoset X).le p q =
+      subsetB ((powerB X).child p.1) ((powerB X).child q.1) :=
+  rfl
+
+/-- Definition 11, equation (1) on the canonical carrier. -/
+theorem canonicalPowerPoset_eq (X : AName.{u} A) (p q : CanonicalPowerIdx X) :
+    (canonicalPowerPoset X).eq p q = (canonicalPowerSetoid X).eq p q :=
+  powerBPoset_eq X p.1 q.1
+
+/-- The canonical carrier is total: each restricted child still has extent `⊤`. -/
+theorem canonicalPowerSetoid_isTotal (X : AName.{u} A) :
+    (canonicalPowerSetoid X).IsTotal := fun p =>
+  oid_powerB_isTotal X p.1
+
+/-- The canonical carrier is strict for arbitrary `X`: Boolean equality at `⊤`
+    equates membership values, and the fixed-point hypotheses equate indices. -/
+theorem canonicalPowerSetoid_isStrict (X : AName.{u} A) :
+    (canonicalPowerSetoid X).IsStrict := by
+  intro p q h
+  have heq : eqB ((powerB X).child p.1) ((powerB X).child q.1) = ⊤ := by
+    rwa [canonicalPowerSetoid_eq, oid_eq_powerB] at h
+  have hrest :
+      restrictPowerIdx ((powerB X).child p.1) X =
+      restrictPowerIdx ((powerB X).child q.1) X :=
+    Subtype.ext (funext fun i => by
+      change X.val i ⊓ memB (X.child i) ((powerB X).child p.1) =
+        X.val i ⊓ memB (X.child i) ((powerB X).child q.1)
+      rw [eqB_top_memB_right heq])
+  refine Subtype.ext ?_
+  calc p.1 = restrictPowerIdx ((powerB X).child p.1) X := p.2.symm
+    _ = restrictPowerIdx ((powerB X).child q.1) X := hrest
+    _ = q.1 := q.2
+
+/-- Completeness: mix on the raw carrier, then normalize. The mix is
+    Boolean-equal at `⊤` to its restriction, so it remains a mix witness. -/
+theorem canonicalPowerSetoid_isComplete (X : AName.{u} A) :
+    (canonicalPowerSetoid X).IsComplete := by
+  intro ι a p hcomp
+  obtain ⟨m, hm⟩ :=
+    oid_powerB_isComplete X ι a (fun k => (p k).1) (fun k₁ k₂ => hcomp k₁ k₂)
+  refine ⟨normalizePowerIdx X m, fun k => ?_⟩
+  have hmn : (oid (powerB X)).eq m (normalizePowerIdx X m).1 = ⊤ :=
+    normalizePowerIdx_oid_eq X m
+  refine ((oid (powerB X)).trans (p k).1 m (normalizePowerIdx X m).1).trans' ?_
+  exact le_inf (hm k) (by rw [hmn]; exact le_top)
 
 end Scott2026
