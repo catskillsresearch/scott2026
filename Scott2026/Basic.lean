@@ -83,11 +83,22 @@ theorem jech_lemma_14_15 {A : Type*} [CompleteBooleanAlgebra A] (x : AName A) :
     AName.eqB x x = ⊤ :=
   AName.eqB_self x
 
+/-- Jech 14.16: transitivity of equality and substitution into membership. -/
+theorem jech_lemma_14_16 {A : Type u} [CompleteBooleanAlgebra A]
+    (x y z : AName A) :
+    (AName.eqB x y ⊓ AName.eqB y z ≤ AName.eqB x z) ∧
+    (AName.memB x y ⊓ AName.eqB x z ≤ AName.memB z y) ∧
+    (AName.memB y x ⊓ AName.eqB x z ≤ AName.memB y z) :=
+  AName.model_laws x y z
+
 /-- Jech 14.18: mix of an antichain of names. -/
 theorem jech_lemma_14_18 {A ι : Type u} [CompleteBooleanAlgebra A]
     (u : ι → A) (xs : ι → AName A)
     (hdis : Pairwise fun i j => u i ⊓ u j = ⊥) (i : ι) :
     u i ≤ AName.eqB (AName.mix u xs) (xs i) :=
   AName.mix_le_eqB u xs hdis i
+
+-- Jech 14.19, CSL Theorem 1(iii), and Jech 14.21 are `jech_lemma_14_19`,
+-- `theorem_1_iii`, and `jech_lemma_14_21` from `Scott2026.VA`.
 
 end Scott2026
