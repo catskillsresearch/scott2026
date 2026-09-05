@@ -57,42 +57,45 @@ theorem lam_least_inductive {S : Set (Lam Var)} (h : IsInductive S) :
 
 end Lam
 
-/-- Definition 23: the equational theory `λ`. -/
-inductive LamEq : Lam Var → Lam Var → Prop where
+/-- Definition 23: the equational theory `λ`, including β. -/
+inductive LamEq [DecidableEq Var] : Lam Var → Lam Var → Prop where
   | refl (M : Lam Var) : LamEq M M
   | symm {M N : Lam Var} : LamEq M N → LamEq N M
   | trans {M N L : Lam Var} : LamEq M N → LamEq N L → LamEq M L
   | app_left {M N Z : Lam Var} : LamEq M N → LamEq (M.app Z) (N.app Z)
   | app_right {M N Z : Lam Var} : LamEq M N → LamEq (Z.app M) (Z.app N)
   | xi (x : Var) {M N : Lam Var} : LamEq M N → LamEq (Lam.abs x M) (Lam.abs x N)
+  | beta (x : Var) (M N : Lam Var) : LamEq ((Lam.abs x M).app N) (Lam.subst M x N)
 
-/-- Definition 23 (i): β-conversion, as a named equation. -/
+/-- Definition 23 (i): β-conversion. -/
 def lamEq_beta [DecidableEq Var] (x : Var) (M N : Lam Var) : Prop :=
   LamEq ((Lam.abs x M).app N) (Lam.subst M x N)
 
-/-- Church Booleans and numerals (used in Definition 32 / Proposition 33). -/
-def churchTrue (Var : Type*) [Inhabited Var] : Lam Var :=
-  let x := default
-  let y := default
-  Lam.abs x (Lam.abs y (Lam.var x))
+/-- Church Booleans on two distinct names (Definition 32 / Proposition 33). -/
+def churchTrue : Lam (Fin 2) :=
+  Lam.abs 0 (Lam.abs 1 (Lam.var 0))
 
-def churchFalse (Var : Type*) [Inhabited Var] : Lam Var :=
-  let x := default
-  let y := default
-  Lam.abs x (Lam.abs y (Lam.var y))
+def churchFalse : Lam (Fin 2) :=
+  Lam.abs 0 (Lam.abs 1 (Lam.var 1))
 
-/-- Church numeral `n` (two nested abstractions, `n` applications of the first
-variable to the second). Uses two names `f, x` from an inhabited type. -/
-def churchNum (Var : Type*) [Inhabited Var] : ℕ → Lam Var
-  | 0 =>
-      let f := default
-      let x := default
-      Lam.abs f (Lam.abs x (Lam.var x))
+theorem churchTrue_ne_false : churchTrue ≠ churchFalse := by
+  intro h
+  injection h with _ hbody
+  injection hbody with _ hbody2
+  injection hbody2 with h3
+  exact Fin.zero_ne_one h3
+
+/-- Church numeral `n` as `λf. λx. fⁿ x` on `Fin 2`. -/
+def churchNum : ℕ → Lam (Fin 2)
+  | 0 => Lam.abs 0 (Lam.abs 1 (Lam.var 1))
   | n + 1 =>
-      let f := default
-      let x := default
-      -- λf. λx. f (c_n f x)
-      Lam.abs f (Lam.abs x
-        (Lam.app (Lam.var f) (Lam.app (Lam.app (churchNum Var n) (Lam.var f)) (Lam.var x))))
+      Lam.abs 0 (Lam.abs 1
+        (Lam.app (Lam.var 0)
+          (Lam.app (Lam.app (churchNum n) (Lam.var 0)) (Lam.var 1))))
+
+/-- The Church `if` combinator `λb. λt. λe. b t e`, using a third name. -/
+def churchIf : Lam (Fin 3) :=
+  Lam.abs 0 (Lam.abs 1 (Lam.abs 2
+    (Lam.app (Lam.app (Lam.var 0) (Lam.var 1)) (Lam.var 2))))
 
 end Scott2026

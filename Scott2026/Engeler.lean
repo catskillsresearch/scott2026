@@ -12,6 +12,8 @@ import Scott2026.Domain
 # The Engeler model (Proposition 29) and numerals (Definition 32)
 -/
 
+open Set
+
 namespace Scott2026
 
 variable {E : Type*}
@@ -52,6 +54,49 @@ theorem prop29_retract [DecidableEq E] (pair : Finset E × E → E)
     engelerApp pair (engelerLam pair f) X = f X := by
   rw [engelerApp_lam pair hpair, hf X]
 
+/-- Determined-by-finite maps are monotone. -/
+theorem DeterminedByFinite.monotone {f : Set E → Set E} (hf : DeterminedByFinite f) :
+    Monotone f := by
+  intro X Y hXY q hq
+  have hq' : q ∈ {q | ∃ K : Finset E, (↑K : Set E) ⊆ X ∧ q ∈ f (↑K)} := by
+    simpa [hf X] using hq
+  obtain ⟨K, hK, hqK⟩ := hq'
+  have : q ∈ {q | ∃ K : Finset E, (↑K : Set E) ⊆ Y ∧ q ∈ f (↑K)} :=
+    ⟨K, hK.trans hXY, hqK⟩
+  simpa [hf Y] using this
+
+/-- Scott-continuous maps `Set E → Set E` are determined by finite sets. -/
+theorem determinedByFinite_of_scottContinuous {f : Set E → Set E}
+    (hf : ScottContinuous f) : DeterminedByFinite f := by
+  intro X
+  let 𝒟 : Set (Set E) := {S | S.Finite ∧ S ⊆ X}
+  have hdir := finite_subsets_directed X
+  have hne : 𝒟.Nonempty := ⟨∅, finite_empty, empty_subset _⟩
+  have hlub : IsLUB 𝒟 X := by
+    refine ⟨?upper, ?least⟩
+    · intro S hS
+      exact hS.2
+    · intro T hT
+      rw [← sUnion_finite_subsets X]
+      intro x hx
+      obtain ⟨S, hS, hxS⟩ := (mem_sUnion.mp hx)
+      exact hT hS hxS
+  have hsup : ⋃₀ (f '' 𝒟) = f X := by
+    simpa [sSup_eq_sUnion] using (hf hne hdir hlub).sSup_eq
+  ext q
+  constructor
+  · intro hq
+    have : q ∈ ⋃₀ (f '' 𝒟) := by rwa [hsup]
+    obtain ⟨t, ht, hqt⟩ := mem_sUnion.mp this
+    obtain ⟨S, hS, rfl⟩ := (Set.mem_image _ _ _).mp ht
+    refine ⟨hS.1.toFinset, ?_, ?_⟩
+    · simpa [hS.1.coe_toFinset] using hS.2
+    · simpa [hS.1.coe_toFinset] using hqt
+  · intro ⟨K, hK, hq⟩
+    have ht : f (↑K) ∈ f '' 𝒟 := ⟨↑K, ⟨K.finite_toSet, hK⟩, rfl⟩
+    have : q ∈ ⋃₀ (f '' 𝒟) := mem_sUnion.mpr ⟨f (↑K), ht, hq⟩
+    rwa [hsup] at this
+
 /-- Definition 32: a reflexive dcpo with numerals. We record the algebraic
 interface (distinct Booleans, `if`/`succ`/`pred`/`0?`) without a particular
 encoding of closed terms as domain elements. -/
@@ -67,6 +112,13 @@ structure ReflexiveDcpoWithNumerals (D : Type*) [CompleteLattice D]
 noncomputable def chiNum {D : Type*} [CompleteLattice D] (R : ReflexiveDcpoWithNumerals D)
     (S : Set ℕ) (n : ℕ) : D :=
   @ite D (n ∈ S) (Classical.propDecidable _) R.boolTop R.boolBot
+
+/-- Lemma 35(ii), given a Scott-continuous extension of `χ_A` off the numerals. -/
+theorem lemma_35_ii_of_extension {D : Type*} [CompleteLattice D]
+    (R : ReflexiveDcpoWithNumerals D) (S : Set ℕ) (g : D → D)
+    (hg : IsScottContinuous g) (hgS : ∀ n, g (R.numeral n) = chiNum R S n) (n : ℕ) :
+    R.app (R.lam g) (R.numeral n) = chiNum R S n := by
+  rw [ReflexiveDcpo.app, R.retract g hg, hgS]
 
 /-- Proposition 36: `S₁ ≤_m S₂` via a numeral-to-numeral λ-term `f` and oracles. -/
 def ManyOneLe {D : Type*} [CompleteLattice D] (R : ReflexiveDcpoWithNumerals D)

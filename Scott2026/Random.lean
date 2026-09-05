@@ -46,6 +46,14 @@ theorem l0Le_trans (a b c : X → Set Y) : l0Le a b ∩ l0Le b c ⊆ l0Le a c :=
   simp [l0Le] at hx ⊢
   exact hx.1.trans hx.2
 
+/-- Lemma 38, unquotiented: `ℒ⁰` is an `A`-poset for `A = Set X`. -/
+def l0APoset : APoset (A := Set X) (X → Set Y) where
+  le := l0Le
+  trans := fun a b c => l0Le_trans a b c
+  le_le_refl := fun a b => by
+    intro x _hx
+    exact ⟨by simp [l0Le], by simp [l0Le]⟩
+
 /-- A negligibility space (paper §5): a measurable space with a σ-ideal `N`
 such that the quotient algebra is complete. We record the ideal; completeness
 of `Set X / N` is a hypothesis of the constructions that need it. -/
@@ -73,12 +81,17 @@ theorem constRV_isL0 (S : Set Y) : IsL0 (X := X) (constRV S) := by
 def G_pre (a : X → Set Y) : ASubset (Set X) Y :=
   fun y => a ⁻¹' posBasic y
 
-theorem G_pre_const (S : Set Y) :
+/-- Lemma 41: the constant random variable `K_S` is sent to the check-set `Š`. -/
+theorem lemma_41 (S : Set Y) :
     G_pre (constRV (X := X) S) = checkSet (A := Set X) S := by
   ext y
   by_cases hy : y ∈ S
   · simp [G_pre, constRV, posBasic, checkSet, hy]
   · simp [G_pre, constRV, posBasic, checkSet, hy]
+
+theorem G_pre_const (S : Set Y) :
+    G_pre (constRV (X := X) S) = checkSet (A := Set X) S :=
+  lemma_41 S
 
 /-- Proposition 44 records that `L⁰` is typically *not* a continuous dcpo
 externally; the paper proves this when the associated algebra is non-atomic.

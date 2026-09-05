@@ -49,7 +49,6 @@ theorem subsetB_trans (u v w : ASubset A X) :
   refine this.trans ?_
   rw [le_himp_iff]
   have h := himp_inf_himp_inf_le (a := u x) (b := v x) (c := w x)
-  -- `(v ⇨ w) ⊓ (u ⇨ v) ⊓ u ≤ w`
   simpa [inf_left_comm, inf_comm] using h
 
 /-- The `A`-valued power set of a ground type, as an `A`-setoid (Definition 14). -/
@@ -80,5 +79,53 @@ theorem powerSetoid_isTotal : (powerSetoid (A := A) (X := X)).IsTotal := by
 /-- Mix of a compatible family of `A`-subsets (the witness used in Theorem 17). -/
 def mixSubset {ι : Type*} (a : ι → A) (u : ι → ASubset A X) : ASubset A X :=
   fun x => ⨆ i, a i ⊓ u i x
+
+/-- Theorem 17, completeness of `Oid(𝒫^A(X))` on ground types. -/
+theorem powerSetoid_isComplete : (powerSetoid (A := A) (X := X)).IsComplete := by
+  intro ι a u hcomp
+  refine ⟨mixSubset a u, fun i => ?_⟩
+  unfold ASetoid.eq powerSetoid eqB
+  refine le_inf ?le_mix ?mix_le
+  · unfold subsetB mixSubset
+    refine le_iInf fun x => ?_
+    rw [le_himp_iff]
+    exact le_iSup_of_le i le_rfl
+  · unfold subsetB mixSubset
+    refine le_iInf fun x => ?_
+    rw [le_himp_iff, iSup]
+    refine ((inf_sSup_eq (a := a i)
+        (s := Set.range fun j : ι => a j ⊓ u j x)).le).trans ?_
+    refine iSup_le fun b => iSup_le fun hb => ?_
+    obtain ⟨j, rfl⟩ := hb
+    have hji : a i ⊓ a j ≤ subsetB (u j) (u i) :=
+      (hcomp i j).trans inf_le_right
+    have : a i ⊓ a j ≤ himp (u j x) (u i x) :=
+      hji.trans (iInf_le (fun y => himp (u j y) (u i y)) x)
+    exact (inf_assoc (a i) (a j) (u j x)).symm.trans_le (le_himp_iff.mp this)
+
+/-- Proposition 28, strictness on ground types: `‖u = v‖ = 1` implies `u = v`. -/
+theorem powerSetoid_isStrict : (powerSetoid (A := A) (X := X)).IsStrict := by
+  intro u v h
+  unfold ASetoid.eq powerSetoid eqB at h
+  have huv : subsetB u v = ⊤ := top_unique (h.symm ▸ inf_le_left)
+  have hvu : subsetB v u = ⊤ := top_unique (h.symm ▸ inf_le_right)
+  funext x
+  have h₁ : himp (u x) (v x) = ⊤ :=
+    top_unique (huv.symm ▸ iInf_le (fun y => himp (u y) (v y)) x)
+  have h₂ : himp (v x) (u x) = ⊤ :=
+    top_unique (hvu.symm ▸ iInf_le (fun y => himp (v y) (u y)) x)
+  exact le_antisymm (himp_eq_top_iff.mp h₁) (himp_eq_top_iff.mp h₂)
+
+/-- `𝒫^A(X)` as an `A`-poset under Boolean-valued inclusion. -/
+def powerPoset : APoset (A := A) (ASubset A X) where
+  le := subsetB
+  trans := subsetB_trans
+  le_le_refl := fun u v => by
+    have hu : subsetB u u = ⊤ := by
+      unfold subsetB; simp [himp_self]
+    have hv : subsetB v v = ⊤ := by
+      unfold subsetB; simp [himp_self]
+    rw [hu, hv, inf_top_eq]
+    exact le_top
 
 end Scott2026

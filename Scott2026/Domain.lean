@@ -86,8 +86,7 @@ theorem sUnion_finite_subsets {X : Type*} (T : Set X) :
       mem_singleton x⟩
 
 /-- Proposition 27, one direction: if `S ≪ T` in `Set X`, then `S` is finite
-and `S ⊆ T`. The converse (finite subsets are way-below) is the standard
-compactness of finite sets in the algebraic lattice `Set X`. -/
+and `S ⊆ T`. -/
 theorem prop27_wayBelow_of {X : Type*} {S T : Set X}
     (h : WayBelow (D := Set X) S T) : S.Finite ∧ S ⊆ T := by
   have hdir := finite_subsets_directed T
@@ -100,5 +99,44 @@ theorem prop27_wayBelow_of {X : Type*} {S T : Set X}
     simpa [sSup_eq_sUnion] using this
   obtain ⟨U, hU, hSU⟩ := h hne hdir hle
   exact ⟨hU.1.subset hSU, hSU.trans hU.2⟩
+
+/-- Proposition 27, converse: a finite subset of `T` is way-below `T`. -/
+theorem prop27_wayBelow_finite {X : Type*} {S T : Set X}
+    (hS : S.Finite) (hST : S ⊆ T) : WayBelow (D := Set X) S T := by
+  intro 𝒟 hne hdir hTle
+  have hT : T ⊆ ⋃₀ 𝒟 := by simpa [sSup_eq_sUnion] using hTle
+  have : ∀ {S' : Set X} (_hS' : S'.Finite), S' ⊆ T → ∃ U ∈ 𝒟, S' ⊆ U := by
+    intro S' hS'
+    refine Set.Finite.induction_on (motive := fun S' _ => S' ⊆ T → ∃ U ∈ 𝒟, S' ⊆ U)
+      S' hS' ?empty ?insert
+    · intro _
+      obtain ⟨U, hU⟩ := hne
+      exact ⟨U, hU, empty_subset U⟩
+    · intro a s ha hs ih hsT
+      have hs_sub : s ⊆ T := (subset_insert a s).trans hsT
+      obtain ⟨U, hU, hUs⟩ := ih hs_sub
+      have haT : a ∈ T := hsT (mem_insert a s)
+      obtain ⟨V, hV, haV⟩ := mem_sUnion.mp (hT haT)
+      obtain ⟨W, hW, hUW, hVW⟩ := hdir U hU V hV
+      exact ⟨W, hW, insert_subset (hVW haV) (hUs.trans hUW)⟩
+  exact this hS hST
+
+/-- Proposition 27: `S ≪ T` in `𝒫(X)` iff `S` is finite and `S ⊆ T`. -/
+theorem prop27_wayBelow_iff {X : Type*} {S T : Set X} :
+    WayBelow (D := Set X) S T ↔ S.Finite ∧ S ⊆ T :=
+  ⟨prop27_wayBelow_of, fun h => prop27_wayBelow_finite h.1 h.2⟩
+
+/-- The way-below sets in `𝒫(X)` are exactly the finite subsets. -/
+theorem wayBelow_set_eq {X : Type*} (T : Set X) :
+    {S : Set X | S ≪ T} = {S | S.Finite ∧ S ⊆ T} := by
+  ext S
+  exact prop27_wayBelow_iff
+
+/-- Proposition 27: `𝒫(X)` is a continuous lattice, with finite subsets as a base. -/
+theorem isContinuousLattice_set (X : Type*) : IsContinuousLattice (Set X) := by
+  intro T
+  rw [wayBelow_set_eq]
+  exact ⟨finite_subsets_directed T,
+    ((sSup_eq_sUnion _).trans (sUnion_finite_subsets T)).symm⟩
 
 end Scott2026
