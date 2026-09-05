@@ -393,7 +393,9 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- are Finset-supported (`Valuation` / `Valuation.update` / `Valuation.empty`).
 -- The meta-lambda is Scott-continuous (`interp_update_scott`), so `lam` is
 -- applied to a map in the retract class. There is no constant clause.
--- [4, Theorem 5.4.4] soundness is not proved (needs a substitution lemma).
+-- [4, Theorem 5.4.4] is `interp_sound` / `definition_25_sound` on the
+-- capture-free fragment `LamEqNC` (`interp_subst` needs `Lam.FreeFor`;
+-- `Lam.subst` does not rename). Capturing `LamEq.beta` is not claimed.
 -- This is not `SetoidF_A(Λ^A, D)`, not A-valued `⟦·⟧^A_ρ`, and not
 -- Theorem 26.
 
@@ -494,5 +496,38 @@ theorem definition_25_closed {Var D : Type*} [DecidableEq Var] [CompleteLattice 
     (R : ReflexiveDcpo D) (M : Lam Var) :
     interpClosed R M = interp R M Valuation.empty :=
   interp_closed R M
+
+/-- [4, Theorem 5.4.4] substitution lemma, restricted to `N` free for `x`.
+Unrestricted `interp_subst` is false: `Lam.subst` does not rename. -/
+theorem definition_25_subst {Var D : Type*} [DecidableEq Var] [CompleteLattice D]
+    (R : ReflexiveDcpo D) (M N : Lam Var) (x : Var) (ρ : Valuation Var D)
+    (hfree : M.FreeFor x N) :
+    interp R (M.subst x N) ρ = interp R M (ρ.update x (interp R N ρ)) :=
+  interp_subst R M N x ρ hfree
+
+/-- [4, Theorem 5.4.4] β-soundness when `N` is free for `x` in `M`.
+Capturing β is not claimed. -/
+theorem definition_25_sound_beta {Var D : Type*} [DecidableEq Var]
+    [CompleteLattice D] (R : ReflexiveDcpo D) (x : Var) (M N : Lam Var)
+    (ρ : Valuation Var D) (hfree : M.FreeFor x N) :
+    interp R ((Lam.abs x M).app N) ρ = interp R (M.subst x N) ρ :=
+  interp_sound_beta R x M N ρ hfree
+
+/-- [4, Theorem 5.4.4] on the capture-free fragment: `LamEqNC M N` implies
+`⟦M⟧_ρ = ⟦N⟧_ρ`. Not unrestricted `LamEq` (no α-rule; capturing β is
+unsound for this `subst`). -/
+theorem definition_25_sound {Var D : Type*} [DecidableEq Var] [CompleteLattice D]
+    (R : ReflexiveDcpo D) {M N : Lam Var} (h : LamEqNC M N)
+    (ρ : Valuation Var D) :
+    interp R M ρ = interp R N ρ :=
+  interp_sound R h ρ
+
+/-- [4, Theorem 5.4.4], closed form: capture-free equations are sound at
+`⟦·⟧_∅`. -/
+theorem definition_25_sound_closed {Var D : Type*} [DecidableEq Var]
+    [CompleteLattice D] (R : ReflexiveDcpo D) {M N : Lam Var}
+    (h : LamEqNC M N) :
+    interpClosed R M = interpClosed R N :=
+  interpClosed_sound R h
 
 end Scott2026

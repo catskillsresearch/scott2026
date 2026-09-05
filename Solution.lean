@@ -49,8 +49,13 @@ export Scott2026 (scaffold_placeholder lemma_12 proposition_27 proposition_27_co
   example_24 example_24_va example_24_subset
   Valuation interp interpClosed interp_var interp_app interp_abs
   interp_closed interp_agree interp_update_scott
+  interp_subst interp_sound interp_sound_beta interpClosed_sound
+  LamEqNC
   definition_25 definition_25_var definition_25_app definition_25_abs
-  definition_25_closed)
+  definition_25_closed definition_25_subst definition_25_sound
+  definition_25_sound_beta definition_25_sound_closed)
+
+export Scott2026.Lam (FreeFor subst_fresh freeFor_of_not_mem_fv freeFor_of_closed)
 
 /-!
 # Solution to the Challenge

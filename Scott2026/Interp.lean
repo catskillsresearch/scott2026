@@ -31,11 +31,18 @@ For closed terms, `⟦M⟧ := ⟦M⟧_∅`.
 
 The meta-lambda `d ↦ ⟦M⟧_{ρ(x := d)}` is Scott-continuous
 (`interp_update_scott`), so `ReflexiveDcpo.lam` is applied to a map in
-the retract’s Scott-continuous class. This module does **not** prove
-[4, Theorem 5.4.4] soundness (`λ ⊢ M = N ⇒ ⟦M⟧_ρ = ⟦N⟧_ρ`): that needs a
-substitution lemma `⟦M[x := N]⟧_ρ = ⟦M⟧_{ρ(x := ⟦N⟧_ρ)}`, which is not
-immediate from the retract. There is no `SetoidF_A` map, no A-valued
-`⟦·⟧^A_ρ`, and no Theorem 26.
+the retract’s Scott-continuous class.
+
+[4, Theorem 5.4.4] soundness is `interp_sound` on the capture-free
+fragment `LamEqNC`: if `LamEqNC M N` then `interp R M ρ = interp R N ρ`
+(the valuation is a total `toFun`, as already used by `interp`;
+`interp_agree` makes dummy off-domain values irrelevant whenever
+`fv(M) ⊆ dom(ρ)`). The β case uses `ReflexiveDcpo.retract` and
+`interp_subst`, which requires `Lam.FreeFor` because `Lam.subst` does
+not rename binders. Unrestricted `interp_subst` and soundness of
+capturing `LamEq.beta` are false (e.g. `(λx. λy. x) y` versus `λy. y`).
+There is no α-rule, no `SetoidF_A` map, no A-valued `⟦·⟧^A_ρ`, and no
+Theorem 26.
 -/
 
 open Set Function
@@ -295,5 +302,117 @@ theorem interp_update_scott (R : ReflexiveDcpo D) (M : Lam Var)
     · convert ih (ρ.update y e) x using 1
       funext d
       simp [Valuation.update_comm hxy]
+
+/-- Updating a variable that is not free does not change the interpretation. -/
+theorem interp_update_fresh (R : ReflexiveDcpo D) (M : Lam Var)
+    (ρ : Valuation Var D) (x : Var) (d : D) (h : x ∉ M.fv) :
+    interp R M (ρ.update x d) = interp R M ρ := by
+  refine interp_agree R M _ _ ?_
+  intro y hy
+  have hyx : y ≠ x := fun hxy => h (hxy ▸ hy)
+  exact Valuation.update_toFun_of_ne ρ d hyx
+
+/-- Substitution lemma, restricted to `N` free for `x` in `M`. Unrestricted
+equality is false: `Lam.subst` does not rename, so a binder `y ≠ x` with
+`y ∈ fv(N)` captures. The missing lemma for the capturing case is
+freshness `y ∉ fv(N)` or α-conversion; neither is added. -/
+theorem interp_subst (R : ReflexiveDcpo D) (M N : Lam Var) (x : Var)
+    (ρ : Valuation Var D) (hfree : M.FreeFor x N) :
+    interp R (M.subst x N) ρ = interp R M (ρ.update x (interp R N ρ)) := by
+  induction M generalizing ρ with
+  | var y =>
+    simp only [Lam.subst]
+    by_cases hyx : y = x
+    · subst hyx
+      simp [interp]
+    · simp [hyx, interp]
+  | app M₁ M₂ ih₁ ih₂ =>
+    obtain ⟨h₁, h₂⟩ := hfree
+    simp only [Lam.subst, interp]
+    rw [ih₁ ρ h₁, ih₂ ρ h₂]
+  | abs y M ih =>
+    simp only [Lam.subst]
+    split_ifs with hyx
+    · subst hyx
+      simp only [interp]
+      congr 1
+      funext d
+      rw [Valuation.update_overwrite]
+    · obtain ⟨hM, hcap⟩ := Lam.freeFor_abs_of_ne hyx hfree
+      simp only [interp]
+      congr 1
+      funext d
+      cases hcap with
+      | inl hyN =>
+        have hN : interp R N (ρ.update y d) = interp R N ρ :=
+          interp_update_fresh R N ρ y d hyN
+        rw [ih (ρ.update y d) hM, hN, Valuation.update_comm hyx]
+      | inr hxM =>
+        rw [Lam.subst_fresh N hxM]
+        refine interp_agree R M _ _ ?_
+        intro z hz
+        have hzx : z ≠ x := fun hzx => hxM (hzx ▸ hz)
+        by_cases hzy : z = y
+        · subst hzy
+          simp
+        · simp [Valuation.update_toFun_of_ne ρ d hzy,
+            Valuation.update_toFun_of_ne (ρ.update x (interp R N ρ)) d hzy,
+            Valuation.update_toFun_of_ne ρ (interp R N ρ) hzx]
+
+/-- [4, Theorem 5.4.4] β-case: `⟦(λx. M) N⟧_ρ = ⟦M[x := N]⟧_ρ` when `N` is
+free for `x` in `M`. Uses `ReflexiveDcpo.retract` on the Scott-continuous
+meta-lambda. Capturing β is not claimed. -/
+theorem interp_sound_beta (R : ReflexiveDcpo D) (x : Var) (M N : Lam Var)
+    (ρ : Valuation Var D) (hfree : M.FreeFor x N) :
+    interp R ((Lam.abs x M).app N) ρ = interp R (M.subst x N) ρ := by
+  have hsc : IsScottContinuous (fun d => interp R M (ρ.update x d)) :=
+    interp_update_scott R M ρ x
+  calc
+    interp R ((Lam.abs x M).app N) ρ
+        = R.app (R.lam fun d => interp R M (ρ.update x d)) (interp R N ρ) :=
+      rfl
+    _ = (fun d => interp R M (ρ.update x d)) (interp R N ρ) := by
+      change R.funMap (R.lam fun d => interp R M (ρ.update x d)) (interp R N ρ) =
+        (fun d => interp R M (ρ.update x d)) (interp R N ρ)
+      rw [R.retract _ hsc]
+    _ = interp R M (ρ.update x (interp R N ρ)) :=
+      rfl
+    _ = interp R (M.subst x N) ρ :=
+      (interp_subst R M N x ρ hfree).symm
+
+/-- [4, Theorem 5.4.4] on the capture-free fragment: `LamEqNC M N` implies
+`⟦M⟧_ρ = ⟦N⟧_ρ`. Congruence rules need no freshness; β needs `FreeFor`.
+Induction is on `LamEqNC`, not unrestricted `LamEq` (capturing `LamEq.beta`
+is unsound for this `subst`). -/
+theorem interp_sound (R : ReflexiveDcpo D) {M N : Lam Var}
+    (h : LamEqNC M N) (ρ : Valuation Var D) :
+    interp R M ρ = interp R N ρ := by
+  induction h generalizing ρ with
+  | refl M =>
+    rfl
+  | symm _ ih =>
+    exact (ih ρ).symm
+  | trans _ _ ih1 ih2 =>
+    exact (ih1 ρ).trans (ih2 ρ)
+  | app_left _ ih =>
+    simp only [interp]
+    rw [ih ρ]
+  | app_right _ ih =>
+    simp only [interp]
+    rw [ih ρ]
+  | xi x _ ih =>
+    simp only [interp]
+    congr 1
+    funext d
+    exact ih (ρ.update x d)
+  | beta x M N hfree =>
+    exact interp_sound_beta R x M N ρ hfree
+
+/-- Closed form of [4, Theorem 5.4.4]: capture-free equations are sound at
+`⟦·⟧_∅`. Immediate from `interp_sound`. -/
+theorem interpClosed_sound (R : ReflexiveDcpo D) {M N : Lam Var}
+    (h : LamEqNC M N) :
+    interpClosed R M = interpClosed R N :=
+  interp_sound R h Valuation.empty
 
 end Scott2026
