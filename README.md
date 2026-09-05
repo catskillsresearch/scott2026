@@ -11,10 +11,13 @@ lambda-calculus can be interpreted using domain-valued random variables,
 building on Dana Scott's vision of Boolean-valued models for probabilistic
 higher-type programming.
 
-Standalone package — no dependency on the 1972/1976/1980/1982 domain-theory
-formalizations. This repo is intended for submission to
-[Palomar](https://palomar-registry.org/about) on its own (see
-`PROVENANCE.md`).
+[`scott1972`](https://github.com/catskillsresearch/scott1972) (Continuous
+Lattices) is vendored in `vendor/scott1972` and compiled as this package's
+`Scott1972` library (`srcDir`), not as a Lake path/git dependency — Palomar's
+landrun sandbox may write only under `.lake/`. Frozen SHA: `vendor/FROZEN.txt`.
+This repo is still submitted to
+[Palomar](https://palomar-registry.org/about) on its own for the 2026 paper
+(see `PROVENANCE.md`).
 
 The pin is `leanprover/lean4:v4.33.0` (same as
 [`scott1976`](../scott1976) and [`scott1964`](../scott1964)).
@@ -41,6 +44,8 @@ source PDF, inventory the paper's main results, and populate `Challenge.lean`,
 | `Solution.lean` | Palomar solution module: imports `Scott2026/*` proofs |
 | `comparator.json` | Comparator config for the compared theorems and definitions |
 | `formalization.yaml` | Palomar / formalization.yaml v0.4 metadata |
+| `vendor/scott1972/` | Vendored Continuous Lattices library (`srcDir`) |
+| `vendor/FROZEN.txt` | Frozen SHA for the vendored sibling |
 | `PROVENANCE.md` | Standalone Palomar submission; relation to siblings |
 | `docs/PALOMAR_EDITORIAL_AUDIT.md` | Full vs mechanical preflight; packaging checklist |
 
@@ -81,8 +86,9 @@ See `sources/README.md`. Page PNGs and `.venv-ocr/` are gitignored.
 
 `Challenge.lean` imports only Mathlib and will state compared results with
 deliberate `sorry`s. `Solution.lean` imports the corresponding kernel-checked,
-sorry-free proofs. The proofs use only the standard axioms disclosed in
-`comparator.json`: `propext`, `Quot.sound`, and `Classical.choice`.
+sorry-free proofs (which may import vendored `Scott1972`). The proofs use only
+the standard axioms disclosed in `comparator.json`: `propext`, `Quot.sound`,
+and `Classical.choice`.
 
 ## arXiv / Zenodo PDF
 

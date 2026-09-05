@@ -5,12 +5,11 @@ Authors: Lars Warren Ericson.
 -/
 import Scott2026.Basic
 
-export Scott2026 (scaffold_placeholder)
+export Scott2026 (scaffold_placeholder lemma_12 proposition_27 proposition_29 theorem_17_mix)
 
 /-!
 # Solution to the Challenge
 
-Imports the complete sorry-free development so Comparator can match source
-theorems and stable public definitions against the Mathlib-only declarations
-in `Challenge.lean`.
+Imports the sorry-free development so Comparator can match source theorems
+against the Mathlib-only declarations in `Challenge.lean`.
 -/

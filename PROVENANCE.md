@@ -24,9 +24,13 @@ Sibling formalizations of related Scott papers:
   — Measurement structures and linear inequalities (1964)
 
 The 2026 CSL paper extends Dana Scott's Boolean-valued domain-theory vision
-for probabilistic higher-type programming. It is mathematically related to,
-but independent of, the domain-theory siblings above; nothing is imported from
-them.
+for probabilistic higher-type programming. Domain-theory background (way-below,
+continuous lattices, Scott topology) is imported from a vendored copy of
+[`scott1972`](https://github.com/catskillsresearch/scott1972) at
+`vendor/scott1972` (frozen SHA in `vendor/FROZEN.txt`), compiled as this
+package's `lean_lib` via `srcDir` — the same Palomar-safe layout as
+[`scott_models`](https://github.com/catskillsresearch/scott_models). The
+1976/1980/1982 siblings are not vendored.
 
 **This repository is submitted to Palomar on its own**, for the 2026 paper
 alone, following the same Challenge / Solution pattern as

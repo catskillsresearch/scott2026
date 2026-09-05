@@ -48,6 +48,12 @@
       "relation": "isSupplementTo",
       "scheme": "url",
       "resource_type": "software"
+    },
+    {
+      "identifier": "https://github.com/catskillsresearch/scott1972",
+      "relation": "requires",
+      "scheme": "url",
+      "resource_type": "software"
     }
   ]
 }

@@ -16,6 +16,9 @@ Domain-Valued Random Variables*. The paper develops Boolean-valued set theory
 and domain theory from scratch and shows how the lambda-calculus can be
 interpreted using domain-valued random variables, building on Dana Scott's
 vision of Boolean-valued models for probabilistic higher-type programming.
+Domain-theory background is imported from a vendored copy of
+[`scott1972`](https://github.com/catskillsresearch/scott1972) at
+`vendor/scott1972` (frozen SHA in `vendor/FROZEN.txt`).
 The development is packaged for
 [Palomar](https://palomar-registry.org/about) with a Challenge / Solution pair
 and `formalization.yaml` metadata. The paper's authors were not contacted and
@@ -50,9 +53,13 @@ A related full version is on arXiv: [2112.06339](https://arxiv.org/abs/2112.0633
 | Module | Role |
 | --- | --- |
 | `Scott2026.lean` | Root import graph |
-| `Scott2026/Basic.lean` | Scaffold; sorry-free development will grow here |
+| `Scott2026/Basic.lean` | Re-exports sorry-free development |
+| `Scott2026/Domain.lean` | §4.1 way-below / reflexive dcpo; imports `Scott1972` |
 | `Challenge.lean` | Palomar statement of record (Mathlib-only, deliberate sorries) |
 | `Solution.lean` | Re-exports sorry-free proofs from `Scott2026/` |
+
+`Scott1972` is compiled from `vendor/scott1972` (`srcDir`; pin `a198b6e`,
+see `vendor/FROZEN.txt`), not as a Lake path/git dependency.
 
 ## 4. Build and preflight
 

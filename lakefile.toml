@@ -4,6 +4,11 @@ keywords = ["domain-theory", "lambda-calculus", "scott-2026", "lean4"]
 defaultTargets = ["Scott2026", "Challenge", "Solution"]
 
 # Scott2026 is the proof development. Challenge / Solution are the Palomar Comparator pair.
+# Sibling paper library lives in vendor/ so one Palomar SHA has the complete
+# split. It is compiled as this package's lean_lib (srcDir), not as a Lake
+# path/git dep: Comparator's landrun sandbox may write only under .lake/,
+# and path packages try to write vendor/<pkg>/.lake (EACCES). Remote remains
+# the per-paper home; see vendor/FROZEN.txt and PROVENANCE.md.
 
 [leanOptions]
 pp.unicode.fun = true
@@ -13,6 +18,10 @@ relaxedAutoImplicit = true
 name = "mathlib"
 scope = "leanprover-community"
 rev = "v4.33.0"
+
+[[lean_lib]]
+name = "Scott1972"
+srcDir = "vendor/scott1972"
 
 [[lean_lib]]
 name = "Scott2026"

@@ -1,0 +1,22 @@
+# Frozen sibling checkout vendored for one Palomar SHA.
+# Same author (Lars Warren Ericson). Remote remains the per-paper home.
+# Copied 2026-09-05 (UTC). No .git / .lake directories.
+#
+# Compiled as this package's lean_lib (srcDir), not as a Lake path/git
+# dep: Comparator's landrun sandbox may write only under .lake/, and
+# path packages try to write vendor/<pkg>/.lake (EACCES). See
+# scott_models/lakefile.toml and HANDOFF.md.
+#
+# The tree omits sibling Palomar packaging (comparator.json,
+# Challenge/Solution, formalization.yaml, preflight scripts, docs,
+# PROVENANCE.md) so this repo has a single Comparator config at the
+# root. Lakefile and CI default to the Scott1972 library only. Full
+# Palomar kit remains on the per-paper remote.
+# vendor/scott1972 Lean sources are otherwise unmodified from the
+# frozen revision.
+
+vendor/scott1972
+  origin: https://github.com/catskillsresearch/scott1972
+  rev:    a198b6e24aea07cfc858a59798d0ca78161c4387
+  from:   /home/catskills/Desktop/scott1972
+  date:   2026-09-05

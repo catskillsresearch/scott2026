@@ -12,7 +12,9 @@ project:
     construction. Lean is written by AI agents under the direction and review of
     the author. The paper's authors did not participate in or endorse this
     formalization. There is no sorry outside the deliberate holes in Challenge.lean,
-    no project-defined axiom, and Mathlib is the only Lake dependency.
+    no project-defined axiom. Mathlib is the only Lake require. The sibling
+    formalization scott1972 is vendored in vendor/scott1972 and compiled as
+    this package's Scott1972 library (srcDir; see vendor/FROZEN.txt).
   authors:
     - "Lars Warren Ericson"
   license: "Apache-2.0"
@@ -61,6 +63,18 @@ sources:
       participate in or endorse this formalization. Working PDF:
       sources/Scott2026.pdf. Related full version: arXiv:2112.06339.
 
+  - title: "Continuous Lattices"
+    authors:
+      - "Dana S. Scott"
+    type: "incollection"
+    id: "https://github.com/catskillsresearch/scott1972"
+    location: "Lecture Notes in Mathematics 274 (1972), §§2–4"
+    relationship: background
+    author_endorsement: not-contacted
+    note: >-
+      Background domain theory (way-below, Scott topology, continuous lattices).
+      Imported via the vendored sibling Lean formalization in vendor/scott1972.
+
 related_formalizations:
   - id: "https://github.com/catskillsresearch/scott1982"
     relationship: other
@@ -70,9 +84,18 @@ related_formalizations:
     relationship: other
     note: "Same-author formalization of Scott Data Types as Lattices (1976); not imported here."
 
-  - id: "https://github.com/catskillsresearch/scott1972"
-    relationship: other
-    note: "Same-author formalization of Scott Continuous Lattices (1972); not imported here."
+  - id: "https://github.com/catskillsresearch/scott1972/tree/a198b6e24aea07cfc858a59798d0ca78161c4387"
+    relationship: builds-on
+    note: >-
+      Same-author per-paper home for Scott 1972 continuous lattices.
+      vendor/scott1972 is a copy of revision
+      a198b6e24aea07cfc858a59798d0ca78161c4387 (ledger vendor/FROZEN.txt).
+      Compiled as this package's lean_lib (srcDir), not as a Lake path/git
+      dep, so Palomar landrun can write only under .lake/. Local
+      modifications: the sibling Palomar kit is omitted (Challenge.lean,
+      Solution.lean, comparator.json, formalization.yaml, preflight
+      scripts, docs, PROVENANCE.md); lakefile.toml and CI default to the
+      Scott1972 library only. No Lean sources were edited.
 
 automation:
   methods:
