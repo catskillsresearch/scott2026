@@ -103,8 +103,11 @@ theorem jech_lemma_14_18 {A ι : Type u} [CompleteBooleanAlgebra A]
 --
 -- After Theorem 2 (CSL p.3–4): `memB_powerB`, pairing identities
 -- `eqB_singletonB` / `eqB_pairB` / `eqB_opairB`, check commutation
--- `check_singleton` / `check_pair` / `check_opair`, inductiveness of
--- `check ω` (`check_omega_inductive`, not leastness), and CSL
--- Proposition 3 (`proposition_3`) are from `Scott2026.VA`.
+-- `check_singleton` / `check_pair` / `check_opair`, inductiveness and
+-- leastness of `check ω` (`check_omega_inductive`, `check_omega_least`),
+-- CSL Proposition 3 (`proposition_3`), and the internal function object
+-- (`isFunctionB`, `funsB`, `homB`, `idB`, `compB`, `isFunctionB_id`,
+-- `isFunctionB_comp`, `compB_congr`) are from `Scott2026.VA`.
+-- This is not Theorem 1(i) or 1(ii).
 
 end Scott2026

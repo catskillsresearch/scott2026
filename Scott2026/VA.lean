@@ -1280,7 +1280,7 @@ theorem check_opair (x y : PSet.{u}) :
   exact (le_inf hpair.ge (htop.ge.trans hcong)).trans this
 
 /-!
-## Check of `ω`: inductive in `V^A` (not yet least)
+## Check of `ω`: inductive and least in `V^A`
 -/
 
 theorem insertB_check (x y : PSet.{u}) :
@@ -1360,7 +1360,7 @@ noncomputable def isInductiveB (X : AName.{u} A) : A :=
   memB (check (∅ : PSet.{u})) X ⊓
     ⨅ n : AName.{u} A, memB n X ⇨ memB (succB n) X
 
-/-- `ωˇ` is inductive in `V^A`. Leastness is not claimed here. -/
+/-- `ωˇ` is inductive in `V^A`. Leastness is `check_omega_least`. -/
 theorem check_omega_eq :
     check (A := A) PSet.omega =
       mk (ULift.{u} ℕ) (fun n => check (PSet.ofNat n.down)) (fun _ => ⊤) := by
@@ -1388,6 +1388,34 @@ theorem check_omega_inductive :
     rw [hdef, memB_mk]
     refine le_iSup_of_le (⟨k.down + 1⟩ : ULift ℕ) ?_
     exact le_inf le_rfl le_top
+
+/-- Every von Neumann numeral is a member of an inductive name, by induction on `ℕ`. -/
+theorem memB_check_ofNat_of_inductive (X : AName.{u} A)
+    (h : isInductiveB X = ⊤) (n : ℕ) :
+    memB (check (A := A) (PSet.ofNat n)) X = ⊤ := by
+  have hparts := inf_eq_top_iff.mp h
+  induction n with
+  | zero =>
+    exact hparts.1
+  | succ n ih =>
+    have hcl := iInf_eq_top.mp hparts.2 (check (A := A) (PSet.ofNat n))
+    have hle : memB (check (A := A) (PSet.ofNat n)) X ≤
+        memB (succB (check (PSet.ofNat n))) X :=
+      himp_eq_top_iff.mp hcl
+    have : memB (succB (check (A := A) (PSet.ofNat n))) X = ⊤ :=
+      top_unique (ih.ge.trans hle)
+    rwa [← check_succ (A := A) n] at this
+
+/-- Leastness of `ωˇ`: if `X` is inductive at Boolean value 1, then `ωˇ ⊆ X`
+at Boolean value 1. Together with `check_omega_inductive` this is the
+Theorem 2 consequence that `ωˇ` is inductive and least (the `ω` of `V^A`).
+The argument inducts on the `ULift ℕ` index of `check_omega_eq`, not on
+ordinal rank. -/
+theorem check_omega_least {X : AName.{u} A} (h : isInductiveB X = ⊤) :
+    subsetB (check (A := A) PSet.omega) X = ⊤ := by
+  rw [check_omega_eq, subsetB_mk]
+  refine iInf_eq_top.mpr fun n => himp_eq_top_iff.mpr ?_
+  exact (memB_check_ofNat_of_inductive (A := A) X h n.down).ge
 
 /-!
 ## Finite subsets and CSL Proposition 3
@@ -1604,5 +1632,473 @@ theorem proposition_3 (X : PSet.{u}) :
       exact (le_inf hpow.ge hfin.ge).trans
         (memB_sepB_ge (A := A) (check (pfinEnum xs))
           (powerB (check (PSet.mk α f))) isFiniteB isFiniteB_congr)
+
+/-!
+## Internal functions and `Set_A` (CSL 2026, §2 last paragraph)
+
+`isFunctionB F X Y` is the Boolean value of “`F ⊆ X ×_A Y` is a functional
+total relation”. `funsB X Y` is `{F ∈ P^A(X ×_A Y) | isFunctionB F X Y}^A`.
+`homB X Y` is `Set_A(X,Y)`: names with `‖F ∈ funsB X Y‖ = 1`, modulo
+`‖F = G‖ = 1`. Identity is the identity relation; composition is relation
+composition. This is not Theorem 1(i) or 1(ii).
+-/
+
+theorem eqB_top_memB_right {x y z : AName.{u} A} (h : eqB x y = ⊤) :
+    memB z x = memB z y :=
+  le_antisymm
+    ((memB_eqB_right (A := A) x z y).trans' (by rw [h]; exact le_inf le_rfl le_top))
+    ((memB_eqB_right (A := A) y z x).trans'
+      (by rw [eqB_comm (x := y) (y := x), h]; exact le_inf le_rfl le_top))
+
+theorem eqB_top_memB_left {x y z : AName.{u} A} (h : eqB x y = ⊤) :
+    memB x z = memB y z :=
+  le_antisymm
+    ((memB_eqB_left (A := A) x z y).trans' (by rw [h]; exact le_inf le_rfl le_top))
+    ((memB_eqB_left (A := A) y z x).trans'
+      (by rw [eqB_comm (x := y) (y := x), h]; exact le_inf le_rfl le_top))
+
+/-- `F = G` and `F ⊆ P` imply `G ⊆ P`. -/
+theorem subsetB_of_eqB (F G P : AName.{u} A) :
+    eqB F G ⊓ subsetB F P ≤ subsetB G P :=
+  (le_inf (inf_le_of_left_le ((eqB_comm (A := A) F G).le.trans (eqB_le_subsetB G F)))
+      inf_le_right).trans
+    (AName.subsetB_trans G F P)
+
+theorem memB_eqB_left' (x y z : AName.{u} A) :
+    eqB z x ⊓ memB x y ≤ memB z y := by
+  rw [inf_comm, eqB_comm (x := z) (y := x)]
+  exact memB_eqB_left x y z
+
+theorem inf_pair_le {a b c d u v : A} (hu : a ⊓ c ≤ u) (hv : b ⊓ d ≤ v) :
+    (a ⊓ b) ⊓ (c ⊓ d) ≤ u ⊓ v :=
+  le_inf
+    (hu.trans' (le_inf (inf_le_of_left_le inf_le_left) (inf_le_of_right_le inf_le_left)))
+    (hv.trans' (le_inf (inf_le_of_left_le inf_le_right) (inf_le_of_right_le inf_le_right)))
+
+theorem inf_swap4 {a b c d : A} : (a ⊓ c) ⊓ (b ⊓ d) ≤ (a ⊓ b) ⊓ (c ⊓ d) :=
+  le_inf (le_inf (inf_le_of_left_le inf_le_left) (inf_le_of_right_le inf_le_left))
+    (le_inf (inf_le_of_left_le inf_le_right) (inf_le_of_right_le inf_le_right))
+
+/-- `‖(x,y)^A ∈ X ×_A Y‖ = ‖x ∈ X‖ ⊓ ‖y ∈ Y‖`. -/
+theorem memB_opairB_prodB (x y X Y : AName.{u} A) :
+    memB (opairB x y) (prodB X Y) = memB x X ⊓ memB y Y := by
+  unfold prodB
+  rw [memB_mk]
+  refine le_antisymm ?fwd ?bwd
+  · refine iSup_le fun p => ?_
+    rcases p with ⟨i, j⟩
+    rw [eqB_opairB]
+    exact inf_pair_le (A := A)
+      (memB_eqB_left' (X.child i) X x) (memB_eqB_left' (Y.child j) Y y)
+  · rw [memB_eq (x := x) (y := X), memB_eq (x := y) (y := Y), iSup_inf_eq]
+    refine iSup_le fun i => ?_
+    rw [inf_iSup_eq]
+    refine iSup_le fun j => ?_
+    refine le_iSup_of_le (i, j) ?_
+    rw [eqB_opairB]
+    exact (inf_swap4 (A := A)).trans
+      (inf_le_inf le_rfl (inf_le_inf (val_le_memB X i) (val_le_memB Y j)))
+
+theorem memB_sepB (S X : AName.{u} A) (φ : AName.{u} A → A)
+    (hcongr : ∀ x y, eqB x y ⊓ φ x ≤ φ y) :
+    memB S (sepB X φ) = memB S X ⊓ φ S := by
+  refine le_antisymm ?le (memB_sepB_ge (A := A) S X φ hcongr)
+  rw [memB_eq (x := S) (y := sepB X φ), memB_eq (x := S) (y := X)]
+  refine iSup_le fun i => ?_
+  have hchild : (sepB X φ).child i = X.child i := rfl
+  have hval : (sepB X φ).val i = X.val i ⊓ φ (X.child i) := rfl
+  rw [hchild, hval, ← inf_assoc]
+  have hφ : eqB S (X.child i) ⊓ φ (X.child i) ≤ φ S := by
+    rw [eqB_comm (x := S) (y := X.child i)]
+    exact hcongr (X.child i) S
+  refine le_inf ?_ ?_
+  · exact le_iSup_of_le i inf_le_left
+  · exact hφ.trans' (le_inf (inf_le_of_left_le inf_le_left) inf_le_right)
+
+/-- Single-valued: `(x,y₁) ∈ F ∧ (x,y₂) ∈ F → y₁ = y₂`. -/
+noncomputable def isSingleValuedB (F : AName.{u} A) : A :=
+  ⨅ x : AName.{u} A, ⨅ y1 : AName.{u} A, ⨅ y2 : AName.{u} A,
+    memB (opairB x y1) F ⊓ memB (opairB x y2) F ⇨ eqB y1 y2
+
+/-- Total: `x ∈ X → ∃ y, (x,y) ∈ F`. -/
+noncomputable def isTotalB (F X : AName.{u} A) : A :=
+  ⨅ x : AName.{u} A, memB x X ⇨ ⨆ y : AName.{u} A, memB (opairB x y) F
+
+/-- Boolean value of “`F ⊆ X ×_A Y` is a functional total relation”. -/
+noncomputable def isFunctionB (F X Y : AName.{u} A) : A :=
+  subsetB F (prodB X Y) ⊓ isSingleValuedB F ⊓ isTotalB F X
+
+theorem isSingleValuedB_apply (F x y1 y2 : AName.{u} A) :
+    isSingleValuedB F ⊓ memB (opairB x y1) F ⊓ memB (opairB x y2) F ≤ eqB y1 y2 := by
+  have h := iInf_le (fun x' : AName A =>
+      ⨅ y1' : AName A, ⨅ y2' : AName A,
+        memB (opairB x' y1') F ⊓ memB (opairB x' y2') F ⇨ eqB y1' y2') x
+  have h1 := (iInf_le (fun y1' : AName A =>
+      ⨅ y2' : AName A,
+        memB (opairB x y1') F ⊓ memB (opairB x y2') F ⇨ eqB y1' y2') y1).trans'
+    h
+  have h2 := (iInf_le (fun y2' : AName A =>
+      memB (opairB x y1) F ⊓ memB (opairB x y2') F ⇨ eqB y1 y2') y2).trans' h1
+  rw [inf_assoc]
+  exact le_himp_iff.mp h2
+
+theorem isTotalB_apply (F X x : AName.{u} A) :
+    isTotalB F X ⊓ memB x X ≤ ⨆ y : AName.{u} A, memB (opairB x y) F :=
+  le_himp_iff.mp (iInf_le (fun x' : AName A =>
+      memB x' X ⇨ ⨆ y : AName A, memB (opairB x' y) F) x)
+
+theorem isSingleValuedB_congr (F G : AName.{u} A) :
+    eqB F G ⊓ isSingleValuedB F ≤ isSingleValuedB G := by
+  refine le_iInf fun x => le_iInf fun y1 => le_iInf fun y2 => ?_
+  rw [le_himp_iff]
+  have hF1 : memB (opairB x y1) G ⊓ eqB G F ≤ memB (opairB x y1) F :=
+    memB_eqB_right G (opairB x y1) F
+  have hF2 : memB (opairB x y2) G ⊓ eqB G F ≤ memB (opairB x y2) F :=
+    memB_eqB_right G (opairB x y2) F
+  have hGF : eqB F G = eqB G F := eqB_comm F G
+  refine (isSingleValuedB_apply F x y1 y2).trans' ?_
+  refine le_inf (le_inf (inf_le_of_left_le inf_le_right) ?_) ?_
+  · refine hF1.trans' ?_
+    rw [← hGF]
+    exact le_inf (inf_le_of_right_le inf_le_left) (inf_le_of_left_le inf_le_left)
+  · refine hF2.trans' ?_
+    rw [← hGF]
+    exact le_inf (inf_le_of_right_le inf_le_right) (inf_le_of_left_le inf_le_left)
+
+theorem isTotalB_congr (F G X : AName.{u} A) :
+    eqB F G ⊓ isTotalB F X ≤ isTotalB G X := by
+  refine le_iInf fun x => ?_
+  rw [le_himp_iff]
+  have htot : isTotalB F X ⊓ memB x X ≤ ⨆ y : AName A, memB (opairB x y) F :=
+    isTotalB_apply F X x
+  have hle : eqB F G ⊓ isTotalB F X ⊓ memB x X ≤
+      eqB F G ⊓ ⨆ y : AName A, memB (opairB x y) F :=
+    le_inf (inf_le_of_left_le inf_le_left)
+      (htot.trans' (le_inf (inf_le_of_left_le inf_le_right) inf_le_right))
+  refine hle.trans ?_
+  rw [inf_iSup_eq]
+  refine iSup_le fun y => le_iSup_of_le y ?_
+  rw [inf_comm]
+  exact memB_eqB_right F (opairB x y) G
+
+theorem isFunctionB_congr (F G X Y : AName.{u} A) :
+    eqB F G ⊓ isFunctionB F X Y ≤ isFunctionB G X Y := by
+  unfold isFunctionB
+  refine le_inf (le_inf ?sub ?sv) ?tot
+  · exact (subsetB_of_eqB F G (prodB X Y)).trans'
+      (le_inf inf_le_left (inf_le_of_right_le (inf_le_of_left_le inf_le_left)))
+  · exact (isSingleValuedB_congr F G).trans'
+      (le_inf inf_le_left (inf_le_of_right_le (inf_le_of_left_le inf_le_right)))
+  · exact (isTotalB_congr F G X).trans'
+      (le_inf inf_le_left (inf_le_of_right_le inf_le_right))
+
+/-- `{F ∈ P^A(X ×_A Y) | isFunctionB F X Y}^A`. -/
+noncomputable def funsB (X Y : AName.{u} A) : AName.{u} A :=
+  sepB (powerB (prodB X Y)) (fun F => isFunctionB F X Y)
+
+theorem memB_funsB (F X Y : AName.{u} A) :
+    memB F (funsB X Y) = isFunctionB F X Y := by
+  unfold funsB
+  rw [memB_sepB (A := A) F (powerB (prodB X Y)) (fun G => isFunctionB G X Y)
+      (fun G H => isFunctionB_congr G H X Y), memB_powerB]
+  refine inf_eq_right.mpr ?_
+  unfold isFunctionB
+  exact inf_le_of_left_le inf_le_left
+
+/-- Identity relation on `X`: `{ (x,x)^A | x ∈ X }`. -/
+noncomputable def idB (X : AName.{u} A) : AName.{u} A :=
+  mk X.idx (fun i => opairB (X.child i) (X.child i)) (fun i => memB (X.child i) X)
+
+/-- Relation composition `g ∘ f ⊆ X ×_A Z`. -/
+noncomputable def compB (g f : AName.{u} A) (X Z : AName.{u} A) : AName.{u} A :=
+  mk (X.idx × Z.idx)
+    (fun p => opairB (X.child p.1) (Z.child p.2))
+    (fun p => ⨆ y : AName.{u} A,
+      memB (opairB (X.child p.1) y) f ⊓ memB (opairB y (Z.child p.2)) g)
+
+theorem memB_opairB_idB (x y X : AName.{u} A) :
+    memB (opairB x y) (idB X) = memB x X ⊓ eqB x y := by
+  unfold idB
+  rw [memB_mk]
+  refine le_antisymm ?fwd ?bwd
+  · refine iSup_le fun i => ?_
+    rw [eqB_opairB]
+    have hx : eqB x (X.child i) ⊓ memB (X.child i) X ≤ memB x X :=
+      memB_eqB_left' (X.child i) X x
+    have heq : eqB x (X.child i) ⊓ eqB y (X.child i) ≤ eqB x y := by
+      have : eqB y (X.child i) = eqB (X.child i) y :=
+        eqB_comm (A := A) y (X.child i)
+      rw [this]
+      exact eqB_trans x (X.child i) y
+    have h₁ : eqB x (X.child i) ⊓ eqB y (X.child i) ⊓ memB (X.child i) X ≤
+        eqB x (X.child i) ⊓ memB (X.child i) X :=
+      le_inf (inf_le_of_left_le inf_le_left) inf_le_right
+    have h₂ : eqB x (X.child i) ⊓ eqB y (X.child i) ⊓ memB (X.child i) X ≤
+        eqB x (X.child i) ⊓ eqB y (X.child i) :=
+      inf_le_left
+    exact le_inf (h₁.trans hx) (h₂.trans heq)
+  · rw [memB_eq (x := x) (y := X), iSup_inf_eq]
+    refine iSup_le fun i => ?_
+    refine le_iSup_of_le i ?_
+    rw [eqB_opairB]
+    have hy : eqB x y ⊓ eqB x (X.child i) ≤ eqB y (X.child i) := by
+      have : eqB x y = eqB y x := eqB_comm (A := A) x y
+      rw [this]
+      exact eqB_trans y x (X.child i)
+    have h₁ : eqB x (X.child i) ⊓ X.val i ⊓ eqB x y ≤ eqB x (X.child i) :=
+      inf_le_of_left_le inf_le_left
+    have h₂ : eqB x (X.child i) ⊓ X.val i ⊓ eqB x y ≤ eqB y (X.child i) :=
+      hy.trans' (le_inf inf_le_right (inf_le_of_left_le inf_le_left))
+    have h₃ : eqB x (X.child i) ⊓ X.val i ⊓ eqB x y ≤ memB (X.child i) X :=
+      inf_le_of_left_le (inf_le_of_right_le (val_le_memB X i))
+    exact le_inf (le_inf h₁ h₂) h₃
+
+theorem isFunctionB_id (X : AName.{u} A) :
+    isFunctionB (idB X) X X = ⊤ := by
+  unfold isFunctionB
+  refine inf_eq_top_iff.mpr ⟨inf_eq_top_iff.mpr ⟨?sub, ?sv⟩, ?tot⟩
+  · unfold idB
+    rw [subsetB_mk]
+    refine iInf_eq_top.mpr fun i => himp_eq_top_iff.mpr ?_
+    rw [memB_opairB_prodB, inf_idem]
+  · refine iInf_eq_top.mpr fun x => iInf_eq_top.mpr fun y1 =>
+      iInf_eq_top.mpr fun y2 => himp_eq_top_iff.mpr ?_
+    rw [memB_opairB_idB, memB_opairB_idB]
+    have h : eqB x y1 ⊓ eqB x y2 ≤ eqB y1 y2 := by
+      rw [eqB_comm (x := x) (y := y1)]
+      exact eqB_trans y1 x y2
+    exact h.trans'
+      (le_inf (inf_le_of_left_le inf_le_right) (inf_le_of_right_le inf_le_right))
+  · refine iInf_eq_top.mpr fun x => himp_eq_top_iff.mpr ?_
+    refine le_iSup_of_le x ?_
+    rw [memB_opairB_idB, eqB_self (A := A) x, inf_top_eq]
+
+theorem memB_idB_funsB (X : AName.{u} A) :
+    memB (idB X) (funsB X X) = ⊤ := by
+  rw [memB_funsB, isFunctionB_id]
+
+theorem memB_opairB_compB_le (g f : AName.{u} A) (X Z x z : AName.{u} A) :
+    memB (opairB x z) (compB g f X Z) ≤
+      ⨆ y : AName.{u} A, memB (opairB x y) f ⊓ memB (opairB y z) g := by
+  unfold compB
+  rw [memB_mk]
+  refine iSup_le fun p => ?_
+  rw [eqB_opairB, inf_iSup_eq]
+  refine iSup_le fun y => ?_
+  refine le_iSup_of_le y ?_
+  have hx : eqB x (X.child p.1) ⊓ memB (opairB (X.child p.1) y) f ≤
+      memB (opairB x y) f := by
+    have heq : eqB (opairB x y) (opairB (X.child p.1) y) = eqB x (X.child p.1) := by
+      rw [eqB_opairB, eqB_self (A := A) y, inf_top_eq]
+    rw [← heq]
+    exact memB_eqB_left' (opairB (X.child p.1) y) f (opairB x y)
+  have hz : eqB z (Z.child p.2) ⊓ memB (opairB y (Z.child p.2)) g ≤
+      memB (opairB y z) g := by
+    have heq : eqB (opairB y z) (opairB y (Z.child p.2)) = eqB z (Z.child p.2) := by
+      rw [eqB_opairB, eqB_self (A := A) y, top_inf_eq]
+    rw [← heq]
+    exact memB_eqB_left' (opairB y (Z.child p.2)) g (opairB y z)
+  refine le_inf ?_ ?_
+  · exact hx.trans' (le_inf (inf_le_of_left_le inf_le_left) (inf_le_of_right_le inf_le_left))
+  · exact hz.trans' (le_inf (inf_le_of_left_le inf_le_right)
+      (inf_le_of_right_le inf_le_right))
+
+theorem inf_iSup_iSup {ι κ : Type*} (p : A) (a : ι → A) (b : κ → A) :
+    p ⊓ (⨆ i, a i) ⊓ (⨆ k, b k) = ⨆ i, ⨆ k, p ⊓ a i ⊓ b k := by
+  have h1 : p ⊓ (⨆ i, a i) ⊓ (⨆ k, b k) = (p ⊓ ⨆ k, b k) ⊓ ⨆ i, a i := by
+    ac_rfl
+  rw [h1, inf_iSup_eq]
+  refine iSup_congr fun i => ?_
+  have h2 : (p ⊓ ⨆ k, b k) ⊓ a i = (p ⊓ a i) ⊓ ⨆ k, b k := by
+    ac_rfl
+  rw [h2, inf_iSup_eq]
+
+theorem le_memB_opairB_compB (g f : AName.{u} A) (X Y Z x y z : AName.{u} A)
+    (hf : subsetB f (prodB X Y) = ⊤) (hg : subsetB g (prodB Y Z) = ⊤) :
+    memB (opairB x y) f ⊓ memB (opairB y z) g ≤
+      memB (opairB x z) (compB g f X Z) := by
+  have hfmem : memB (opairB x y) f ≤ memB x X ⊓ memB y Y := by
+    have := memB_of_subsetB (opairB x y) f (prodB X Y)
+    rwa [hf, inf_top_eq, memB_opairB_prodB] at this
+  have hgmem : memB (opairB y z) g ≤ memB y Y ⊓ memB z Z := by
+    have := memB_of_subsetB (opairB y z) g (prodB Y Z)
+    rwa [hg, inf_top_eq, memB_opairB_prodB] at this
+  have hx : memB (opairB x y) f ⊓ memB (opairB y z) g ≤ memB x X :=
+    inf_le_of_left_le (hfmem.trans inf_le_left)
+  have hz : memB (opairB x y) f ⊓ memB (opairB y z) g ≤ memB z Z :=
+    inf_le_of_right_le (hgmem.trans inf_le_right)
+  have hkeep : memB (opairB x y) f ⊓ memB (opairB y z) g ≤
+      memB (opairB x y) f ⊓ memB (opairB y z) g ⊓ memB x X ⊓ memB z Z :=
+    le_inf (le_inf le_rfl hx) hz
+  rw [memB_eq (x := x) (y := X), memB_eq (x := z) (y := Z),
+    inf_iSup_iSup (A := A)] at hkeep
+  refine hkeep.trans ?_
+  refine iSup_le fun i => iSup_le fun k => ?_
+  unfold compB
+  rw [memB_mk]
+  refine le_iSup_of_le (i, k) ?_
+  rw [eqB_opairB]
+  have hxF : eqB x (X.child i) ⊓ memB (opairB x y) f ≤
+      memB (opairB (X.child i) y) f := by
+    have heq : eqB (opairB x y) (opairB (X.child i) y) = eqB x (X.child i) := by
+      rw [eqB_opairB, eqB_self (A := A) y, inf_top_eq]
+    rw [← heq, inf_comm]
+    exact memB_eqB_left (opairB x y) f (opairB (X.child i) y)
+  have hzG : eqB z (Z.child k) ⊓ memB (opairB y z) g ≤
+      memB (opairB y (Z.child k)) g := by
+    have heq : eqB (opairB y z) (opairB y (Z.child k)) = eqB z (Z.child k) := by
+      rw [eqB_opairB, eqB_self (A := A) y, top_inf_eq]
+    rw [← heq, inf_comm]
+    exact memB_eqB_left (opairB y z) g (opairB y (Z.child k))
+  have hp : memB (opairB x y) f ⊓ memB (opairB y z) g ⊓
+      (eqB x (X.child i) ⊓ X.val i) ⊓ (eqB z (Z.child k) ⊓ Z.val k) ≤
+      memB (opairB x y) f ⊓ memB (opairB y z) g :=
+    inf_le_of_left_le inf_le_left
+  have ha : memB (opairB x y) f ⊓ memB (opairB y z) g ⊓
+      (eqB x (X.child i) ⊓ X.val i) ⊓ (eqB z (Z.child k) ⊓ Z.val k) ≤
+      eqB x (X.child i) :=
+    inf_le_of_left_le (inf_le_of_right_le inf_le_left)
+  have hb : memB (opairB x y) f ⊓ memB (opairB y z) g ⊓
+      (eqB x (X.child i) ⊓ X.val i) ⊓ (eqB z (Z.child k) ⊓ Z.val k) ≤
+      eqB z (Z.child k) :=
+    inf_le_of_right_le inf_le_left
+  refine le_inf (le_inf ha hb) ?_
+  refine le_iSup_of_le y (le_inf ?_ ?_)
+  · exact hxF.trans' (le_inf ha (hp.trans inf_le_left))
+  · exact hzG.trans' (le_inf hb (hp.trans inf_le_right))
+
+theorem isFunctionB_subset {F X Y : AName.{u} A} (h : isFunctionB F X Y = ⊤) :
+    subsetB F (prodB X Y) = ⊤ :=
+  (inf_eq_top_iff.mp (inf_eq_top_iff.mp h).1).1
+
+theorem isFunctionB_single {F X Y : AName.{u} A} (h : isFunctionB F X Y = ⊤) :
+    isSingleValuedB F = ⊤ :=
+  (inf_eq_top_iff.mp (inf_eq_top_iff.mp h).1).2
+
+theorem isFunctionB_total {F X Y : AName.{u} A} (h : isFunctionB F X Y = ⊤) :
+    isTotalB F X = ⊤ :=
+  (inf_eq_top_iff.mp h).2
+
+theorem isFunctionB_comp {X Y Z f g : AName.{u} A}
+    (hf : isFunctionB f X Y = ⊤) (hg : isFunctionB g Y Z = ⊤) :
+    isFunctionB (compB g f X Z) X Z = ⊤ := by
+  unfold isFunctionB
+  refine inf_eq_top_iff.mpr ⟨inf_eq_top_iff.mpr ⟨?sub, ?sv⟩, ?tot⟩
+  · unfold compB
+    rw [subsetB_mk]
+    refine iInf_eq_top.mpr fun p => himp_eq_top_iff.mpr ?_
+    refine iSup_le fun y => ?_
+    have hfmem : memB (opairB (X.child p.1) y) f ≤
+        memB (X.child p.1) X ⊓ memB y Y := by
+      have := memB_of_subsetB (opairB (X.child p.1) y) f (prodB X Y)
+      rwa [isFunctionB_subset hf, inf_top_eq, memB_opairB_prodB] at this
+    have hgmem : memB (opairB y (Z.child p.2)) g ≤
+        memB y Y ⊓ memB (Z.child p.2) Z := by
+      have := memB_of_subsetB (opairB y (Z.child p.2)) g (prodB Y Z)
+      rwa [isFunctionB_subset hg, inf_top_eq, memB_opairB_prodB] at this
+    rw [memB_opairB_prodB]
+    exact le_inf (inf_le_of_left_le (hfmem.trans inf_le_left))
+      (inf_le_of_right_le (hgmem.trans inf_le_right))
+  · refine iInf_eq_top.mpr fun x => iInf_eq_top.mpr fun z1 =>
+      iInf_eq_top.mpr fun z2 => himp_eq_top_iff.mpr ?_
+    have hle1 := memB_opairB_compB_le (A := A) g f X Z x z1
+    have hle2 := memB_opairB_compB_le (A := A) g f X Z x z2
+    have hsvf : ∀ y1 y2 : AName A,
+        memB (opairB x y1) f ⊓ memB (opairB x y2) f ≤ eqB y1 y2 := fun y1 y2 =>
+      (isSingleValuedB_apply f x y1 y2).trans'
+        (le_inf (le_inf (le_top.trans (isFunctionB_single hf).ge) inf_le_left) inf_le_right)
+    have hsvg : ∀ y z1' z2' : AName A,
+        memB (opairB y z1') g ⊓ memB (opairB y z2') g ≤ eqB z1' z2' := fun y z1' z2' =>
+      (isSingleValuedB_apply g y z1' z2').trans'
+        (le_inf (le_inf (le_top.trans (isFunctionB_single hg).ge) inf_le_left) inf_le_right)
+    refine (inf_le_inf hle1 hle2).trans ?_
+    rw [iSup_inf_eq]
+    refine iSup_le fun y1 => ?_
+    rw [inf_iSup_eq]
+    refine iSup_le fun y2 => ?_
+    have hy : memB (opairB x y1) f ⊓ memB (opairB x y2) f ≤ eqB y1 y2 := hsvf y1 y2
+    have hsubst : eqB y1 y2 ⊓ memB (opairB y2 z2) g ≤ memB (opairB y1 z2) g := by
+      have heq : eqB (opairB y1 z2) (opairB y2 z2) = eqB y1 y2 := by
+        rw [eqB_opairB, eqB_self (A := A) z2, inf_top_eq]
+      rw [← heq]
+      exact memB_eqB_left' (opairB y2 z2) g (opairB y1 z2)
+    have hgpair : memB (opairB y1 z1) g ⊓ memB (opairB y1 z2) g ≤ eqB z1 z2 :=
+      hsvg y1 z1 z2
+    have hproj :
+        memB (opairB x y1) f ⊓ memB (opairB y1 z1) g ⊓
+          (memB (opairB x y2) f ⊓ memB (opairB y2 z2) g) ≤
+        memB (opairB y1 z1) g ⊓ memB (opairB y1 z2) g := by
+      refine le_inf (inf_le_of_left_le inf_le_right) ?_
+      refine hsubst.trans' ?_
+      refine le_inf ?_ (inf_le_of_right_le inf_le_right)
+      exact hy.trans' (le_inf (inf_le_of_left_le inf_le_left) (inf_le_of_right_le inf_le_left))
+    exact hgpair.trans' hproj
+  · refine iInf_eq_top.mpr fun x => himp_eq_top_iff.mpr ?_
+    have hftot : memB x X ≤ ⨆ y : AName A, memB (opairB x y) f :=
+      (isTotalB_apply f X x).trans' (le_inf (le_top.trans (isFunctionB_total hf).ge) le_rfl)
+    refine hftot.trans ?_
+    refine iSup_le fun y => ?_
+    have hyY : memB (opairB x y) f ≤ memB y Y := by
+      have := memB_of_subsetB (opairB x y) f (prodB X Y)
+      have h := this.trans (le_of_eq (by rw [memB_opairB_prodB]))
+      exact (h.trans' (le_inf le_rfl (le_top.trans (isFunctionB_subset hf).ge))).trans
+        inf_le_right
+    have hgtot : memB y Y ≤ ⨆ z : AName A, memB (opairB y z) g :=
+      (isTotalB_apply g Y y).trans' (le_inf (le_top.trans (isFunctionB_total hg).ge) le_rfl)
+    have : memB (opairB x y) f ≤ memB (opairB x y) f ⊓ memB y Y :=
+      le_inf le_rfl hyY
+    refine this.trans ?_
+    refine (inf_le_inf_left _ hgtot).trans ?_
+    rw [inf_iSup_eq]
+    refine iSup_le fun z => ?_
+    refine (le_memB_opairB_compB (A := A) g f X Y Z x y z
+      (isFunctionB_subset hf) (isFunctionB_subset hg)).trans ?_
+    exact le_iSup (fun z' : AName A => memB (opairB x z') (compB g f X Z)) z
+
+theorem compB_congr {X Z f f' g g' : AName.{u} A}
+    (hf : eqB f f' = ⊤) (hg : eqB g g' = ⊤) :
+    eqB (compB g f X Z) (compB g' f' X Z) = ⊤ := by
+  have hval : (fun p : X.idx × Z.idx =>
+      ⨆ y : AName A, memB (opairB (X.child p.1) y) f ⊓
+        memB (opairB y (Z.child p.2)) g) =
+      fun p => ⨆ y : AName A, memB (opairB (X.child p.1) y) f' ⊓
+        memB (opairB y (Z.child p.2)) g' := by
+    funext p
+    refine iSup_congr fun y => ?_
+    rw [eqB_top_memB_right (x := f) (y := f') (z := opairB (X.child p.1) y) hf,
+      eqB_top_memB_right (x := g) (y := g') (z := opairB y (Z.child p.2)) hg]
+  have heq : compB g f X Z = compB g' f' X Z := by
+    unfold compB
+    exact congr_arg (fun v => mk (X.idx × Z.idx)
+      (fun p => opairB (X.child p.1) (Z.child p.2)) v) hval
+  rw [heq, eqB_self]
+
+/-- Boolean equality at value 1 is an equivalence of names. -/
+def nameSetoid : Setoid (AName.{u} A) where
+  r F G := eqB (A := A) F G = ⊤
+  iseqv := {
+    refl := fun F => eqB_self (A := A) F
+    symm := fun {F G} h => by rw [eqB_comm (x := F) (y := G)] at h; exact h
+    trans := fun {F G H} hFG hGH => by
+      have htop : eqB (A := A) F G ⊓ eqB G H = ⊤ := by rw [hFG, hGH, top_inf_eq]
+      exact top_unique (htop.ge.trans (eqB_trans (A := A) F G H))
+  }
+
+/-- A name that is a function `X →_A Y` at Boolean value 1. -/
+abbrev HomName (X Y : AName.{u} A) : Type (u + 1) :=
+  { F : AName.{u} A // memB F (funsB X Y) = ⊤ }
+
+/-- `Set_A(X, Y)`: function names at Boolean value 1, modulo `‖F = G‖ = 1`. -/
+def homB (X Y : AName.{u} A) : Type (u + 1) :=
+  Quotient (Setoid.comap (fun F : HomName (A := A) X Y => F.1) nameSetoid)
+
+theorem isHom_id (X : AName.{u} A) : memB (idB X) (funsB X X) = ⊤ :=
+  memB_idB_funsB X
+
+theorem isHom_comp {X Y Z f g : AName.{u} A}
+    (hf : memB f (funsB X Y) = ⊤) (hg : memB g (funsB Y Z) = ⊤) :
+    memB (compB g f X Z) (funsB X Z) = ⊤ := by
+  rw [memB_funsB] at hf hg ⊢
+  exact isFunctionB_comp hf hg
 
 end Scott2026
