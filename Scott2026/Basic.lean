@@ -373,8 +373,19 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- `proposition_22` / `proposition_22_least` (the `check_omega_least`
 -- pattern, with Theorem 1(iii) for witnesses). Check-equality
 -- `‖check (Λ(Var)) = lamB (check Var)‖ = 1` is
--- `proposition_22_check_eq`. This is not `Λ(D, check Var, 𝔎)^A`,
--- `λ^A`, or an interpretation.
+-- `proposition_22_check_eq`. This is not `Λ(D, check Var, 𝔎)^A` or
+-- an interpretation.
+--
+-- Example 24 (CSL p.9): `λ` is encoded as pairs of tagged terms
+-- (`encodeEq` / `encodeEqB` via `pOpair` / `opairB`). `lamEqInductiveB`
+-- is the Boolean `λ`-inductive clause (not required to be `Δ₀`); `β`
+-- reuses `Lam.subst` on the ground encoding. `lamEqB (checkVar Var)` is
+-- `λ^A`, where `checkVar Var` is the unfolding of `check Var`
+-- (`check_eq_mk`, so `idx` is `Var.Type`). Inductiveness and
+-- `‖check(λ) ⊆ lamEqB (checkVar Var)‖ = 1` are `example_24` /
+-- `example_24_va` / `example_24_subset` (induction on `LamEq`). The
+-- paper only claims `⊆`; equality is not exported. This is not
+-- `Λ(D, check Var, 𝔎)^A`, Definition 25, or Theorem 26.
 
 /-- Example 21, ground: `Λ(Var)` is the least inductive set of pure terms. -/
 theorem example_21 {Var : Type*} {S : Set (Lam Var)} (h : Lam.IsInductive S) :
@@ -412,5 +423,30 @@ theorem proposition_22_check_eq {A : Type u} [CompleteBooleanAlgebra A]
     AName.eqB (AName.check (A := A) (pLamSet Var))
       (lamB (AName.check (A := A) Var)) = ⊤ :=
   lamB_check_eq (A := A) Var
+
+/-- Example 24: `lamEqB (checkVar Var)` is `λ`-inductive and contains `check(λ)`.
+`checkVar Var` is the unfolding of `check Var` (`check_eq_mk`). -/
+theorem example_24 {A : Type u} [CompleteBooleanAlgebra A] (Var : PSet.{u})
+    [DecidableEq Var.Type] :
+    lamEqInductiveB (checkVar (A := A) Var)
+      (lamEqB (checkVar (A := A) Var)) = ⊤ ∧
+      AName.subsetB (AName.check (A := A) (pLamEqSet Var))
+        (lamEqB (checkVar (A := A) Var)) = ⊤ :=
+  ⟨lamEqInductiveB_lamEqB (checkVar (A := A) Var),
+    lamEq_check_subset (A := A) Var⟩
+
+/-- Example 24 at `V^A`: `‖lamEqInductiveB (lamEqB (checkVar Var))‖ = 1`. -/
+theorem example_24_va {A : Type u} [CompleteBooleanAlgebra A] (Var : PSet.{u})
+    [DecidableEq Var.Type] :
+    lamEqInductiveB (checkVar (A := A) Var)
+      (lamEqB (checkVar (A := A) Var)) = ⊤ :=
+  lamEqInductiveB_lamEqB (checkVar (A := A) Var)
+
+/-- Example 24, subset: `‖check(λ) ⊆ lamEqB (checkVar Var)‖ = 1`. -/
+theorem example_24_subset {A : Type u} [CompleteBooleanAlgebra A]
+    (Var : PSet.{u}) [DecidableEq Var.Type] :
+    AName.subsetB (AName.check (A := A) (pLamEqSet Var))
+      (lamEqB (checkVar (A := A) Var)) = ⊤ :=
+  lamEq_check_subset (A := A) Var
 
 end Scott2026

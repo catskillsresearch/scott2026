@@ -8,17 +8,24 @@ import Scott2026.Lambda
 import Scott2026.VA
 
 /-!
-# Pure λ-syntax in `V^A` (Example 21 at `V^A` and Proposition 22)
+# Pure λ-syntax in `V^A` (Example 21 at `V^A`, Proposition 22, Example 24)
 
-Furber–Mardare–Panangaden–Scott, CSL 2026, Example 21 and Proposition 22.
-Pure terms are encoded as pre-sets by the paper’s tags: `(0,x)` a variable,
-`(1,(x,M))` an abstraction, `(2,(M,N))` an application. There is no constant
-tag `3` in this module, and no claim of `Λ(D, check Var, 𝔎)^A`, `λ^A`, or an
+Furber–Mardare–Panangaden–Scott, CSL 2026, Example 21, Proposition 22, and
+Example 24. Pure terms are encoded as pre-sets by the paper’s tags: `(0,x)` a
+variable, `(1,(x,M))` an abstraction, `(2,(M,N))` an application. There is no
+constant tag `3` in this module, and no claim of `Λ(D, check Var, 𝔎)^A` or an
 interpretation.
 
 `Λ(check Var)^A` is the name `lamB (check Var)` whose children are the
 internally paired encodings. Proposition 22’s check-equality identifies this
 name with `check (Λ(Var))`.
+
+Example 24 treats `λ` as a subset of `Λ(Var) × Λ(Var)`. Equations are encoded
+as `encodeEq M N = (encodeLam M, encodeLam N)` (Kuratowski pairing). `λ^A` is
+the name `lamEqB (check Var)` whose children are the internally paired
+encodings of ground `LamEq` derivations. The paper’s claim is
+`‖lamEqInductiveB (lamEqB (check Var))‖ = 1` and
+`‖check(λ) ⊆ lamEqB (check Var)‖ = 1`, by induction on `LamEq`.
 -/
 
 universe u
@@ -52,6 +59,15 @@ def encodeLam {α : Type u} (f : α → PSet.{u}) : Lam α → PSet.{u}
 /-- Ground set `Λ(Var)` of encoded pure λ-terms. -/
 def pLamSet (Var : PSet.{u}) : PSet.{u} :=
   PSet.mk (Lam Var.Type) (encodeLam Var.Func)
+
+/-- Paper pairing of tagged terms: `(encodeLam M, encodeLam N)`. -/
+def encodeEq {α : Type u} (f : α → PSet.{u}) (M N : Lam α) : PSet.{u} :=
+  pOpair (encodeLam f M) (encodeLam f N)
+
+/-- Ground set `λ ⊆ Λ(Var) × Λ(Var)` of encoded Definition 23 equations. -/
+def pLamEqSet (Var : PSet.{u}) [DecidableEq Var.Type] : PSet.{u} :=
+  PSet.mk {p : Lam Var.Type × Lam Var.Type // LamEq p.1 p.2}
+    (fun p => encodeEq Var.Func p.1.1 p.1.2)
 
 /-!
 ## Internal pairing of tags
@@ -375,5 +391,286 @@ theorem lamB_check_eq (Var : PSet.{u}) :
     ⊤
   rw [check_mk]
   exact eqB_mk_top _ _ fun M => check_encodeLam (A := A) Var M
+
+/-!
+## Example 24: `λ^A` and `‖check λ ⊆ λ^A‖ = 1`
+-/
+
+/-- Internal encoding of an equation as `(encodeLamB M, encodeLamB N)^A`. -/
+noncomputable def encodeEqB (V : AName.{u} A) (M N : Lam V.idx) : AName.{u} A :=
+  opairB (encodeLamB V M) (encodeLamB V N)
+
+/-- Index type of ground `LamEq` pairs over `dom(V)`. -/
+def LamEqIdx (V : AName.{u} A) [DecidableEq V.idx] : Type u :=
+  {p : Lam V.idx × Lam V.idx // LamEq p.1 p.2}
+
+/-- `λ^A`: the name whose children are the paired encodings of ground `LamEq`
+derivations over `dom(V)`. -/
+noncomputable def lamEqB (V : AName.{u} A) [DecidableEq V.idx] : AName.{u} A :=
+  mk (LamEqIdx V) (fun p => encodeEqB V p.1.1 p.1.2) (fun _ => ⊤)
+
+/-- Boolean value of the paper’s `λ`-inductive clause (Example 24). Not
+required to be `Δ₀`. Pairing atoms are `eqB` of `opairB` encodings; `β` reuses
+`Lam.subst` on the ground encoding. -/
+noncomputable def lamEqInductiveB (V S : AName.{u} A) [DecidableEq V.idx] : A :=
+  (⨅ M : Lam V.idx,
+      ⨆ p : AName.{u} A, memB p S ⊓ eqB p (encodeEqB V M M)) ⊓
+  (⨅ e : LamEqIdx V,
+      ⨆ p : AName.{u} A, memB p S ⊓ eqB p (encodeEqB V e.1.2 e.1.1)) ⊓
+  (⨅ M : Lam V.idx, ⨅ N : Lam V.idx, ⨅ L : Lam V.idx,
+      ⨅ _ : LamEq M N, ⨅ _ : LamEq N L,
+        ⨆ p : AName.{u} A, memB p S ⊓ eqB p (encodeEqB V M L)) ⊓
+  (⨅ e : LamEqIdx V, ⨅ Z : Lam V.idx,
+      ⨆ p : AName.{u} A, memB p S ⊓ eqB p
+        (opairB (lamAppB (encodeLamB V e.1.1) (encodeLamB V Z))
+          (lamAppB (encodeLamB V e.1.2) (encodeLamB V Z)))) ⊓
+  (⨅ e : LamEqIdx V, ⨅ Z : Lam V.idx,
+      ⨆ p : AName.{u} A, memB p S ⊓ eqB p
+        (opairB (lamAppB (encodeLamB V Z) (encodeLamB V e.1.1))
+          (lamAppB (encodeLamB V Z) (encodeLamB V e.1.2)))) ⊓
+  (⨅ x : V.idx, ⨅ e : LamEqIdx V,
+      ⨆ p : AName.{u} A, memB p S ⊓ eqB p
+        (opairB (lamAbsB (V.child x) (encodeLamB V e.1.1))
+          (lamAbsB (V.child x) (encodeLamB V e.1.2)))) ⊓
+  (⨅ x : V.idx, ⨅ M : Lam V.idx, ⨅ N : Lam V.idx,
+      ⨆ p : AName.{u} A, memB p S ⊓ eqB p
+        (opairB
+          (lamAppB (lamAbsB (V.child x) (encodeLamB V M)) (encodeLamB V N))
+          (encodeLamB V (Lam.subst M x N))))
+
+theorem eqB_encodeEqB (V : AName.{u} A) (M N M' N' : Lam V.idx) :
+    eqB (encodeEqB V M N) (encodeEqB V M' N') =
+      eqB (encodeLamB V M) (encodeLamB V M') ⊓
+        eqB (encodeLamB V N) (encodeLamB V N') := by
+  rw [encodeEqB, encodeEqB, eqB_opairB]
+
+theorem memB_lamEqB (z V : AName.{u} A) [DecidableEq V.idx] :
+    memB z (lamEqB V) =
+      ⨆ e : LamEqIdx V, eqB z (encodeEqB V e.1.1 e.1.2) := by
+  rw [lamEqB, memB_mk]
+  exact iSup_congr fun _ => inf_top_eq _
+
+theorem memB_encodeEqB (V : AName.{u} A) [DecidableEq V.idx]
+    (M N : Lam V.idx) (h : LamEq M N) :
+    memB (encodeEqB V M N) (lamEqB V) = ⊤ := by
+  rw [memB_lamEqB]
+  exact top_unique ((eqB_self (encodeEqB V M N)).ge.trans
+    (le_iSup (fun e : LamEqIdx V => eqB (encodeEqB V M N)
+      (encodeEqB V e.1.1 e.1.2)) ⟨(M, N), h⟩))
+
+theorem lamEqInductiveB_refl (V : AName.{u} A) [DecidableEq V.idx] :
+    (⨅ M : Lam V.idx,
+      ⨆ p : AName.{u} A,
+        memB p (lamEqB V) ⊓ eqB p (encodeEqB V M M)) = ⊤ := by
+  refine iInf_eq_top.mpr fun M => ?_
+  refine top_unique (le_iSup_of_le (encodeEqB V M M) ?_)
+  rw [memB_encodeEqB V M M (LamEq.refl M), eqB_self, top_inf_eq]
+
+theorem lamEqInductiveB_symm (V : AName.{u} A) [DecidableEq V.idx] :
+    (⨅ e : LamEqIdx V,
+      ⨆ p : AName.{u} A,
+        memB p (lamEqB V) ⊓ eqB p (encodeEqB V e.1.2 e.1.1)) = ⊤ := by
+  refine iInf_eq_top.mpr fun e => ?_
+  refine top_unique (le_iSup_of_le (encodeEqB V e.1.2 e.1.1) ?_)
+  rw [memB_encodeEqB V e.1.2 e.1.1 (LamEq.symm e.2), eqB_self, top_inf_eq]
+
+theorem lamEqInductiveB_trans (V : AName.{u} A) [DecidableEq V.idx] :
+    (⨅ M : Lam V.idx, ⨅ N : Lam V.idx, ⨅ L : Lam V.idx,
+      ⨅ _ : LamEq M N, ⨅ _ : LamEq N L,
+        ⨆ p : AName.{u} A, memB p (lamEqB V) ⊓ eqB p (encodeEqB V M L)) = ⊤ := by
+  refine iInf_eq_top.mpr fun M => iInf_eq_top.mpr fun N => iInf_eq_top.mpr fun L =>
+    iInf_eq_top.mpr fun hMN => iInf_eq_top.mpr fun hNL => ?_
+  refine top_unique (le_iSup_of_le (encodeEqB V M L) ?_)
+  rw [memB_encodeEqB V M L (LamEq.trans hMN hNL), eqB_self, top_inf_eq]
+
+theorem lamEqInductiveB_app_left (V : AName.{u} A) [DecidableEq V.idx] :
+    (⨅ e : LamEqIdx V, ⨅ Z : Lam V.idx,
+      ⨆ p : AName.{u} A, memB p (lamEqB V) ⊓ eqB p
+        (opairB (lamAppB (encodeLamB V e.1.1) (encodeLamB V Z))
+          (lamAppB (encodeLamB V e.1.2) (encodeLamB V Z)))) = ⊤ := by
+  refine iInf_eq_top.mpr fun e => iInf_eq_top.mpr fun Z => ?_
+  refine top_unique (le_iSup_of_le
+    (encodeEqB V (e.1.1.app Z) (e.1.2.app Z)) ?_)
+  have hmem : memB (encodeEqB V (e.1.1.app Z) (e.1.2.app Z)) (lamEqB V) = ⊤ :=
+    memB_encodeEqB V _ _ (LamEq.app_left e.2)
+  rw [hmem, encodeEqB, encodeLamB, encodeLamB, eqB_self, top_inf_eq]
+
+theorem lamEqInductiveB_app_right (V : AName.{u} A) [DecidableEq V.idx] :
+    (⨅ e : LamEqIdx V, ⨅ Z : Lam V.idx,
+      ⨆ p : AName.{u} A, memB p (lamEqB V) ⊓ eqB p
+        (opairB (lamAppB (encodeLamB V Z) (encodeLamB V e.1.1))
+          (lamAppB (encodeLamB V Z) (encodeLamB V e.1.2)))) = ⊤ := by
+  refine iInf_eq_top.mpr fun e => iInf_eq_top.mpr fun Z => ?_
+  refine top_unique (le_iSup_of_le
+    (encodeEqB V (Z.app e.1.1) (Z.app e.1.2)) ?_)
+  have hmem : memB (encodeEqB V (Z.app e.1.1) (Z.app e.1.2)) (lamEqB V) = ⊤ :=
+    memB_encodeEqB V _ _ (LamEq.app_right e.2)
+  rw [hmem, encodeEqB, encodeLamB, encodeLamB, eqB_self, top_inf_eq]
+
+theorem lamEqInductiveB_xi (V : AName.{u} A) [DecidableEq V.idx] :
+    (⨅ x : V.idx, ⨅ e : LamEqIdx V,
+      ⨆ p : AName.{u} A, memB p (lamEqB V) ⊓ eqB p
+        (opairB (lamAbsB (V.child x) (encodeLamB V e.1.1))
+          (lamAbsB (V.child x) (encodeLamB V e.1.2)))) = ⊤ := by
+  refine iInf_eq_top.mpr fun x => iInf_eq_top.mpr fun e => ?_
+  refine top_unique (le_iSup_of_le
+    (encodeEqB V (Lam.abs x e.1.1) (Lam.abs x e.1.2)) ?_)
+  have hmem : memB (encodeEqB V (Lam.abs x e.1.1) (Lam.abs x e.1.2)) (lamEqB V) = ⊤ :=
+    memB_encodeEqB V _ _ (LamEq.xi x e.2)
+  rw [hmem, encodeEqB, encodeLamB, encodeLamB, eqB_self, top_inf_eq]
+
+theorem lamEqInductiveB_beta (V : AName.{u} A) [DecidableEq V.idx] :
+    (⨅ x : V.idx, ⨅ M : Lam V.idx, ⨅ N : Lam V.idx,
+      ⨆ p : AName.{u} A, memB p (lamEqB V) ⊓ eqB p
+        (opairB
+          (lamAppB (lamAbsB (V.child x) (encodeLamB V M)) (encodeLamB V N))
+          (encodeLamB V (Lam.subst M x N)))) = ⊤ := by
+  refine iInf_eq_top.mpr fun x => iInf_eq_top.mpr fun M => iInf_eq_top.mpr fun N => ?_
+  refine top_unique (le_iSup_of_le
+    (encodeEqB V ((Lam.abs x M).app N) (Lam.subst M x N)) ?_)
+  have hmem : memB (encodeEqB V ((Lam.abs x M).app N) (Lam.subst M x N))
+      (lamEqB V) = ⊤ :=
+    memB_encodeEqB V _ _ (LamEq.beta x M N)
+  rw [hmem, encodeEqB, encodeLamB, encodeLamB, eqB_self, top_inf_eq]
+
+/-- `lamEqB V` satisfies the Example 24 clauses at Boolean value `1`. -/
+theorem lamEqInductiveB_lamEqB (V : AName.{u} A) [DecidableEq V.idx] :
+    lamEqInductiveB V (lamEqB V) = ⊤ := by
+  rw [lamEqInductiveB]
+  exact inf_eq_top_iff.mpr
+    ⟨inf_eq_top_iff.mpr
+      ⟨inf_eq_top_iff.mpr
+        ⟨inf_eq_top_iff.mpr
+          ⟨inf_eq_top_iff.mpr
+            ⟨inf_eq_top_iff.mpr ⟨lamEqInductiveB_refl V, lamEqInductiveB_symm V⟩,
+              lamEqInductiveB_trans V⟩,
+            lamEqInductiveB_app_left V⟩,
+          lamEqInductiveB_app_right V⟩,
+        lamEqInductiveB_xi V⟩,
+      lamEqInductiveB_beta V⟩
+
+theorem lamEqInductiveB_parts {V S : AName.{u} A} [DecidableEq V.idx]
+    (h : lamEqInductiveB V S = ⊤) :
+    (⨅ M : Lam V.idx,
+        ⨆ p : AName.{u} A, memB p S ⊓ eqB p (encodeEqB V M M)) = ⊤ ∧
+      (⨅ e : LamEqIdx V,
+        ⨆ p : AName.{u} A, memB p S ⊓ eqB p (encodeEqB V e.1.2 e.1.1)) = ⊤ ∧
+      (⨅ M : Lam V.idx, ⨅ N : Lam V.idx, ⨅ L : Lam V.idx,
+        ⨅ _ : LamEq M N, ⨅ _ : LamEq N L,
+          ⨆ p : AName.{u} A, memB p S ⊓ eqB p (encodeEqB V M L)) = ⊤ ∧
+      (⨅ e : LamEqIdx V, ⨅ Z : Lam V.idx,
+        ⨆ p : AName.{u} A, memB p S ⊓ eqB p
+          (opairB (lamAppB (encodeLamB V e.1.1) (encodeLamB V Z))
+            (lamAppB (encodeLamB V e.1.2) (encodeLamB V Z)))) = ⊤ ∧
+      (⨅ e : LamEqIdx V, ⨅ Z : Lam V.idx,
+        ⨆ p : AName.{u} A, memB p S ⊓ eqB p
+          (opairB (lamAppB (encodeLamB V Z) (encodeLamB V e.1.1))
+            (lamAppB (encodeLamB V Z) (encodeLamB V e.1.2)))) = ⊤ ∧
+      (⨅ x : V.idx, ⨅ e : LamEqIdx V,
+        ⨆ p : AName.{u} A, memB p S ⊓ eqB p
+          (opairB (lamAbsB (V.child x) (encodeLamB V e.1.1))
+            (lamAbsB (V.child x) (encodeLamB V e.1.2)))) = ⊤ ∧
+      (⨅ x : V.idx, ⨅ M : Lam V.idx, ⨅ N : Lam V.idx,
+        ⨆ p : AName.{u} A, memB p S ⊓ eqB p
+          (opairB
+            (lamAppB (lamAbsB (V.child x) (encodeLamB V M)) (encodeLamB V N))
+            (encodeLamB V (Lam.subst M x N)))) = ⊤ := by
+  have hβ := inf_eq_top_iff.mp h
+  have hξ := inf_eq_top_iff.mp hβ.1
+  have happR := inf_eq_top_iff.mp hξ.1
+  have happL := inf_eq_top_iff.mp happR.1
+  have htr := inf_eq_top_iff.mp happL.1
+  have hrs := inf_eq_top_iff.mp htr.1
+  exact ⟨hrs.1, hrs.2, htr.2, happL.2, happR.2, hξ.2, hβ.2⟩
+
+/-- Every encoded ground equation belongs to an inductive name, by induction
+on `LamEq` (paper: “by induction on the structure of an element of `λ`”). -/
+theorem memB_encodeEqB_of_inductive {V S : AName.{u} A} [DecidableEq V.idx]
+    (h : lamEqInductiveB V S = ⊤) {M N : Lam V.idx} (heq : LamEq M N) :
+    memB (encodeEqB V M N) S = ⊤ := by
+  induction heq with
+  | refl M =>
+    exact memB_of_exists_eqB S (encodeEqB V M M)
+      (iInf_eq_top.mp (lamEqInductiveB_parts h).1 M)
+  | @symm M N hMN _ =>
+    exact memB_of_exists_eqB S (encodeEqB V N M)
+      (iInf_eq_top.mp (lamEqInductiveB_parts h).2.1 ⟨(M, N), hMN⟩)
+  | @trans M N L hMN hNL _ _ =>
+    have htr :
+        (⨅ _ : LamEq M N, ⨅ _ : LamEq N L,
+          ⨆ p : AName.{u} A, memB p S ⊓ eqB p (encodeEqB V M L)) = ⊤ :=
+      iInf_eq_top.mp (iInf_eq_top.mp (iInf_eq_top.mp
+        (lamEqInductiveB_parts h).2.2.1 M) N) L
+    exact memB_of_exists_eqB S (encodeEqB V M L)
+      (iInf_eq_top.mp (iInf_eq_top.mp htr hMN) hNL)
+  | @app_left M N Z hMN _ =>
+    have happ :=
+      iInf_eq_top.mp (iInf_eq_top.mp (lamEqInductiveB_parts h).2.2.2.1
+        ⟨(M, N), hMN⟩) Z
+    exact memB_of_exists_eqB S (encodeEqB V (M.app Z) (N.app Z)) happ
+  | @app_right M N Z hMN _ =>
+    have happ :=
+      iInf_eq_top.mp (iInf_eq_top.mp (lamEqInductiveB_parts h).2.2.2.2.1
+        ⟨(M, N), hMN⟩) Z
+    exact memB_of_exists_eqB S (encodeEqB V (Z.app M) (Z.app N)) happ
+  | @xi x M N hMN _ =>
+    have hxi :=
+      iInf_eq_top.mp (iInf_eq_top.mp (lamEqInductiveB_parts h).2.2.2.2.2.1 x)
+        ⟨(M, N), hMN⟩
+    exact memB_of_exists_eqB S (encodeEqB V (Lam.abs x M) (Lam.abs x N)) hxi
+  | beta x M N =>
+    have hβ :=
+      iInf_eq_top.mp
+        (iInf_eq_top.mp
+          (iInf_eq_top.mp (lamEqInductiveB_parts h).2.2.2.2.2.2 x) M) N
+    exact memB_of_exists_eqB S
+      (encodeEqB V ((Lam.abs x M).app N) (Lam.subst M x N)) hβ
+
+/-- Check commutation for encoded equations. -/
+theorem check_encodeEq (Var : PSet.{u}) (M N : Lam Var.Type) :
+    eqB (check (A := A) (encodeEq Var.Func M N))
+      (encodeEqB
+        (mk Var.Type (fun i => check (A := A) (Var.Func i)) (fun _ => ⊤)) M N) =
+      ⊤ := by
+  have hpair :=
+    check_opair (A := A) (encodeLam Var.Func M) (encodeLam Var.Func N)
+  have hM := check_encodeLam (A := A) Var M
+  have hN := check_encodeLam (A := A) Var N
+  exact eqB_top_trans hpair (eqB_opairB_top hM hN)
+
+theorem check_idx_eq (Var : PSet.{u}) :
+    (check (A := A) Var).idx = Var.Type := by
+  cases Var
+  rfl
+
+instance instDecidableEq_check_idx (Var : PSet.{u}) [DecidableEq Var.Type] :
+    DecidableEq (check (A := A) Var).idx :=
+  (check_idx_eq (A := A) Var).symm ▸ inferInstance
+
+/-- Unfolding of `check Var`, with `idx` definitionally `Var.Type`.
+`check_eq_mk` identifies this name with `check Var`. -/
+noncomputable abbrev checkVar (Var : PSet.{u}) : AName.{u} A :=
+  mk Var.Type (fun i => check (A := A) (Var.Func i)) (fun _ => ⊤)
+
+instance instDecidableEq_checkVar_idx (Var : PSet.{u}) [DecidableEq Var.Type] :
+    DecidableEq (checkVar (A := A) Var).idx :=
+  inferInstanceAs (DecidableEq Var.Type)
+
+theorem checkVar_eq (Var : PSet.{u}) : checkVar (A := A) Var = check Var :=
+  (check_eq_mk (A := A) Var).symm
+
+/-- Example 24, subset: `‖check(λ) ⊆ lamEqB (checkVar Var)‖ = 1`. -/
+theorem lamEq_check_subset (Var : PSet.{u}) [DecidableEq Var.Type] :
+    subsetB (check (A := A) (pLamEqSet Var)) (lamEqB (checkVar Var)) = ⊤ := by
+  rw [pLamEqSet, check_mk, subsetB_mk]
+  refine iInf_eq_top.mpr fun e => himp_eq_top_iff.mpr ?_
+  have hmem : memB (encodeEqB (checkVar (A := A) Var) e.1.1 e.1.2)
+      (lamEqB (checkVar Var)) = ⊤ :=
+    memB_encodeEqB_of_inductive (lamEqInductiveB_lamEqB (checkVar (A := A) Var)) e.2
+  have heq : eqB (check (A := A) (encodeEq Var.Func e.1.1 e.1.2))
+      (encodeEqB (checkVar (A := A) Var) e.1.1 e.1.2) = ⊤ :=
+    check_encodeEq (A := A) Var e.1.1 e.1.2
+  rw [eqB_top_memB_left (z := lamEqB (checkVar (A := A) Var)) heq]
+  exact hmem.ge
 
 end Scott2026

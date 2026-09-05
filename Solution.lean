@@ -44,7 +44,9 @@ export Scott2026 (scaffold_placeholder lemma_12 proposition_27 proposition_27_co
   pLamVar pLamAbs pLamApp encodeLam pLamSet
   lamVarB lamAbsB lamAppB encodeLamB lamB lamInductiveB
   example_21 example_21_va
-  proposition_22 proposition_22_least proposition_22_check_eq)
+  proposition_22 proposition_22_least proposition_22_check_eq
+  encodeEq pLamEqSet encodeEqB lamEqB lamEqInductiveB checkVar
+  example_24 example_24_va example_24_subset)
 
 /-!
 # Solution to the Challenge
