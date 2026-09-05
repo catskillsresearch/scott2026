@@ -12,6 +12,7 @@ import Scott2026.Oid
 import Scott2026.RawPowerStrict
 import Scott2026.Domain
 import Scott2026.Lambda
+import Scott2026.LambdaVA
 import Scott2026.Engeler
 import Scott2026.EngelerVA
 import Scott2026.Random
@@ -363,5 +364,53 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- this is not Theorem 1(i), Definition 19 at `V^A`, an internal
 -- continuous lattice, or a countable-base claim. Canonical strictness
 -- is `theorem_30_strict`; the raw index carrier is not claimed strict.
+--
+-- Example 21 at `V^A` and Proposition 22 (CSL p.8–9): pure λ-terms are
+-- encoded by tags `(0,x)`, `(1,(x,M))`, `(2,(M,N))` (`pLamVar` /
+-- `pLamAbs` / `pLamApp`, no constant tag 3). `lamInductiveB` is the
+-- Boolean `Λ(V)`-inductive clause; `lamB (check Var)` is
+-- `Λ(check Var)^A`. Inductiveness and leastness are `example_21_va` /
+-- `proposition_22` / `proposition_22_least` (the `check_omega_least`
+-- pattern, with Theorem 1(iii) for witnesses). Check-equality
+-- `‖check (Λ(Var)) = lamB (check Var)‖ = 1` is
+-- `proposition_22_check_eq`. This is not `Λ(D, check Var, 𝔎)^A`,
+-- `λ^A`, or an interpretation.
+
+/-- Example 21, ground: `Λ(Var)` is the least inductive set of pure terms. -/
+theorem example_21 {Var : Type*} {S : Set (Lam Var)} (h : Lam.IsInductive S) :
+    ∀ M : Lam Var, M ∈ S :=
+  Lam.lam_least_inductive h
+
+/-- Example 21 at `V^A`: `‖lamInductiveB (lamB (check Var))‖ = 1`. -/
+theorem example_21_va {A : Type u} [CompleteBooleanAlgebra A] (Var : PSet.{u}) :
+    lamInductiveB (AName.check (A := A) Var)
+      (lamB (AName.check (A := A) Var)) = ⊤ :=
+  lamInductiveB_lamB (AName.check (A := A) Var)
+
+/-- Proposition 22: `lamB (check Var)` is `Λ(check Var)`-inductive and least. -/
+theorem proposition_22 {A : Type u} [CompleteBooleanAlgebra A] (Var : PSet.{u}) :
+    lamInductiveB (AName.check (A := A) Var)
+      (lamB (AName.check (A := A) Var)) = ⊤ ∧
+      ∀ X : AName.{u} A,
+        lamInductiveB (AName.check (A := A) Var) X = ⊤ →
+          AName.subsetB (lamB (AName.check (A := A) Var)) X = ⊤ :=
+  ⟨lamInductiveB_lamB (AName.check (A := A) Var),
+    fun _X h => lamB_least h⟩
+
+/-- Proposition 22, leastness: if `‖lamInductiveB X‖ = 1` then
+`‖lamB (check Var) ⊆ X‖ = 1`. -/
+theorem proposition_22_least {A : Type u} [CompleteBooleanAlgebra A]
+    {Var : PSet.{u}} {X : AName.{u} A}
+    (h : lamInductiveB (AName.check (A := A) Var) X = ⊤) :
+    AName.subsetB (lamB (AName.check (A := A) Var)) X = ⊤ :=
+  lamB_least h
+
+/-- Proposition 22, check-equality:
+`‖check (Λ(Var)) = lamB (check Var)‖ = 1`. -/
+theorem proposition_22_check_eq {A : Type u} [CompleteBooleanAlgebra A]
+    (Var : PSet.{u}) :
+    AName.eqB (AName.check (A := A) (pLamSet Var))
+      (lamB (AName.check (A := A) Var)) = ⊤ :=
+  lamB_check_eq (A := A) Var
 
 end Scott2026

@@ -40,7 +40,11 @@ export Scott2026 (scaffold_placeholder lemma_12 proposition_27 proposition_27_co
   engelerAppVA engelerLamVA DeterminedByFiniteVA
   AValuedReflexiveDcpo
   theorem_30_retract theorem_30_retract_oid theorem_30_model
-  theorem_30_complete theorem_30_total theorem_30_strict theorem_30)
+  theorem_30_complete theorem_30_total theorem_30_strict theorem_30
+  pLamVar pLamAbs pLamApp encodeLam pLamSet
+  lamVarB lamAbsB lamAppB encodeLamB lamB lamInductiveB
+  example_21 example_21_va
+  proposition_22 proposition_22_least proposition_22_check_eq)
 
 /-!
 # Solution to the Challenge
