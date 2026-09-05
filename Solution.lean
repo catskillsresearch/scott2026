@@ -53,7 +53,15 @@ export Scott2026 (scaffold_placeholder lemma_12 proposition_27 proposition_27_co
   LamEqNC
   definition_25 definition_25_var definition_25_app definition_25_abs
   definition_25_closed definition_25_subst definition_25_sound
-  definition_25_sound_beta definition_25_sound_closed)
+  definition_25_sound_beta definition_25_sound_closed
+  EngelerCarrier interpVA interpClosedVA
+  interpVA_var interpVA_app interpVA_abs interpVA_closed
+  interpVA_subst interpVA_sound interpVA_sound_beta interpClosedVA_sound
+  interpVA_update_determined
+  theorem_26 theorem_26_pure theorem_26_var theorem_26_app
+  theorem_26_abs theorem_26_closed theorem_26_subst
+  theorem_26_sound theorem_26_sound_beta theorem_26_sound_closed
+  theorem_26_update_determined)
 
 export Scott2026.Lam (FreeFor subst_fresh freeFor_of_not_mem_fv freeFor_of_closed)
 

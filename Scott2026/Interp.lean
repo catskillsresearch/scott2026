@@ -77,10 +77,15 @@ def update (ρ : Valuation Var D) (x : Var) (d : D) : Valuation Var D where
   domain := insert x ρ.domain
   toFun := Function.update ρ.toFun x d
 
-/-- The empty valuation `∅`. Dummy values are unused on closed terms. -/
-def empty [CompleteLattice D] : Valuation Var D where
+/-- A valuation with empty domain and a dummy total map. Dummy values are
+unused when `fv(M) ⊆ ∅`. -/
+def default (d : D) : Valuation Var D where
   domain := ∅
-  toFun := fun _ => ⊥
+  toFun := fun _ => d
+
+/-- The empty valuation `∅`. Dummy values are unused on closed terms. -/
+def empty [CompleteLattice D] : Valuation Var D :=
+  default (⊥ : D)
 
 omit [DecidableEq Var] in
 theorem ext {ρ σ : Valuation Var D} (hd : ρ.domain = σ.domain)

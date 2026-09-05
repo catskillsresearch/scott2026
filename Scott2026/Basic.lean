@@ -13,6 +13,7 @@ import Scott2026.RawPowerStrict
 import Scott2026.Domain
 import Scott2026.Lambda
 import Scott2026.Interp
+import Scott2026.InterpVA
 import Scott2026.LambdaVA
 import Scott2026.Engeler
 import Scott2026.EngelerVA
@@ -398,6 +399,20 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- `Lam.subst` does not rename). Capturing `LamEq.beta` is not claimed.
 -- This is not `SetoidF_A(Λ^A, D)`, not A-valued `⟦·⟧^A_ρ`, and not
 -- Theorem 26.
+--
+-- Theorem 26, pure-term fragment (CSL p.10): `interpVA` interprets
+-- `Λ(Var)` on the Theorem 30 carrier (`CanonicalPowerIdx` of `check ω`)
+-- by the Definition 25 clauses with `engelerAppVA` / `engelerLamVA`.
+-- The meta-lambda is `DeterminedByFiniteVA` (`theorem_26_update_determined`),
+-- so `theorem_30_retract` applies. Soundness is the capture-free fragment
+-- `LamEqNC`. This is not `Λ(D, check Var, 𝔎)^A`, not tag 3, not an
+-- internal reflexive-dcpo hypothesis, and not `SetoidF_A` membership.
+-- The missing lemma for `SetoidF_A(oid(lamB (check Var)),
+-- canonicalPowerSetoid)` (or `oid(check (pLamSet Var))`) is congruence
+-- of `interpVA` under `eqB (encodeLamB M) (encodeLamB N)`, equivalently
+-- injectivity of `encodeLamB` at every Boolean value (pairwise
+-- Boolean-unequal variable children). Definition 16 `oidRel` would need
+-- a function name with `isFunctionB = ⊤` and the same single-valuedness.
 
 /-- Example 21, ground: `Λ(Var)` is the least inductive set of pure terms. -/
 theorem example_21 {Var : Type*} {S : Set (Lam Var)} (h : Lam.IsInductive S) :
@@ -529,5 +544,124 @@ theorem definition_25_sound_closed {Var D : Type*} [DecidableEq Var]
     (h : LamEqNC M N) :
     interpClosed R M = interpClosed R N :=
   interpClosed_sound R h
+
+/-- Theorem 26, pure-term fragment: the four Definition 25 clauses on the
+Theorem 30 carrier. Not `Λ(D, check Var, 𝔎)^A`, not tag 3, and not
+`SetoidF_A` membership. -/
+theorem theorem_26_pure {A : Type u} [CompleteBooleanAlgebra A] {Var : Type*}
+    [DecidableEq Var] (x : Var) (M N : Lam Var)
+    (ρ : Valuation Var (EngelerCarrier (A := A)))
+    (hx : x ∈ ρ.domain) :
+    interpVA (A := A) (Lam.var x) ρ = ρ.lookup x hx ∧
+      interpVA (A := A) (M.app N) ρ =
+        engelerAppVA (A := A) (interpVA (A := A) M ρ)
+          (interpVA (A := A) N ρ) ∧
+      interpVA (A := A) (Lam.abs x M) ρ =
+        engelerLamVA (A := A)
+          (fun d => interpVA (A := A) M (ρ.update x d)) ∧
+      interpClosedVA (A := A) N =
+        interpVA (A := A) N
+          (Valuation.default (finsetToCanonical (A := A) ∅)) :=
+  ⟨interpVA_var (A := A) x ρ hx, interpVA_app (A := A) M N ρ,
+    interpVA_abs (A := A) x M ρ, interpVA_closed (A := A) N⟩
+
+/-- Theorem 26, variable clause: `⟦x⟧^A_ρ = ρ(x)`. -/
+theorem theorem_26_var {A : Type u} [CompleteBooleanAlgebra A] {Var : Type*}
+    [DecidableEq Var] (x : Var) (ρ : Valuation Var (EngelerCarrier (A := A)))
+    (h : x ∈ ρ.domain) :
+    interpVA (A := A) (Lam.var x) ρ = ρ.lookup x h :=
+  interpVA_var (A := A) x ρ h
+
+/-- Theorem 26, application clause: `⟦MN⟧^A_ρ = ⟦M⟧^A_ρ · ⟦N⟧^A_ρ`. -/
+theorem theorem_26_app {A : Type u} [CompleteBooleanAlgebra A] {Var : Type*}
+    [DecidableEq Var] (M N : Lam Var)
+    (ρ : Valuation Var (EngelerCarrier (A := A))) :
+    interpVA (A := A) (M.app N) ρ =
+      engelerAppVA (A := A) (interpVA (A := A) M ρ)
+        (interpVA (A := A) N ρ) :=
+  interpVA_app (A := A) M N ρ
+
+/-- Theorem 26, abstraction clause:
+`⟦λx. M⟧^A_ρ = lam(λd. ⟦M⟧^A_{ρ(x := d)})`. -/
+theorem theorem_26_abs {A : Type u} [CompleteBooleanAlgebra A] {Var : Type*}
+    [DecidableEq Var] (x : Var) (M : Lam Var)
+    (ρ : Valuation Var (EngelerCarrier (A := A))) :
+    interpVA (A := A) (Lam.abs x M) ρ =
+      engelerLamVA (A := A) fun d => interpVA (A := A) M (ρ.update x d) :=
+  interpVA_abs (A := A) x M ρ
+
+/-- Theorem 26, closed terms: `⟦M⟧^A := ⟦M⟧^A_∅`. -/
+theorem theorem_26_closed {A : Type u} [CompleteBooleanAlgebra A] {Var : Type*}
+    [DecidableEq Var] (M : Lam Var) :
+    interpClosedVA (A := A) M =
+      interpVA (A := A) M
+        (Valuation.default (finsetToCanonical (A := A) ∅)) :=
+  interpVA_closed (A := A) M
+
+/-- Theorem 26, substitution on the capture-free fragment. -/
+theorem theorem_26_subst {A : Type u} [CompleteBooleanAlgebra A] {Var : Type*}
+    [DecidableEq Var] (M N : Lam Var) (x : Var)
+    (ρ : Valuation Var (EngelerCarrier (A := A)))
+    (hfree : M.FreeFor x N) :
+    interpVA (A := A) (M.subst x N) ρ =
+      interpVA (A := A) M (ρ.update x (interpVA (A := A) N ρ)) :=
+  interpVA_subst (A := A) M N x ρ hfree
+
+/-- Theorem 26, β-soundness when `N` is free for `x` in `M`. -/
+theorem theorem_26_sound_beta {A : Type u} [CompleteBooleanAlgebra A]
+    {Var : Type*} [DecidableEq Var] (x : Var) (M N : Lam Var)
+    (ρ : Valuation Var (EngelerCarrier (A := A)))
+    (hfree : M.FreeFor x N) :
+    interpVA (A := A) ((Lam.abs x M).app N) ρ =
+      interpVA (A := A) (M.subst x N) ρ :=
+  interpVA_sound_beta (A := A) x M N ρ hfree
+
+/-- Theorem 26, capture-free soundness on the Theorem 30 carrier. -/
+theorem theorem_26_sound {A : Type u} [CompleteBooleanAlgebra A] {Var : Type*}
+    [DecidableEq Var] {M N : Lam Var} (h : LamEqNC M N)
+    (ρ : Valuation Var (EngelerCarrier (A := A))) :
+    interpVA (A := A) M ρ = interpVA (A := A) N ρ :=
+  interpVA_sound (A := A) h ρ
+
+/-- Theorem 26, closed form of capture-free soundness. -/
+theorem theorem_26_sound_closed {A : Type u} [CompleteBooleanAlgebra A]
+    {Var : Type*} [DecidableEq Var] {M N : Lam Var} (h : LamEqNC M N) :
+    interpClosedVA (A := A) M = interpClosedVA (A := A) N :=
+  interpClosedVA_sound (A := A) h
+
+/-- Theorem 26: the meta-lambda is `DeterminedByFiniteVA`. -/
+theorem theorem_26_update_determined {A : Type u} [CompleteBooleanAlgebra A]
+    {Var : Type*} [DecidableEq Var] (M : Lam Var)
+    (ρ : Valuation Var (EngelerCarrier (A := A))) (x : Var) :
+    DeterminedByFiniteVA (A := A)
+      (fun d => interpVA (A := A) M (ρ.update x d)) :=
+  interpVA_update_determined (A := A) M ρ x
+
+/-- Theorem 26, packaged: clauses, determinedness of the meta-lambda, and
+capture-free soundness on the Theorem 30 carrier. The paper’s full
+statement (constants / tag 3, internal reflexive-dcpo hypothesis,
+`SetoidF_A(Λ^A, D)`, unrestricted `λ ⊢ M = N`) is out of scope. -/
+theorem theorem_26 {A : Type u} [CompleteBooleanAlgebra A] {Var : Type*}
+    [DecidableEq Var] (x : Var) (M N : Lam Var)
+    (ρ : Valuation Var (EngelerCarrier (A := A)))
+    (hx : x ∈ ρ.domain) (hfree : M.FreeFor x N) {P Q : Lam Var}
+    (heq : LamEqNC P Q) :
+    interpVA (A := A) (Lam.var x) ρ = ρ.lookup x hx ∧
+      interpVA (A := A) (M.app N) ρ =
+        engelerAppVA (A := A) (interpVA (A := A) M ρ)
+          (interpVA (A := A) N ρ) ∧
+      interpVA (A := A) (Lam.abs x M) ρ =
+        engelerLamVA (A := A)
+          (fun d => interpVA (A := A) M (ρ.update x d)) ∧
+      DeterminedByFiniteVA (A := A)
+        (fun d => interpVA (A := A) M (ρ.update x d)) ∧
+      interpVA (A := A) ((Lam.abs x M).app N) ρ =
+        interpVA (A := A) (M.subst x N) ρ ∧
+      interpVA (A := A) P ρ = interpVA (A := A) Q ρ :=
+  ⟨interpVA_var (A := A) x ρ hx, interpVA_app (A := A) M N ρ,
+    interpVA_abs (A := A) x M ρ,
+    interpVA_update_determined (A := A) M ρ x,
+    interpVA_sound_beta (A := A) x M N ρ hfree,
+    interpVA_sound (A := A) heq ρ⟩
 
 end Scott2026

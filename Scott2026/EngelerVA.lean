@@ -510,7 +510,7 @@ def DeterminedByFiniteVA
 ## Retract calculation
 -/
 
-private theorem eqB_check_ofNat_bot [Nontrivial A] {n m : ℕ} (hne : n ≠ m) :
+theorem eqB_check_ofNat_bot [Nontrivial A] {n m : ℕ} (hne : n ≠ m) :
     eqB (A := A) (check (PSet.ofNat n)) (check (PSet.ofNat m)) = ⊥ :=
   (check_atomic (A := A) (PSet.ofNat n) (PSet.ofNat m)).2.1.mpr
     (mt ofNat_equiv_iff.mp hne)
