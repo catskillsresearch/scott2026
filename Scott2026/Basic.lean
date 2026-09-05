@@ -8,6 +8,7 @@ import Scott2026.BooleanLogic
 import Scott2026.Setoid
 import Scott2026.RelFun
 import Scott2026.PowerSet
+import Scott2026.Oid
 import Scott2026.Domain
 import Scott2026.Lambda
 import Scott2026.Engeler
@@ -36,6 +37,13 @@ theorem lemma_12 {A : Type*} [CompleteBooleanAlgebra A] {X Y : Type*}
     (hf : APoset.AMonotone P Q f) :
     APoset.Functional P.toASetoid Q.toASetoid f :=
   APoset.AMonotone.functional (P := P) (Q := Q) hf
+
+/-- Definition 4: the two completeness conditions on an `A`-setoid agree. The converse
+direction refines a compatible family by a maximal pairwise disjoint family with the
+same join. -/
+theorem definition_4 {A : Type*} [CompleteBooleanAlgebra A] {X : Type*}
+    (S : ASetoid (A := A) X) : S.IsComplete ↔ S.IsCompleteDisjoint :=
+  ASetoid.isComplete_iff_isCompleteDisjoint S
 
 /-- Theorem 17, mixing witness on `A`-subsets. -/
 theorem theorem_17_mix {A : Type*} [CompleteBooleanAlgebra A] {X ι : Type*}
@@ -98,6 +106,44 @@ theorem jech_lemma_14_18 {A ι : Type u} [CompleteBooleanAlgebra A]
     u i ≤ AName.eqB (AName.mix u xs) (xs i) :=
   AName.mix_le_eqB u xs hdis i
 
+/-- Definition 14: `Oid(X)` is the `A`-setoid on `dom(X)` whose equality is equation (3),
+`‖x = y‖_X = ‖x ∈ X‖ ⊓ ‖y ∈ X‖ ⊓ ‖x = y‖`. Symmetry and transitivity are the
+`ASetoid` fields of `oid`. -/
+theorem definition_14 {A : Type u} [CompleteBooleanAlgebra A]
+    (X : AName.{u} A) (i j : X.idx) :
+    (oid X).eq i j =
+      AName.memB (X.child i) X ⊓ AName.memB (X.child j) X ⊓
+        AName.eqB (X.child i) (X.child j) :=
+  oid_eq X i j
+
+/-- Definition 15: for `‖S ⊆ X‖ = 1`, `e(S)(x) = ‖x ∈ S‖` is a predicate on `Oid(X)`;
+`ePred` carries the two predicate conditions of Definition 7. -/
+theorem definition_15 {A : Type u} [CompleteBooleanAlgebra A]
+    (X S : AName.{u} A) (h : AName.subsetB S X = ⊤) (i : X.idx) :
+    (ePred X S h).val i = AName.memB (X.child i) S :=
+  ePred_val X S h i
+
+/-- Definition 16 on objects and morphisms: `Oid(F)(x, y) = ‖(x,y)^A ∈ F‖` is a
+relational function `Oid(X) → Oid(Y)` for every function name `F : X →_A Y`. -/
+theorem definition_16 {A : Type u} [CompleteBooleanAlgebra A]
+    (X Y F : AName.{u} A) (h : isFunctionB F X Y = ⊤) (i : X.idx) (j : Y.idx) :
+    (oidRel X Y F h).val i j = AName.memB (opairB (X.child i) (Y.child j)) F :=
+  oidRel_val X Y F h i j
+
+/-- Definition 16, functoriality on identities. -/
+theorem definition_16_id {A : Type u} [CompleteBooleanAlgebra A]
+    (X : AName.{u} A) (i j : X.idx) :
+    (oidRel X X (idB X) (isFunctionB_id X)).val i j = (RelFun.id (oid X)).val i j :=
+  oidRel_id X i j
+
+/-- Definition 16, functoriality on composites. -/
+theorem definition_16_comp {A : Type u} [CompleteBooleanAlgebra A]
+    {X Y Z f g : AName.{u} A} (hf : isFunctionB f X Y = ⊤) (hg : isFunctionB g Y Z = ⊤)
+    (i : X.idx) (k : Z.idx) :
+    (oidRel X Z (compB g f X Z) (isFunctionB_comp hf hg)).val i k =
+      ((oidRel Y Z g hg).comp (oidRel X Y f hf)).val i k :=
+  oidRel_comp hf hg i k
+
 -- Jech 14.19, CSL Theorem 1(iii), and Jech 14.21 are `jech_lemma_14_19`,
 -- `theorem_1_iii`, and `jech_lemma_14_21` from `Scott2026.VA`.
 --
@@ -109,5 +155,13 @@ theorem jech_lemma_14_18 {A ι : Type u} [CompleteBooleanAlgebra A]
 -- (`isFunctionB`, `funsB`, `homB`, `idB`, `compB`, `isFunctionB_id`,
 -- `isFunctionB_comp`, `compB_congr`) are from `Scott2026.VA`.
 -- This is not Theorem 1(i) or 1(ii).
+--
+-- §3 through Definition 16 (CSL p.4–6): `oid` / `oid_eq` / `oid_eps` (Definition 14),
+-- `ePred` / `ePredPowerB` (Definition 15), `oidRel` / `oidRel_id` / `oidRel_comp`
+-- (Definition 16) from `Scott2026.Oid`, with `RelFun.comp` (Definition 8 composition)
+-- from `Scott2026.RelFun`. Definition 16 is proved only as functor data: fullness,
+-- faithfulness and essential surjectivity of `Oid`, hence `Set_A ≃ SetoidR_A`, are not
+-- claimed, and neither are Theorem 17, Corollary 18 or Proposition 28 at the
+-- `Oid(P^A(X))` level (`theorem_17_*` / `proposition_28_*` are ground-type results).
 
 end Scott2026

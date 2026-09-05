@@ -5,6 +5,7 @@ Authors: Lars Warren Ericson.
 -/
 
 import Mathlib.Order.CompleteBooleanAlgebra
+import Mathlib.Order.Zorn
 import Scott2026.BooleanLogic
 
 /-!
@@ -27,6 +28,14 @@ theorem inf_inf_inf_comm (a b c d : A) :
     _ = a ⊓ ((c ⊓ b) ⊓ d) := by rw [inf_comm b c]
     _ = a ⊓ (c ⊓ (b ⊓ d)) := by rw [inf_assoc c b d]
     _ = (a ⊓ c) ⊓ (b ⊓ d) := (inf_assoc a c (b ⊓ d)).symm
+
+/-- Two joins are disjoint as soon as the generators are. -/
+theorem sSup_inf_sSup_eq_bot {s t : Set A}
+    (h : ∀ c ∈ s, ∀ d ∈ t, c ⊓ d = ⊥) : sSup s ⊓ sSup t = ⊥ := by
+  rw [sSup_inf_eq]
+  refine iSup_eq_bot.mpr fun c => iSup_eq_bot.mpr fun hc => ?_
+  rw [inf_sSup_eq]
+  exact iSup_eq_bot.mpr fun d => iSup_eq_bot.mpr fun hd => h c hc d hd
 
 /-- An `A`-valued setoid: a set with a symmetric, transitive `A`-valued equality
 (paper §3, before Definition 4). Reflexivity is not assumed. -/
@@ -80,6 +89,76 @@ theorem IsComplete.toDisjoint (h : S.IsComplete) : S.IsCompleteDisjoint := by
     simpa [ASetoid.eps] using hε i
   · have : a i ⊓ a j = ⊥ := hdis hij
     simp [this]
+
+/-- Definition 4 (ii) implies Definition 4 (i). A maximal pairwise disjoint family of
+pieces `b ≤ a i` has join `⨆ i, a i`, so mixing along it also mixes the original
+compatible family. -/
+theorem IsCompleteDisjoint.toComplete (h : S.IsCompleteDisjoint) : S.IsComplete := by
+  classical
+  intro ι a x hcomp
+  -- Pairs `(b, i)` with `b ≤ a i`, collected into pairwise disjoint sets.
+  let D : Set (A × ι) := {p | p.1 ≤ a p.2}
+  let 𝒮 : Set (Set (A × ι)) := {W | W ⊆ D ∧ Set.Pairwise W fun p q => p.1 ⊓ q.1 = ⊥}
+  have hunion (c : Set (Set (A × ι))) (hcS : c ⊆ 𝒮) (hchain : IsChain (· ⊆ ·) c) :
+      ⋃₀ c ∈ 𝒮 ∧ ∀ s ∈ c, s ⊆ ⋃₀ c := by
+    refine ⟨⟨?_, ?_⟩, fun _ => Set.subset_sUnion_of_mem⟩
+    · rintro p ⟨W, hWc, hpW⟩
+      exact (hcS hWc).1 hpW
+    · rintro p ⟨W₁, hW₁c, hpW⟩ q ⟨W₂, hW₂c, hqW⟩ hpq
+      rcases eq_or_ne W₁ W₂ with rfl | hW
+      · exact (hcS hW₁c).2 hpW hqW hpq
+      · rcases hchain hW₁c hW₂c hW with hle | hle
+        · exact (hcS hW₂c).2 (hle hpW) hqW hpq
+        · exact (hcS hW₁c).2 hpW (hle hqW) hpq
+  obtain ⟨W, hWmax⟩ := zorn_subset 𝒮 fun c hcS hchain =>
+    ⟨⋃₀ c, (hunion c hcS hchain).1, (hunion c hcS hchain).2⟩
+  have hWD : W ⊆ D := hWmax.1.1
+  have hWpair : Set.Pairwise W fun p q => p.1 ⊓ q.1 = ⊥ := hWmax.1.2
+  -- The refinement, reindexed by `ι`.
+  let b : ι → A := fun i => sSup {u : A | (u, i) ∈ W}
+  have hb_le : ∀ i, b i ≤ a i := fun i => sSup_le fun u hu => hWD hu
+  have hb_dis : Pairwise fun i j => b i ⊓ b j = ⊥ := by
+    intro i j hij
+    refine sSup_inf_sSup_eq_bot fun u hu v hv => ?_
+    exact hWpair hu hv (by simp [Prod.ext_iff, hij])
+  have ha_eps : ∀ i, a i ≤ S.eps (x i) := fun i => by
+    simpa [ASetoid.eps] using hcomp i i
+  have hb_eps : ∀ i, b i ≤ S.eps (x i) := fun i => (hb_le i).trans (ha_eps i)
+  -- Maximality: the refinement covers every `a i`.
+  have hcover : ∀ i, a i ≤ ⨆ j, b j := by
+    intro i
+    have hle_g : ∀ p ∈ W, p.1 ≤ ⨆ j, b j := by
+      rintro ⟨u, j⟩ hp
+      exact (le_sSup (show u ∈ {v : A | (v, j) ∈ W} from hp)).trans (le_iSup b j)
+    by_contra hne
+    have hiff : a i ≤ (⨆ j, b j) ↔ a i ⊓ (⨆ j, b j)ᶜ = ⊥ := by
+      rw [← disjoint_compl_right_iff, disjoint_iff]
+    have hdne : a i ⊓ (⨆ j, b j)ᶜ ≠ ⊥ := mt hiff.mpr hne
+    have hdisj : ∀ p ∈ W, (a i ⊓ (⨆ j, b j)ᶜ) ⊓ p.1 = ⊥ := by
+      intro p hp
+      refine le_bot_iff.mp ?_
+      calc (a i ⊓ (⨆ j, b j)ᶜ) ⊓ p.1
+          ≤ (⨆ j, b j)ᶜ ⊓ ⨆ j, b j := inf_le_inf inf_le_right (hle_g p hp)
+        _ = ⊥ := by rw [inf_comm]; exact inf_compl_eq_bot
+    have hinsert : insert (a i ⊓ (⨆ j, b j)ᶜ, i) W ∈ 𝒮 :=
+      ⟨Set.insert_subset_iff.mpr ⟨inf_le_left, hWD⟩,
+        hWpair.insert fun p hp _ => ⟨hdisj p hp, by rw [inf_comm]; exact hdisj p hp⟩⟩
+    have hdW : (a i ⊓ (⨆ j, b j)ᶜ, i) ∈ W := Maximal.mem_of_prop_insert hWmax hinsert
+    exact hdne (by simpa using hdisj _ hdW)
+  obtain ⟨y, hy⟩ := h ι b x hb_dis hb_eps
+  refine ⟨y, fun i => ?_⟩
+  have hai : a i = ⨆ j, a i ⊓ b j := by
+    rw [← inf_iSup_eq]
+    exact (inf_eq_left.mpr (hcover i)).symm
+  rw [hai]
+  refine iSup_le fun j => ?_
+  refine le_trans ?_ (S.trans (x i) (x j) y)
+  exact le_inf ((inf_le_inf_left (a i) (hb_le j)).trans (hcomp i j))
+    (inf_le_right.trans (hy j))
+
+/-- Definition 4: the two forms of completeness agree. -/
+theorem isComplete_iff_isCompleteDisjoint : S.IsComplete ↔ S.IsCompleteDisjoint :=
+  ⟨IsComplete.toDisjoint S, IsCompleteDisjoint.toComplete S⟩
 
 /-- A complete setoid is inhabited (mix the empty family). -/
 theorem IsComplete.nonempty (h : S.IsComplete) : Nonempty X := by

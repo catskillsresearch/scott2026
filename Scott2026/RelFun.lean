@@ -24,6 +24,85 @@ structure RelFun (S : ASetoid (A := A) X) (T : ASetoid (A := A) Y) where
   single_valued : ∀ x y₁ y₂, val x y₁ ⊓ val x y₂ ≤ T.eq y₁ y₂
   total : ∀ x, S.eps x ≤ ⨆ y, val x y
 
+namespace RelFun
+
+variable {S : ASetoid (A := A) X} {T : ASetoid (A := A) Y}
+
+/-- Definition 8 (i): substitution of equals on the source. -/
+theorem subst_left (f : RelFun S T) (x₁ x₂ : X) (y : Y) :
+    S.eq x₁ x₂ ⊓ f.val x₁ y ≤ f.val x₂ y := by
+  have hy : f.val x₁ y ≤ T.eq y y := (f.le_eps x₁ y).trans inf_le_right
+  have hmp : S.eq x₁ x₂ ⊓ T.eq y y ⊓ f.val x₁ y ≤ f.val x₂ y :=
+    le_himp_iff.mp (le_inf_iff.mp (f.respects x₁ x₂ y y)).1
+  exact hmp.trans' (le_inf (le_inf inf_le_left (inf_le_right.trans hy)) inf_le_right)
+
+/-- Definition 8 (i): substitution of equals on the target. -/
+theorem subst_right (f : RelFun S T) (x : X) (y₁ y₂ : Y) :
+    T.eq y₁ y₂ ⊓ f.val x y₁ ≤ f.val x y₂ := by
+  have hx : f.val x y₁ ≤ S.eq x x := (f.le_eps x y₁).trans inf_le_left
+  have hmp : S.eq x x ⊓ T.eq y₁ y₂ ⊓ f.val x y₁ ≤ f.val x y₂ :=
+    le_himp_iff.mp (le_inf_iff.mp (f.respects x x y₁ y₂)).1
+  exact hmp.trans' (le_inf (le_inf (inf_le_right.trans hx) inf_le_left) inf_le_right)
+
+end RelFun
+
+variable {Z : Type*}
+
+/-- Definition 8: composition value, `(g ∘ f)(x, z) = ⨆_y f(x,y) ⊓ g(y,z)`. -/
+def relCompVal {S : ASetoid (A := A) X} {T : ASetoid (A := A) Y} {U : ASetoid (A := A) Z}
+    (g : RelFun T U) (f : RelFun S T) (x : X) (z : Z) : A :=
+  ⨆ y : Y, f.val x y ⊓ g.val y z
+
+/-- Definition 8: composition in `SetoidR_A`. -/
+def RelFun.comp {S : ASetoid (A := A) X} {T : ASetoid (A := A) Y} {U : ASetoid (A := A) Z}
+    (g : RelFun T U) (f : RelFun S T) : RelFun S U where
+  val := relCompVal g f
+  respects := fun x₁ x₂ z₁ z₂ => by
+    have key : ∀ (u₁ u₂ : X) (w₁ w₂ : Z),
+        S.eq u₁ u₂ ⊓ U.eq w₁ w₂ ⊓ relCompVal g f u₁ w₁ ≤ relCompVal g f u₂ w₂ := by
+      intro u₁ u₂ w₁ w₂
+      unfold relCompVal
+      rw [inf_iSup_eq]
+      refine iSup_le fun y => le_iSup_of_le y (le_inf ?_ ?_)
+      · exact (f.subst_left u₁ u₂ y).trans'
+          (le_inf (inf_le_of_left_le inf_le_left) (inf_le_of_right_le inf_le_left))
+      · exact (g.subst_right y w₁ w₂).trans'
+          (le_inf (inf_le_of_left_le inf_le_right) (inf_le_of_right_le inf_le_right))
+    refine le_inf ?_ ?_ <;> rw [le_himp_iff]
+    · exact key x₁ x₂ z₁ z₂
+    · have h := key x₂ x₁ z₂ z₁
+      rwa [S.symm x₂ x₁, U.symm z₂ z₁] at h
+  le_eps := fun x z => by
+    refine iSup_le fun y => le_inf ?_ ?_
+    · exact inf_le_of_left_le ((f.le_eps x y).trans inf_le_left)
+    · exact inf_le_of_right_le ((g.le_eps y z).trans inf_le_right)
+  single_valued := fun x z₁ z₂ => by
+    unfold relCompVal
+    rw [iSup_inf_eq]
+    refine iSup_le fun y₁ => ?_
+    rw [inf_iSup_eq]
+    refine iSup_le fun y₂ => ?_
+    have hy : f.val x y₁ ⊓ f.val x y₂ ≤ T.eq y₁ y₂ := f.single_valued x y₁ y₂
+    have hg2 : T.eq y₁ y₂ ⊓ g.val y₂ z₂ ≤ g.val y₁ z₂ := by
+      have h := g.subst_left y₂ y₁ z₂
+      rwa [T.symm y₂ y₁] at h
+    refine (g.single_valued y₁ z₁ z₂).trans' (le_inf (inf_le_of_left_le inf_le_right) ?_)
+    refine hg2.trans' (le_inf ?_ (inf_le_of_right_le inf_le_right))
+    exact hy.trans' (le_inf (inf_le_of_left_le inf_le_left) (inf_le_of_right_le inf_le_left))
+  total := fun x => by
+    refine (f.total x).trans (iSup_le fun y => ?_)
+    have hy : f.val x y ≤ T.eps y := (f.le_eps x y).trans inf_le_right
+    have hstep : f.val x y ≤ f.val x y ⊓ ⨆ z, g.val y z :=
+      le_inf le_rfl (hy.trans (g.total y))
+    refine hstep.trans ?_
+    rw [inf_iSup_eq]
+    refine iSup_le fun z => le_iSup_of_le z ?_
+    exact le_iSup (fun y' : Y => f.val x y' ⊓ g.val y' z) y
+
+@[simp] theorem RelFun.comp_val {S : ASetoid (A := A) X} {T : ASetoid (A := A) Y}
+    {U : ASetoid (A := A) Z} (g : RelFun T U) (f : RelFun S T) (x : X) (z : Z) :
+    (g.comp f).val x z = ⨆ y : Y, f.val x y ⊓ g.val y z := rfl
+
 /-- Definition 10: graph of a functional map, `γ(f)(x,y) = ε(x) ⊓ ‖f(x) = y‖`. -/
 def gamma (S : ASetoid (A := A) X) (T : ASetoid (A := A) Y) (f : X → Y) (x : X) (y : Y) : A :=
   S.eps x ⊓ T.eq (f x) y

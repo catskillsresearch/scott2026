@@ -14,7 +14,11 @@ export Scott2026 (scaffold_placeholder lemma_12 proposition_27 proposition_27_co
   check_omega_least proposition_3
   isFunctionB funsB homB idB compB
   isFunctionB_id isFunctionB_comp compB_congr memB_idB_funsB
-  memB_funsB isHom_id isHom_comp)
+  memB_funsB isHom_id isHom_comp
+  definition_4 definition_14 definition_15 definition_16
+  definition_16_id definition_16_comp
+  oid oid_eq oid_eps ePred ePred_val ePredPowerB
+  oidRel oidRel_val oidHom oidRel_congr oidRel_id oidRel_comp relCompVal)
 
 /-!
 # Solution to the Challenge
