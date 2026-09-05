@@ -12,6 +12,12 @@ Informatics under the LIPIcs open-access terms. It is included only as the
 cited primary source for this formalization. Palomar and other redistributors
 must not treat it as licensed under Apache-2.0.
 
+sources/JechSetTheory2003.pdf is Thomas Jech, *Set Theory*, 3rd Millennium
+ed., Springer, 2003 (DOI 10.1007/3-540-44761-X). It is included only as the
+cited source for Boolean-valued models (Lemmas 14.19 and 14.21). Copyright
+Springer. Palomar and other redistributors must not treat it as licensed
+under Apache-2.0.
+
 A working Markdown transcription (when present as
 sources/Scott2026.md) retains the authors' wording under their /
 the publisher's copyright. YAML headers, page markers, and editorial notes

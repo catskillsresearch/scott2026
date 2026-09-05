@@ -11,6 +11,13 @@ Apache-2.0 terms.
 A related full version is on arXiv:
 [2112.06339](https://arxiv.org/abs/2112.06339).
 
+`JechSetTheory2003.pdf` is Thomas Jech, *Set Theory*, 3rd Millennium ed.,
+Springer, 2003 (DOI [10.1007/3-540-44761-X](https://doi.org/10.1007/3-540-44761-X)).
+It is a local working copy of the book cited for Theorems 1–2 (Lemmas 14.19
+and 14.21). Copyright Springer. Use it for citation and proof-checking only.
+Do not treat it as licensed under this repository's Apache-2.0 terms, and do
+not commit large verbatim transcriptions.
+
 ## Vision OCR (triple pass + merge)
 
 From the repo root (needs `pdftoppm`, and `CURSOR_API_KEY` in

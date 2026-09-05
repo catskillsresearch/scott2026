@@ -72,8 +72,9 @@ bash scripts/palomar_preflight.sh                     # before Palomar submissio
 
 ## 5. License and source PDF
 
-Original Lean and author-written docs: Apache-2.0. `sources/Scott2026.pdf` is
-**not** Apache-2.0; see `NOTICE` and `sources/README.md`.
+Original Lean and author-written docs: Apache-2.0. `sources/Scott2026.pdf` and
+`sources/JechSetTheory2003.pdf` are **not** Apache-2.0; see `NOTICE` and
+`sources/README.md`.
 
 <!-- AI_MODEL_REFERENCES -->
 <!-- /AI_MODEL_REFERENCES -->
