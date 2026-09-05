@@ -14,7 +14,8 @@ A related full version is on arXiv:
 ## Vision OCR (triple pass + merge)
 
 From the repo root (needs `pdftoppm`, and `CURSOR_API_KEY` in
-`../tokens_ssto.yaml`):
+`../tokens_ssto.yaml`). Reuses `../scott1964/.venv-ocr` when present; override
+with `OCR_VENV_PYTHON=/path/to/python` if needed.
 
 ```bash
 bash scripts/ocr_pdf_pipeline.sh                          # full PDF
