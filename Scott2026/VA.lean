@@ -907,4 +907,702 @@ theorem jech_lemma_14_21 [Nontrivial A] {n : ℕ} (φ : D0Formula n)
     have : bval (A := A) φ (fun i => check (ρ i)) = ⊥ := (d0_invariance φ ρ).2 h
     exact absurd (htop.symm.trans this) top_ne_bot
 
+/-!
+## Internal set constructions (CSL 2026, §2 after Theorem 1)
+-/
+
+/-- Membership is downward closed under Boolean inclusion. -/
+theorem memB_of_subsetB (z x y : AName.{u} A) :
+    memB z x ⊓ subsetB x y ≤ memB z y := by
+  rw [memB_eq (x := z) (y := x), iSup_inf_eq]
+  refine iSup_le fun i => ?_
+  have hval : x.val i ⊓ subsetB x y ≤ memB (x.child i) y := by
+    rw [inf_comm]; exact subsetB_apply x y i
+  have hsub : eqB z (x.child i) ⊓ memB (x.child i) y ≤ memB z y := by
+    rw [eqB_comm (x := z) (y := x.child i), inf_comm]
+    exact memB_eqB_left (x.child i) y z
+  refine le_trans ?_ hsub
+  refine le_inf ?_ ?_
+  · exact inf_le_of_left_le inf_le_left
+  · refine le_trans ?_ hval
+    exact le_inf (inf_le_of_left_le inf_le_right) inf_le_right
+
+/-- Boolean inclusion is transitive. -/
+theorem AName.subsetB_trans (x y z : AName.{u} A) :
+    subsetB x y ⊓ subsetB y z ≤ subsetB x z := by
+  refine le_iInf fun i => ?_
+  rw [le_himp_iff]
+  have hxy : subsetB x y ⊓ x.val i ≤ memB (x.child i) y := subsetB_apply x y i
+  refine le_trans ?_ (memB_of_subsetB (x.child i) y z)
+  refine le_inf ?_ ?_
+  · exact hxy.trans' (le_inf (inf_le_of_left_le inf_le_left) inf_le_right)
+  · exact inf_le_of_left_le inf_le_right
+
+/-- `{x}^A`. -/
+noncomputable def singletonB (x : AName.{u} A) : AName.{u} A :=
+  mk PUnit.{u + 1} (fun _ => x) (fun _ => ⊤)
+
+/-- `{x, y}^A`. -/
+noncomputable def pairB (x y : AName.{u} A) : AName.{u} A :=
+  mk (ULift.{u} Bool) (fun b => if b.down then x else y) (fun _ => ⊤)
+
+/-- Kuratowski ordered pair `(x, y)^A = {{x}^A, {x, y}^A}`. -/
+noncomputable def opairB (x y : AName.{u} A) : AName.{u} A :=
+  pairB (singletonB x) (pairB x y)
+
+/-- Insert `x` into the name `y`. -/
+noncomputable def insertB (x y : AName.{u} A) : AName.{u} A :=
+  mk (Option y.idx)
+    (fun o => match o with | none => x | some i => y.child i)
+    (fun o => match o with | none => ⊤ | some i => y.val i)
+
+/-- Von Neumann successor `n ∪ {n}`. -/
+noncomputable def succB (n : AName.{u} A) : AName.{u} A :=
+  insertB n n
+
+/-- Cartesian product `X ×_A Y`. -/
+noncomputable def prodB (X Y : AName.{u} A) : AName.{u} A :=
+  mk (X.idx × Y.idx)
+    (fun p => opairB (X.child p.1) (Y.child p.2))
+    (fun p => memB (X.child p.1) X ⊓ memB (Y.child p.2) Y)
+
+/-- `P^A(X)`: names with the same domain as `X` and values `≤ X(t)`. -/
+noncomputable def powerB (X : AName.{u} A) : AName.{u} A :=
+  mk {v : X.idx → A // ∀ i, v i ≤ X.val i}
+    (fun p => mk X.idx X.child p.1)
+    (fun _ => ⊤)
+
+/-- Separation `{x ∈ X | Φ(x)}^A`. -/
+noncomputable def sepB (X : AName.{u} A) (φ : AName.{u} A → A) : AName.{u} A :=
+  mk X.idx X.child (fun i => X.val i ⊓ φ (X.child i))
+
+/-- Canonical copy of `S` with domain `dom(X)`. -/
+noncomputable def restrictName (S X : AName.{u} A) : AName.{u} A :=
+  mk X.idx X.child (fun i => X.val i ⊓ memB (X.child i) S)
+
+theorem memB_singletonB (z x : AName.{u} A) :
+    memB z (singletonB x) = eqB z x := by
+  rw [singletonB, memB_mk, iSup_unique (α := A) (ι := PUnit.{u + 1}), inf_top_eq]
+
+theorem iSup_ulift_bool (f : ULift.{u} Bool → A) :
+    (⨆ b, f b) = f ⟨true⟩ ⊔ f ⟨false⟩ :=
+  le_antisymm
+    (iSup_le fun b => by
+      rcases b with ⟨b⟩
+      cases b with
+      | false => exact le_sup_right
+      | true => exact le_sup_left)
+    (sup_le (le_iSup f ⟨true⟩) (le_iSup f ⟨false⟩))
+
+theorem memB_pairB (z x y : AName.{u} A) :
+    memB z (pairB x y) = eqB z x ⊔ eqB z y := by
+  unfold pairB
+  rw [memB_mk, iSup_ulift_bool]
+  simp
+
+theorem iSup_option {β : Type u} (f : Option β → A) :
+    (⨆ o, f o) = f none ⊔ ⨆ i, f (some i) :=
+  le_antisymm
+    (iSup_le fun o =>
+      match o with
+      | none => le_sup_left
+      | some i => le_sup_of_le_right (le_iSup (fun j => f (some j)) i))
+    (sup_le (le_iSup f none) (iSup_le fun i => le_iSup f (some i)))
+
+theorem memB_insertB (z x y : AName.{u} A) :
+    memB z (insertB x y) = eqB z x ⊔ memB z y := by
+  unfold insertB
+  rw [memB_mk, iSup_option, memB_eq]
+  simp
+
+/-- `‖z ∈ {x}^A‖ ⊓ ‖z ∈ {y}^A‖` forces `x = y` (14.16). -/
+theorem eqB_of_memB_singletons (z x y : AName.{u} A) :
+    memB z (singletonB x) ⊓ memB z (singletonB y) ≤ eqB x y := by
+  rw [memB_singletonB, memB_singletonB, eqB_comm (x := z) (y := x)]
+  exact eqB_trans x z y
+
+theorem subsetB_singletonB (x y : AName.{u} A) :
+    subsetB (singletonB x) y = memB x y := by
+  rw [singletonB, subsetB_mk, iInf_unique (α := A) (ι := PUnit.{u + 1}), top_himp]
+
+theorem subsetB_pairB (x y z : AName.{u} A) :
+    subsetB (pairB x y) z = memB x z ⊓ memB y z := by
+  unfold pairB
+  rw [subsetB_mk]
+  refine le_antisymm ?_ ?_
+  · refine le_inf ?_ ?_
+    · have := iInf_le (fun b : ULift.{u} Bool =>
+          (⊤ : A) ⇨ memB (if b.down then x else y) z) ⟨true⟩
+      simpa using this
+    · have := iInf_le (fun b : ULift.{u} Bool =>
+          (⊤ : A) ⇨ memB (if b.down then x else y) z) ⟨false⟩
+      simpa using this
+  · refine le_iInf fun b => ?_
+    rw [top_himp]
+    rcases b with ⟨b⟩
+    cases b <;> simp
+
+theorem eqB_singletonB (x y : AName.{u} A) :
+    eqB (singletonB x) (singletonB y) = eqB x y := by
+  rw [eqB_eq_subset, subsetB_singletonB, subsetB_singletonB, memB_singletonB,
+    memB_singletonB, eqB_comm (x := y) (y := x), inf_idem]
+
+theorem eqB_pairB (x y u v : AName.{u} A) :
+    eqB (pairB x y) (pairB u v) =
+      (eqB x u ⊓ eqB y v) ⊔ (eqB x v ⊓ eqB y u) := by
+  have hsub (a b c d : AName A) :
+      subsetB (pairB a b) (pairB c d) = (eqB a c ⊔ eqB a d) ⊓ (eqB b c ⊔ eqB b d) := by
+    rw [subsetB_pairB, memB_pairB, memB_pairB]
+  rw [eqB_eq_subset, hsub x y u v, hsub u v x y, eqB_comm (x := u) (y := x),
+    eqB_comm (x := v) (y := y), eqB_comm (x := v) (y := x), eqB_comm (x := u) (y := y)]
+  set Ax := eqB x u
+  set Bx := eqB x v
+  set Cx := eqB y u
+  set Dx := eqB y v
+  change ((Ax ⊔ Bx) ⊓ (Cx ⊔ Dx)) ⊓ ((Ax ⊔ Cx) ⊓ (Bx ⊔ Dx)) = (Ax ⊓ Dx) ⊔ (Bx ⊓ Cx)
+  have hre : ((Ax ⊔ Bx) ⊓ (Cx ⊔ Dx)) ⊓ ((Ax ⊔ Cx) ⊓ (Bx ⊔ Dx)) =
+      ((Ax ⊔ Bx) ⊓ (Ax ⊔ Cx)) ⊓ ((Cx ⊔ Dx) ⊓ (Bx ⊔ Dx)) := by ac_rfl
+  have h1 : (Ax ⊔ Bx) ⊓ (Ax ⊔ Cx) = Ax ⊔ Bx ⊓ Cx := (sup_inf_left Ax Bx Cx).symm
+  have h2 : (Cx ⊔ Dx) ⊓ (Bx ⊔ Dx) = Dx ⊔ Bx ⊓ Cx := by
+    calc (Cx ⊔ Dx) ⊓ (Bx ⊔ Dx)
+        = (Dx ⊔ Cx) ⊓ (Dx ⊔ Bx) := by rw [sup_comm (a := Cx), sup_comm (a := Bx)]
+      _ = Dx ⊔ Cx ⊓ Bx := (sup_inf_left Dx Cx Bx).symm
+      _ = Dx ⊔ Bx ⊓ Cx := by rw [inf_comm (a := Cx)]
+  rw [hre, h1, h2]
+  have h3 : (Ax ⊔ Bx ⊓ Cx) ⊓ (Dx ⊔ Bx ⊓ Cx) = (Bx ⊓ Cx) ⊔ Ax ⊓ Dx := by
+    rw [sup_comm (a := Ax), sup_comm (a := Dx)]
+    exact (sup_inf_left (Bx ⊓ Cx) Ax Dx).symm
+  rw [h3, sup_comm]
+
+theorem eqB_pairB_of_eq (x y u v : AName.{u} A) :
+    eqB x u ⊓ eqB y v ≤ eqB (pairB x y) (pairB u v) := by
+  rw [eqB_pairB]
+  exact le_sup_left
+
+theorem eqB_singletonB_pairB (x u v : AName.{u} A) :
+    eqB (singletonB x) (pairB u v) = eqB x u ⊓ eqB x v := by
+  rw [eqB_eq_subset, subsetB_singletonB, subsetB_pairB, memB_pairB, memB_singletonB,
+    memB_singletonB, eqB_comm (x := u) (y := x), eqB_comm (x := v) (y := x)]
+  exact le_antisymm inf_le_right (le_inf (le_sup_of_le_left inf_le_left) le_rfl)
+
+theorem eqB_opairB (x y u v : AName.{u} A) :
+    eqB (opairB x y) (opairB u v) = eqB x u ⊓ eqB y v := by
+  rw [opairB, opairB, eqB_pairB, eqB_singletonB, eqB_pairB, eqB_singletonB_pairB]
+  have hR : eqB (pairB x y) (singletonB u) = eqB x u ⊓ eqB y u := by
+    rw [eqB_comm, eqB_singletonB_pairB, eqB_comm (x := u) (y := x),
+      eqB_comm (x := u) (y := y)]
+  rw [hR]
+  have htrans : eqB x u ⊓ eqB x v ⊓ eqB y u ≤ eqB y v := by
+    have h1 : eqB y u ⊓ eqB u x ≤ eqB y x := eqB_trans y u x
+    have h2 : eqB y x ⊓ eqB x v ≤ eqB y v := eqB_trans y x v
+    refine le_trans ?_ h2
+    refine le_inf ?_ ?_
+    · refine le_trans ?_ h1
+      rw [eqB_comm (x := u) (y := x)]
+      exact le_inf inf_le_right (inf_le_of_left_le inf_le_left)
+    · exact inf_le_of_left_le inf_le_right
+  refine le_antisymm ?_ ?_
+  · refine sup_le ?_ ?_
+    · rw [inf_sup_left]
+      refine sup_le inf_le_right ?_
+      refine le_inf inf_le_left ?_
+      exact htrans.trans' (le_of_eq (inf_assoc _ _ _).symm)
+    · refine le_inf (inf_le_of_left_le inf_le_left) ?_
+      exact htrans.trans' (le_inf inf_le_left (inf_le_of_right_le inf_le_right))
+  · refine le_sup_of_le_left (le_inf inf_le_left (le_sup_of_le_left ?_))
+    exact le_inf inf_le_left inf_le_right
+
+theorem subsetB_of_le_val (X : AName.{u} A) (v : X.idx → A)
+    (hv : ∀ i, v i ≤ X.val i) :
+    subsetB (mk X.idx X.child v) X = ⊤ :=
+  iInf_eq_top.mpr fun i => himp_eq_top_iff.mpr ((hv i).trans (val_le_memB X i))
+
+theorem subsetB_restrictName_self (S X : AName.{u} A) :
+    subsetB (restrictName S X) S = ⊤ :=
+  iInf_eq_top.mpr fun _ => himp_eq_top_iff.mpr inf_le_right
+
+theorem subsetB_le_subsetB_restrict (S X : AName.{u} A) :
+    subsetB S X ≤ subsetB S (restrictName S X) := by
+  refine le_iInf fun i => ?_
+  rw [le_himp_iff]
+  have hSX : subsetB S X ⊓ S.val i ≤ memB (S.child i) X := subsetB_apply S X i
+  have hmemS : S.val i ≤ memB (S.child i) S := val_le_memB S i
+  rw [memB_eq]
+  have : subsetB S X ⊓ S.val i ≤
+      (⨆ j, eqB (S.child i) (X.child j) ⊓ X.val j) ⊓ memB (S.child i) S :=
+    le_inf (hSX.trans (le_of_eq (memB_eq (S.child i) X)))
+      (inf_le_of_right_le hmemS)
+  refine this.trans ?_
+  rw [iSup_inf_eq]
+  refine iSup_le fun j => ?_
+  refine le_iSup_of_le j ?_
+  have hchild : (restrictName S X).child j = X.child j := rfl
+  have hval : (restrictName S X).val j = X.val j ⊓ memB (X.child j) S := rfl
+  rw [hchild, hval]
+  have hsubst : eqB (S.child i) (X.child j) ⊓ memB (S.child i) S ≤
+      memB (X.child j) S := by
+    rw [inf_comm]; exact memB_eqB_left (S.child i) S (X.child j)
+  refine le_inf (inf_le_of_left_le inf_le_left) ?_
+  refine le_inf (inf_le_of_left_le inf_le_right) ?_
+  exact hsubst.trans' (le_inf (inf_le_of_left_le inf_le_left) inf_le_right)
+
+theorem subsetB_le_eqB_restrict (S X : AName.{u} A) :
+    subsetB S X ≤ eqB S (restrictName S X) := by
+  rw [eqB_eq_subset, subsetB_restrictName_self, inf_top_eq]
+  exact subsetB_le_subsetB_restrict S X
+
+/-- Paper: `‖S ∈ P^A(X)‖ = ‖S ⊆ X‖`. -/
+theorem memB_powerB (S X : AName.{u} A) :
+    memB S (powerB X) = subsetB S X := by
+  refine le_antisymm ?_ ?_
+  · rw [memB_eq]
+    refine iSup_le fun p => ?_
+    have htop : subsetB (mk X.idx X.child p.1) X = ⊤ := subsetB_of_le_val X p.1 p.2
+    have hle : eqB S (mk X.idx X.child p.1) ≤ subsetB S X := by
+      have htrans := subsetB_trans S (mk X.idx X.child p.1) X
+      rw [htop, inf_top_eq] at htrans
+      exact (eqB_le_subsetB S (mk X.idx X.child p.1)).trans htrans
+    exact inf_le_of_left_le hle
+  · refine (subsetB_le_eqB_restrict S X).trans ?_
+    rw [memB_eq]
+    refine le_iSup_of_le ⟨fun i => X.val i ⊓ memB (X.child i) S, fun _ => inf_le_left⟩ ?_
+    exact le_inf le_rfl le_top
+
+theorem sepB_val (X : AName.{u} A) (φ : AName.{u} A → A) (i : X.idx) :
+    (sepB X φ).val i = X.val i ⊓ φ (X.child i) :=
+  rfl
+
+theorem prodB_val (X Y : AName.{u} A) (i : X.idx) (j : Y.idx) :
+    (prodB X Y).val (i, j) = memB (X.child i) X ⊓ memB (Y.child j) Y :=
+  rfl
+
+/-!
+## Theorem 2 consequences: check commutes with finite set formers
+-/
+
+/-- Kuratowski ordered pair in `PSet`. -/
+def pOpair (x y : PSet.{u}) : PSet.{u} :=
+  insert ({x} : PSet) {({x, y} : PSet)}
+
+theorem check_insert (x y : PSet.{u}) :
+    check (A := A) (insert x y) =
+      mk (Option y.Type)
+        (fun o => Option.casesOn o (check (A := A) x) (fun i => check (y.Func i)))
+        (fun _ => ⊤) := by
+  simp only [insert, PSet.insert]
+  cases y with
+  | mk α f =>
+    rw [check_mk]
+    refine congr_arg (fun child => mk (Option α) child (fun _ => ⊤)) ?_
+    funext o
+    cases o <;> rfl
+
+theorem check_singleton (x : PSet.{u}) :
+    eqB (check (A := A) ({x} : PSet)) (singletonB (check x)) = ⊤ := by
+  have hx : ({x} : PSet) = insert x (∅ : PSet) := rfl
+  rw [eqB_eq_subset, hx]
+  refine inf_eq_top_iff.mpr ⟨?fwd, ?bwd⟩
+  · rw [check_insert, subsetB_mk]
+    refine iInf_eq_top.mpr fun o => himp_eq_top_iff.mpr ?_
+    rw [memB_singletonB (A := A)]
+    cases o with
+    | none =>
+      change ⊤ ≤ eqB (check (A := A) x) (check x)
+      exact (eqB_self (A := A) (check x)).ge
+    | some i =>
+      have : IsEmpty (PSet.Type (∅ : PSet)) := inferInstance
+      exact this.elim i
+  · rw [subsetB_singletonB, check_insert, memB_mk]
+    refine top_unique (le_iSup_of_le none ?_)
+    simp [eqB_self (A := A)]
+
+theorem check_pair (x y : PSet.{u}) :
+    eqB (check (A := A) ({x, y} : PSet)) (pairB (check x) (check y)) = ⊤ := by
+  have hxy : ({x, y} : PSet) = insert x ({y} : PSet) := rfl
+  have hy : ({y} : PSet) = insert y (∅ : PSet) := rfl
+  rw [eqB_eq_subset, hxy]
+  refine inf_eq_top_iff.mpr ⟨?fwd, ?bwd⟩
+  · rw [check_insert, subsetB_mk]
+    refine iInf_eq_top.mpr fun o => himp_eq_top_iff.mpr ?_
+    rw [memB_pairB (A := A)]
+    cases o with
+    | none => exact le_sup_of_le_left (eqB_self (A := A) (check x)).ge
+    | some i =>
+      revert i
+      rw [hy]
+      intro i
+      cases i with
+      | none =>
+        simp [insert, PSet.insert]
+        exact top_unique (le_sup_of_le_right (eqB_self (A := A) (check y)).ge)
+      | some j =>
+        have : IsEmpty (PSet.Type (∅ : PSet)) := inferInstance
+        exact this.elim j
+  · rw [subsetB_pairB]
+    refine inf_eq_top_iff.mpr ⟨?hx, ?hy⟩
+    · rw [check_insert, memB_mk]
+      refine top_unique (le_iSup_of_le none ?_)
+      simp [eqB_self (A := A)]
+    · rw [check_insert, memB_mk, hy]
+      refine top_unique (le_iSup_of_le (some none) ?_)
+      simp [insert, PSet.insert]
+      exact eqB_self (A := A) (check y)
+
+theorem eqB_pairB_congr (x x' y y' : AName.{u} A) :
+    eqB x x' ⊓ eqB y y' ≤ eqB (pairB x y) (pairB x' y') :=
+  eqB_pairB_of_eq (x := x) (y := y) (u := x') (v := y')
+
+theorem check_opair (x y : PSet.{u}) :
+    eqB (check (A := A) (pOpair x y)) (opairB (check x) (check y)) = ⊤ := by
+  unfold pOpair opairB
+  have h₁ := check_pair (A := A) ({x} : PSet) ({x, y} : PSet)
+  have h₂ := check_singleton (A := A) x
+  have h₃ := check_pair (A := A) x y
+  have hcong : eqB (check (A := A) ({x} : PSet)) (singletonB (check x)) ⊓
+      eqB (check ({x, y} : PSet)) (pairB (check x) (check y)) ≤
+      eqB (pairB (check ({x} : PSet)) (check ({x, y} : PSet)))
+        (pairB (singletonB (check x)) (pairB (check x) (check y))) :=
+    eqB_pairB_of_eq (A := A)
+      (check (A := A) ({x} : PSet)) (check (A := A) ({x, y} : PSet))
+      (singletonB (check (A := A) x))
+      (pairB (check (A := A) x) (check y))
+  have htop : eqB (check (A := A) ({x} : PSet)) (singletonB (check x)) ⊓
+      eqB (check ({x, y} : PSet)) (pairB (check x) (check y)) = ⊤ := by
+    rw [h₂, h₃, top_inf_eq]
+  have hpair : eqB (check (A := A) (insert ({x} : PSet) {({x, y} : PSet)}))
+      (pairB (check ({x} : PSet)) (check ({x, y} : PSet))) = ⊤ :=
+    check_pair (A := A) ({x} : PSet) ({x, y} : PSet)
+  refine top_unique ?_
+  have := eqB_trans
+    (check (A := A) (insert ({x} : PSet) {({x, y} : PSet)}))
+    (pairB (check ({x} : PSet)) (check ({x, y} : PSet)))
+    (pairB (singletonB (check x)) (pairB (check x) (check y)))
+  exact (le_inf hpair.ge (htop.ge.trans hcong)).trans this
+
+/-!
+## Check of `ω`: inductive in `V^A` (not yet least)
+-/
+
+theorem insertB_check (x y : PSet.{u}) :
+    insertB (check (A := A) x) (check y) = check (insert x y) := by
+  rw [check_insert]
+  unfold insertB
+  cases y with
+  | mk α f =>
+    rw [check_mk]
+    refine congr_arg₂ (fun c v => mk (Option α) c v)
+      (funext fun o => by cases o <;> rfl)
+      (funext fun o => by cases o <;> rfl)
+
+theorem check_succ (n : ℕ) :
+    check (A := A) (PSet.ofNat (n + 1)) = succB (check (PSet.ofNat n)) :=
+  (insertB_check (PSet.ofNat n) (PSet.ofNat n)).symm
+
+theorem subsetB_insertB (x y z : AName.{u} A) :
+    subsetB (insertB x y) z = memB x z ⊓ subsetB y z := by
+  have hx : insertB x y =
+      mk (Option y.idx)
+        (fun o => match o with | none => x | some i => y.child i)
+        (fun o => match o with | none => ⊤ | some i => y.val i) := rfl
+  rw [hx, subsetB_mk]
+  refine le_antisymm ?_ ?_
+  · refine le_inf ?_ ?_
+    · exact (iInf_le _ none).trans (by simp [top_himp])
+    · refine le_iInf fun i => iInf_le _ (some i)
+  · refine le_iInf fun o => ?_
+    cases o with
+    | none =>
+      simp [top_himp]
+    | some i =>
+      change memB x z ⊓ subsetB y z ≤ y.val i ⇨ memB (y.child i) z
+      rw [le_himp_iff]
+      refine le_trans ?_ (subsetB_apply y z i)
+      exact le_inf (inf_le_of_left_le inf_le_right) inf_le_right
+
+theorem eqB_insertB (x x' y y' : AName.{u} A) :
+    eqB x x' ⊓ eqB y y' ≤ eqB (insertB x y) (insertB x' y') := by
+  rw [eqB_eq_subset (x := insertB x y) (y := insertB x' y')]
+  refine le_inf ?_ ?_
+  · rw [subsetB_insertB, memB_insertB]
+    refine le_inf ?_ ?_
+    · exact inf_le_of_left_le (le_sup_of_le_left le_rfl)
+    · have hsub : eqB y y' ≤ subsetB y (insertB x' y') := by
+        have : subsetB y y' ≤ subsetB y (insertB x' y') := by
+          refine le_iInf fun i => ?_
+          rw [le_himp_iff]
+          have := subsetB_apply y y' i
+          refine this.trans ?_
+          rw [memB_insertB]
+          exact le_sup_right
+        exact (eqB_le_subsetB y y').trans this
+      exact inf_le_of_right_le hsub
+  · rw [subsetB_insertB, memB_insertB, eqB_comm (x := x) (y := x'),
+      eqB_comm (x := y) (y := y')]
+    refine le_inf ?_ ?_
+    · exact inf_le_of_left_le (le_sup_of_le_left le_rfl)
+    · have hsub : eqB y' y ≤ subsetB y' (insertB x y) := by
+        have : subsetB y' y ≤ subsetB y' (insertB x y) := by
+          refine le_iInf fun i => ?_
+          rw [le_himp_iff]
+          have := subsetB_apply y' y i
+          refine this.trans ?_
+          rw [memB_insertB]
+          exact le_sup_right
+        exact (eqB_le_subsetB y' y).trans this
+      exact inf_le_of_right_le hsub
+
+theorem eqB_succB (n m : AName.{u} A) :
+    eqB n m ≤ eqB (succB n) (succB m) :=
+  (eqB_insertB n m n m).trans' (le_inf le_rfl le_rfl)
+
+/-- Boolean value of “`X` is inductive”: `∅ ∈ X` and successor-closed. -/
+noncomputable def isInductiveB (X : AName.{u} A) : A :=
+  memB (check (∅ : PSet.{u})) X ⊓
+    ⨅ n : AName.{u} A, memB n X ⇨ memB (succB n) X
+
+/-- `ωˇ` is inductive in `V^A`. Leastness is not claimed here. -/
+theorem check_omega_eq :
+    check (A := A) PSet.omega =
+      mk (ULift.{u} ℕ) (fun n => check (PSet.ofNat n.down)) (fun _ => ⊤) := by
+  rw [show PSet.omega = PSet.mk (ULift.{u} ℕ) (fun n => PSet.ofNat n.down) from rfl]
+  exact check_mk _ _
+
+theorem check_omega_inductive :
+    isInductiveB (A := A) (check PSet.omega) = ⊤ := by
+  rw [isInductiveB, check_omega_eq]
+  refine inf_eq_top_iff.mpr ⟨?empty, ?succ⟩
+  · rw [memB_mk]
+    refine top_unique (le_iSup_of_le (⟨0⟩ : ULift ℕ) ?_)
+    simp [PSet.ofNat]
+    exact eqB_self (A := A) (check ∅)
+  · refine iInf_eq_top.mpr fun n => himp_eq_top_iff.mpr ?_
+    rw [memB_mk]
+    refine iSup_le fun k => ?_
+    have hsucc : eqB n (check (A := A) (PSet.ofNat k.down)) ≤
+        eqB (succB n) (succB (check (PSet.ofNat k.down))) :=
+      eqB_succB (A := A) n (check (PSet.ofNat k.down))
+    have hdef : succB (check (A := A) (PSet.ofNat k.down)) =
+        check (PSet.ofNat (k.down + 1)) :=
+      (check_succ (A := A) k.down).symm
+    refine (inf_le_of_left_le hsucc).trans ?_
+    rw [hdef, memB_mk]
+    refine le_iSup_of_le (⟨k.down + 1⟩ : ULift ℕ) ?_
+    exact le_inf le_rfl le_top
+
+/-!
+## Finite subsets and CSL Proposition 3
+-/
+
+/-- Finite enumeration as a pre-set. -/
+def pfinEnum {n : ℕ} (xs : Fin n → PSet.{u}) : PSet.{u} :=
+  PSet.mk (ULift.{u} (Fin n)) (fun i => xs i.down)
+
+/-- Finite subsets of `X`, presented by enumerations of elements of `X`. -/
+def pfin (X : PSet.{u}) : PSet.{u} :=
+  PSet.mk (Σ n : ℕ, ULift.{u} (Fin n → X.Type))
+    (fun p => pfinEnum (fun i => X.Func (p.2.down i)))
+
+/-- Finite enumeration as an `A`-name. -/
+noncomputable def finsetB {n : ℕ} (xs : Fin n → AName.{u} A) : AName.{u} A :=
+  mk (ULift.{u} (Fin n)) (fun i => xs i.down) (fun _ => ⊤)
+
+/-- `S` is finite: it equals some finite enumeration (external form of
+`∃ n ∈ ω, ∃ f : n → V, S = im(f)`). -/
+noncomputable def isFiniteB (S : AName.{u} A) : A :=
+  ⨆ n : ℕ, ⨆ xs : Fin n → AName.{u} A, eqB S (finsetB xs)
+
+/-- `P_fin^A(X)` via separation on `P^A(X)`. -/
+noncomputable def pfinB (X : AName.{u} A) : AName.{u} A :=
+  sepB (powerB X) isFiniteB
+
+theorem check_pfinEnum {n : ℕ} (xs : Fin n → PSet.{u}) :
+    check (A := A) (pfinEnum xs) = finsetB (fun i => check (xs i)) := by
+  unfold pfinEnum finsetB
+  rw [check_mk]
+
+theorem eqB_finsetB {n : ℕ} (xs ys : Fin n → AName.{u} A) :
+    (⨅ i, eqB (xs i) (ys i)) ≤ eqB (finsetB xs) (finsetB ys) := by
+  rw [eqB_eq_subset]
+  refine le_inf ?_ ?_
+  · unfold finsetB
+    rw [subsetB_mk]
+    refine le_iInf fun i => ?_
+    rw [top_himp, memB_mk]
+    refine (iInf_le (fun j : Fin n => eqB (xs j) (ys j)) i.down).trans ?_
+    exact le_iSup_of_le i (le_inf le_rfl le_top)
+  · unfold finsetB
+    rw [subsetB_mk]
+    refine le_iInf fun i => ?_
+    rw [top_himp, memB_mk]
+    refine (iInf_le (fun j : Fin n => eqB (xs j) (ys j)) i.down).trans ?_
+    refine le_iSup_of_le i ?_
+    rw [eqB_comm]
+    exact le_inf le_rfl le_top
+
+theorem isFiniteB_congr (S T : AName.{u} A) :
+    eqB S T ⊓ isFiniteB S ≤ isFiniteB T := by
+  unfold isFiniteB
+  rw [inf_iSup_eq]
+  refine iSup_le fun n => ?_
+  rw [inf_iSup_eq]
+  refine iSup_le fun xs => ?_
+  refine le_iSup_of_le n (le_iSup_of_le xs ?_)
+  have : eqB T S ⊓ eqB S (finsetB xs) ≤ eqB T (finsetB xs) :=
+    eqB_trans T S (finsetB xs)
+  exact this.trans' (le_inf (by rw [eqB_comm]; exact inf_le_left) inf_le_right)
+
+/-- Finite meets distribute over arbitrary joins (Sikorski 3.1.11). -/
+theorem iInf_iSup_fun {n : ℕ} {ι : Type*} (f : Fin n → ι → A) :
+    (⨅ i, ⨆ j, f i j) = ⨆ g : Fin n → ι, ⨅ i, f i (g i) := by
+  induction n with
+  | zero =>
+    have : Nonempty (Fin 0 → ι) := ⟨fun i => nomatch i⟩
+    have hL : (⨅ i : Fin 0, ⨆ j, f i j) = ⊤ := iInf_of_empty _
+    have hR : (⨆ g : Fin 0 → ι, ⨅ i, f i (g i)) = ⊤ := by
+      have hg : ∀ g : Fin 0 → ι, (⨅ i, f i (g i)) = ⊤ := fun _ => iInf_of_empty _
+      simp_rw [hg]
+      exact iSup_const
+    rw [hL, hR]
+  | succ n ih =>
+    have hsplit : (⨅ i : Fin (n + 1), ⨆ j, f i j) =
+        (⨆ j, f 0 j) ⊓ ⨅ i : Fin n, ⨆ j, f i.succ j :=
+      iInf_fin_succ fun i => ⨆ j, f i j
+    rw [hsplit, ih (fun i j => f i.succ j), inf_comm, iSup_inf_eq]
+    refine le_antisymm ?fwd ?bwd
+    · refine iSup_le fun g => ?_
+      have hdis :
+          (⨅ i : Fin n, f i.succ (g i)) ⊓ ⨆ a : ι, f 0 a =
+            ⨆ a : ι, (⨅ i : Fin n, f i.succ (g i)) ⊓ f 0 a :=
+        inf_iSup_eq (⨅ i : Fin n, f i.succ (g i)) (fun a : ι => f 0 a)
+      rw [hdis]
+      refine iSup_le fun a => ?_
+      refine le_iSup_of_le (Fin.cons (α := fun _ : Fin (n + 1) => ι) a g) ?_
+      have hcons :
+          (⨅ i : Fin (n + 1),
+              f i (Fin.cons (α := fun _ : Fin (n + 1) => ι) a g i)) =
+            f 0 a ⊓ ⨅ i : Fin n, f i.succ (g i) := by
+        rw [iInf_fin_succ
+          (fun i => f i (Fin.cons (α := fun _ : Fin (n + 1) => ι) a g i))]
+        simp [Fin.cons]
+      rw [inf_comm]
+      exact hcons.ge
+    · refine iSup_le fun h => ?_
+      refine le_iSup_of_le (fun i : Fin n => h i.succ) ?_
+      refine le_inf ?_ ?_
+      · exact le_iInf fun i => iInf_le (fun j : Fin (n + 1) => f j (h j)) i.succ
+      · exact (iInf_le (fun j : Fin (n + 1) => f j (h j)) 0).trans
+          (le_iSup (fun a : ι => f 0 a) (h 0))
+
+theorem memB_sepB_ge (S X : AName.{u} A) (φ : AName.{u} A → A)
+    (hcongr : ∀ x y, eqB x y ⊓ φ x ≤ φ y) :
+    memB S X ⊓ φ S ≤ memB S (sepB X φ) := by
+  rw [memB_eq, memB_eq, iSup_inf_eq]
+  refine iSup_le fun i => ?_
+  refine le_iSup_of_le i ?_
+  have hchild : (sepB X φ).child i = X.child i := rfl
+  have hval : (sepB X φ).val i = X.val i ⊓ φ (X.child i) := rfl
+  rw [hchild, hval]
+  refine le_inf (inf_le_of_left_le inf_le_left) ?_
+  refine le_inf (inf_le_of_left_le inf_le_right) ?_
+  exact (hcongr S (X.child i)).trans'
+    (le_inf (inf_le_of_left_le inf_le_left) inf_le_right)
+
+theorem subsetB_check_pfinEnum {n : ℕ} (X : PSet.{u})
+    (g : Fin n → X.Type) :
+    subsetB (check (A := A) (pfinEnum (fun i => X.Func (g i)))) (check X) = ⊤ := by
+  cases X with
+  | mk α f =>
+    rw [check_pfinEnum, finsetB, subsetB_mk]
+    refine iInf_eq_top.mpr fun i => himp_eq_top_iff.mpr ?_
+    refine (eqB_self (A := A) (check (f (g i.down)))).ge.trans ?_
+    rw [check_mk (A := A) α f, memB_mk]
+    exact le_iSup_of_le (g i.down) (le_inf le_rfl le_top)
+
+theorem check_pfin_mk {α : Type u} (f : α → PSet.{u}) :
+    check (A := A) (pfin (PSet.mk α f)) =
+      mk (Σ n : ℕ, ULift.{u} (Fin n → α))
+        (fun p => check (pfinEnum (fun i => f (p.2.down i)))) (fun _ => ⊤) := by
+  change check (A := A)
+      (PSet.mk (Σ n : ℕ, ULift.{u} (Fin n → α))
+        (fun p => pfinEnum (fun i => f (p.2.down i)))) = _
+  rw [check_mk]
+
+/-- CSL Proposition 3: `‖P_fin^A(Xˇ) = (P_fin X)ˇ‖ = 1`. -/
+theorem proposition_3 (X : PSet.{u}) :
+    eqB (pfinB (check (A := A) X)) (check (pfin X)) = ⊤ := by
+  cases X with
+  | mk α f =>
+    rw [eqB_eq_subset]
+    refine inf_eq_top_iff.mpr ⟨?fwd, ?bwd⟩
+    · refine iInf_eq_top.mpr fun p => himp_eq_top_iff.mpr ?_
+      set u := (pfinB (check (A := A) (PSet.mk α f))).child p
+      have hval : (pfinB (check (A := A) (PSet.mk α f))).val p = isFiniteB u := by
+        change ⊤ ⊓ isFiniteB u = isFiniteB u
+        rw [top_inf_eq]
+      rw [hval]
+      have hu : u = mk (check (A := A) (PSet.mk α f)).idx
+          (check (PSet.mk α f)).child p.1 := rfl
+      have hsubU : subsetB u (check (PSet.mk α f)) = ⊤ := by
+        rw [hu]
+        exact subsetB_of_le_val (check (A := A) (PSet.mk α f)) p.1 p.2
+      unfold isFiniteB
+      refine iSup_le fun n => iSup_le fun xs => ?_
+      have hmem : eqB (A := A) u (finsetB xs) ≤
+          ⨅ i, memB (xs i) (check (PSet.mk α f)) := by
+        have h1 : eqB u (finsetB xs) ≤ subsetB (finsetB xs) u := by
+          rw [eqB_comm]
+          exact eqB_le_subsetB (finsetB xs) u
+        have h2 : eqB u (finsetB xs) ≤
+            subsetB (finsetB xs) (check (PSet.mk α f)) :=
+          (le_inf h1 (le_top.trans hsubU.ge)).trans
+            (subsetB_trans (finsetB xs) u (check (PSet.mk α f)))
+        unfold finsetB at h2
+        rw [subsetB_mk] at h2
+        refine h2.trans (le_iInf fun i => ?_)
+        have hi := iInf_le (fun j : ULift.{u} (Fin n) =>
+            (⊤ : A) ⇨ memB (xs j.down) (check (PSet.mk α f))) ⟨i⟩
+        simpa [top_himp] using hi
+      have hdist :
+          (⨅ i, memB (xs i) (check (A := A) (PSet.mk α f))) =
+            ⨆ g : Fin n → α, ⨅ i, eqB (xs i) (check (f (g i))) := by
+        have : ∀ i, memB (xs i) (check (PSet.mk α f)) =
+            ⨆ j : α, eqB (xs i) (check (f j)) := by
+          intro i
+          rw [check_mk, memB_mk]
+          exact iSup_congr fun _ => inf_top_eq _
+        simp only [this]
+        exact iInf_iSup_fun fun i j => eqB (xs i) (check (f j))
+      have heq := inf_eq_left.mpr hmem
+      rw [← heq, hdist, inf_iSup_eq]
+      refine iSup_le fun g => ?_
+      have henum : (⨅ i, eqB (xs i) (check (A := A) (f (g i)))) ≤
+          eqB (finsetB xs) (finsetB fun i => check (f (g i))) :=
+        eqB_finsetB (A := A) xs fun i => check (f (g i))
+      have hto : eqB u (finsetB xs) ⊓ eqB (finsetB xs)
+          (finsetB fun i => check (f (g i))) ≤
+          eqB u (finsetB fun i => check (f (g i))) :=
+        eqB_trans u (finsetB xs) (finsetB fun i => check (f (g i)))
+      refine ((le_inf inf_le_left (inf_le_of_right_le henum)).trans hto).trans ?_
+      rw [← check_pfinEnum, check_pfin_mk, memB_mk]
+      refine le_iSup_of_le (⟨n, ⟨g⟩⟩ : Σ k : ℕ, ULift.{u} (Fin k → α)) ?_
+      exact le_inf le_rfl le_top
+    · rw [check_pfin_mk, subsetB_mk]
+      refine iInf_eq_top.mpr fun p => himp_eq_top_iff.mpr ?_
+      set xs := fun i : Fin p.1 => f (p.2.down i)
+      have hfin : isFiniteB (check (A := A) (pfinEnum xs)) = ⊤ := by
+        unfold isFiniteB
+        refine top_unique
+          (le_iSup_of_le p.1 (le_iSup_of_le (fun i => check (xs i)) ?_))
+        rw [← check_pfinEnum]
+        exact (eqB_self (A := A) (check (pfinEnum xs))).ge
+      have hsub : subsetB (check (A := A) (pfinEnum xs))
+          (check (PSet.mk α f)) = ⊤ :=
+        subsetB_check_pfinEnum (A := A) (PSet.mk α f) p.2.down
+      have hpow : memB (check (A := A) (pfinEnum xs))
+          (powerB (check (PSet.mk α f))) = ⊤ := by
+        rw [memB_powerB, hsub]
+      exact (le_inf hpow.ge hfin.ge).trans
+        (memB_sepB_ge (A := A) (check (pfinEnum xs))
+          (powerB (check (PSet.mk α f))) isFiniteB isFiniteB_congr)
+
 end Scott2026

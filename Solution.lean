@@ -8,7 +8,9 @@ import Scott2026.Basic
 export Scott2026 (scaffold_placeholder lemma_12 proposition_27 proposition_27_continuous
   proposition_28_total proposition_28_strict proposition_29 theorem_17_mix
   theorem_17_complete lemma_41_const jech_lemma_14_15 jech_lemma_14_16
-  jech_lemma_14_18 jech_lemma_14_19 theorem_1_iii jech_lemma_14_21)
+  jech_lemma_14_18 jech_lemma_14_19 theorem_1_iii jech_lemma_14_21
+  memB_powerB eqB_singletonB eqB_pairB eqB_opairB
+  check_singleton check_pair check_opair check_omega_inductive proposition_3)
 
 /-!
 # Solution to the Challenge
