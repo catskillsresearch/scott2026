@@ -29,13 +29,42 @@ def fv [DecidableEq Var] : Lam Var → Finset Var
   | abs x M => fv M \ {x}
   | app M N => fv M ∪ fv N
 
-/-- Capture-avoiding substitution, assuming `Var` has decidable equality.
-Renaming is the standard capture-avoiding clause. -/
-def subst [DecidableEq Var] : Lam Var → Var → Lam Var → Lam Var
+/-- Term size, used to justify capture-avoiding substitution. -/
+def size : Lam Var → ℕ
+  | var _ => 0
+  | abs _ M => size M + 1
+  | app M N => size M + size N + 1
+
+/-- All names occurring in a term, free or bound. -/
+def vars [DecidableEq Var] : Lam Var → Finset Var
+  | var x => {x}
+  | abs x M => insert x (vars M)
+  | app M N => vars M ∪ vars N
+
+theorem fv_subset_vars [DecidableEq Var] (M : Lam Var) : M.fv ⊆ M.vars := by
+  induction M with
+  | var x => simp [fv, vars]
+  | abs x M ih =>
+    intro y hy
+    simp only [fv, vars, Finset.mem_sdiff, Finset.mem_insert] at hy ⊢
+    exact Or.inr (ih hy.1)
+  | app M N ihM ihN =>
+    intro y hy
+    simp only [fv, vars, Finset.mem_union] at hy ⊢
+    exact hy.elim (fun h => Or.inl (ihM h)) (fun h => Or.inr (ihN h))
+
+/-- Naive substitution: does **not** rename binders. Unrestricted β with this
+function is unsound (`substNaive_captures`). -/
+def substNaive [DecidableEq Var] : Lam Var → Var → Lam Var → Lam Var
   | var y, x, N => if y = x then N else var y
   | abs y M, x, N =>
-      if y = x then abs y M else abs y (subst M x N)
-  | app M₁ M₂, x, N => app (subst M₁ x N) (subst M₂ x N)
+      if y = x then abs y M else abs y (substNaive M x N)
+  | app M₁ M₂, x, N => app (substNaive M₁ x N) (substNaive M₂ x N)
+
+/-- The paper’s `M[x:=N]` in older lemmas and `LamEqNC` is naive substitution.
+Do not silently change this. Capture-avoiding substitution is `substCA`. -/
+abbrev subst [DecidableEq Var] : Lam Var → Var → Lam Var → Lam Var :=
+  substNaive
 
 @[simp] theorem subst_var [DecidableEq Var] (y x : Var) (N : Lam Var) :
     (var y).subst x N = if y = x then N else var y :=
@@ -95,6 +124,22 @@ theorem freeFor_of_not_mem_fv [DecidableEq Var] {M : Lam Var} {x : Var}
       exact ⟨ih hxM, Or.inr hxM⟩
 
 /-- A closed substitutend is free for `x` in every term (no capture is possible). -/
+theorem freeFor_of_not_mem_vars [DecidableEq Var] {M : Lam Var} {z : Var}
+    (x : Var) (hz : z ∉ M.vars) : M.FreeFor x (var z) := by
+  induction M with
+  | var _ =>
+    trivial
+  | app _ _ ih₁ ih₂ =>
+    simp only [vars, Finset.mem_union, not_or] at hz
+    exact ⟨ih₁ hz.1, ih₂ hz.2⟩
+  | abs y M ih =>
+    simp only [FreeFor, vars, Finset.mem_insert, not_or] at hz ⊢
+    by_cases hyx : y = x
+    · exact Or.inl hyx
+    · exact Or.inr ⟨ih hz.2, Or.inl (by
+        simp [fv]
+        exact Ne.symm hz.1)⟩
+
 theorem freeFor_of_closed [DecidableEq Var] (M : Lam Var) (x : Var) {N : Lam Var}
     (hN : N.fv = ∅) : M.FreeFor x N := by
   induction M with
@@ -118,7 +163,7 @@ theorem subst_fresh [DecidableEq Var] {M : Lam Var} {x : Var} (N : Lam Var)
       exact h (hyx ▸ Finset.mem_singleton_self y)
     simp [hyx]
   | abs y M ih =>
-    simp only [subst]
+    simp only [subst, substNaive]
     by_cases hyx : y = x
     · simp [hyx]
     · simp [hyx]
@@ -129,6 +174,127 @@ theorem subst_fresh [DecidableEq Var] {M : Lam Var} {x : Var} (N : Lam Var)
   | app M₁ M₂ ih₁ ih₂ =>
     simp only [fv, Finset.mem_union, not_or] at h
     simp [ih₁ h.1, ih₂ h.2]
+
+theorem size_substNaive_var [DecidableEq Var] (M : Lam Var) (y z : Var) :
+    (M.substNaive y (var z)).size = M.size := by
+  induction M with
+  | var w =>
+    simp only [substNaive, size]
+    split_ifs <;> simp [size]
+  | abs w M ih =>
+    simp only [substNaive, size]
+    split_ifs <;> simp [size, ih]
+  | app M N ihM ihN =>
+    simp [substNaive, size, ihM, ihN]
+
+/-- Pick a name outside `avoid`, falling back to `default` if `Var` is finite
+and exhausted. Under `[Infinite Var]` the fallback is never used. -/
+noncomputable def pickFresh [DecidableEq Var] (avoid : Finset Var) (default : Var) :
+    Var :=
+  let _ := Classical.propDecidable (∃ z, z ∉ avoid)
+  if h : ∃ z, z ∉ avoid then Classical.choose h else default
+
+theorem pickFresh_of_exists [DecidableEq Var] {avoid : Finset Var} {default : Var}
+    (h : ∃ z, z ∉ avoid) : pickFresh avoid default ∉ avoid := by
+  simpa [pickFresh, h] using Classical.choose_spec h
+
+/-- Capture-avoiding substitution (paper Definition 23: `M[x:=N]`). Renames a
+binder `y` when `y ∈ fv(N)` and `x` is free in the body. On a finite
+exhausted `Var` the fresh-name fallback may fail to avoid capture;
+`interp_sound_full` assumes `Infinite`. -/
+noncomputable def substCA [DecidableEq Var] : Lam Var → Var → Lam Var → Lam Var
+  | var y, x, N => if y = x then N else var y
+  | abs y M, x, N =>
+      if y = x then abs y M
+      else if x ∉ M.fv then abs y M
+      else if y ∉ N.fv then abs y (substCA M x N)
+      else
+        let z := pickFresh (M.vars ∪ N.fv ∪ {x, y}) y
+        abs z (substCA (M.substNaive y (var z)) x N)
+  | app M₁ M₂, x, N => app (substCA M₁ x N) (substCA M₂ x N)
+termination_by M => M.size
+decreasing_by
+  · change M.size < M.size + 1; omega
+  · rw [size_substNaive_var]; change M.size < M.size + 1; omega
+  · change M₁.size < M₁.size + M₂.size + 1; omega
+  · change M₂.size < M₁.size + M₂.size + 1; omega
+
+theorem substCA_var [DecidableEq Var] (y x : Var) (N : Lam Var) :
+    substCA (var y) x N = if y = x then N else var y := by
+  rw [substCA]
+
+theorem substCA_app [DecidableEq Var] (M₁ M₂ : Lam Var) (x : Var) (N : Lam Var) :
+    substCA (app M₁ M₂) x N = app (substCA M₁ x N) (substCA M₂ x N) := by
+  rw [substCA]
+
+theorem substCA_abs [DecidableEq Var] (y : Var) (M : Lam Var) (x : Var) (N : Lam Var) :
+    substCA (abs y M) x N =
+      if y = x then abs y M
+      else if x ∉ M.fv then abs y M
+      else if y ∉ N.fv then abs y (substCA M x N)
+      else
+        let z := pickFresh (M.vars ∪ N.fv ∪ {x, y}) y
+        abs z (substCA (M.substNaive y (var z)) x N) := by
+  rw [substCA]
+
+theorem substCA_fresh [DecidableEq Var] {M : Lam Var} {x : Var} (N : Lam Var)
+    (h : x ∉ M.fv) : substCA M x N = M := by
+  induction M generalizing N with
+  | var y =>
+    have hyx : y ≠ x := fun hyx => h (hyx ▸ Finset.mem_singleton_self y)
+    simp [substCA_var, hyx]
+  | abs y M _ih =>
+    rw [substCA_abs]
+    by_cases hyx : y = x
+    · simp [hyx]
+    · simp [hyx]
+      have hxM : x ∉ M.fv := fun hx =>
+        h (Finset.mem_sdiff.mpr ⟨hx, mt Finset.mem_singleton.mp (Ne.symm hyx)⟩)
+      simp [hxM]
+  | app M₁ M₂ ih₁ ih₂ =>
+    simp only [fv, Finset.mem_union, not_or] at h
+    simp [substCA_app, ih₁ N h.1, ih₂ N h.2]
+
+/-- When `N` is free for `x` in `M`, capture-avoiding and naive substitution
+agree (no rename is triggered, or `x` is not free). -/
+theorem substCA_eq_substNaive [DecidableEq Var] {M : Lam Var} {x : Var}
+    {N : Lam Var} (hfree : M.FreeFor x N) :
+    substCA M x N = M.substNaive x N := by
+  induction M generalizing N with
+  | var y =>
+    simp [substCA_var, substNaive]
+  | abs y M ih =>
+    rw [substCA_abs, substNaive]
+    by_cases hyx : y = x
+    · simp [hyx]
+    · simp [hyx]
+      obtain ⟨hM, hcap⟩ := freeFor_abs_of_ne hyx hfree
+      cases hcap with
+      | inl hyN =>
+        by_cases hxM : x ∈ M.fv
+        · simp [hyN, hxM, ih hM]
+        · simp [hxM, subst_fresh (N := N) hxM]
+      | inr hxM =>
+        simp [hxM, subst_fresh (N := N) hxM]
+  | app M₁ M₂ ih₁ ih₂ =>
+    obtain ⟨h₁, h₂⟩ := hfree
+    simp [substCA_app, substNaive, ih₁ h₁, ih₂ h₂]
+
+/-- Naive substitution captures: `(λx. λy. x) y` contracts to `λy. y`. -/
+theorem substNaive_captures :
+    substNaive (abs (1 : Fin 2) (var 0)) 0 (var 1) = abs 1 (var 1) := by
+  simp [substNaive]
+
+theorem substNaive_captures_not_freeFor :
+    ¬ (abs (1 : Fin 2) (var 0)).FreeFor 0 (var 1) := by
+  intro h
+  have hyx : (1 : Fin 2) ≠ 0 := by decide
+  obtain ⟨_, hcap⟩ := freeFor_abs_of_ne hyx h
+  cases hcap with
+  | inl hyN =>
+    exact hyN (by simp [fv])
+  | inr hxM =>
+    exact hxM (by simp [fv])
 
 /-- Example 21: the inductive clauses for `Λ(Var)`. -/
 def IsInductive (S : Set (Lam Var)) : Prop :=
@@ -150,7 +316,8 @@ theorem lam_least_inductive {S : Set (Lam Var)} (h : IsInductive S) :
 
 end Lam
 
-/-- Definition 23: the equational theory `λ`, including β. -/
+/-- Definition 23: the equational theory `λ` — CA-β, α, and the congruence
+rules. `LamEqNC` remains the `FreeFor` fragment (naive subst, no α). -/
 inductive LamEq [DecidableEq Var] : Lam Var → Lam Var → Prop where
   | refl (M : Lam Var) : LamEq M M
   | symm {M N : Lam Var} : LamEq M N → LamEq N M
@@ -158,11 +325,28 @@ inductive LamEq [DecidableEq Var] : Lam Var → Lam Var → Prop where
   | app_left {M N Z : Lam Var} : LamEq M N → LamEq (M.app Z) (N.app Z)
   | app_right {M N Z : Lam Var} : LamEq M N → LamEq (Z.app M) (Z.app N)
   | xi (x : Var) {M N : Lam Var} : LamEq M N → LamEq (Lam.abs x M) (Lam.abs x N)
-  | beta (x : Var) (M N : Lam Var) : LamEq ((Lam.abs x M).app N) (Lam.subst M x N)
+  | beta (x : Var) (M N : Lam Var) :
+      LamEq ((Lam.abs x M).app N) (Lam.substCA M x N)
+  | alpha (x y : Var) (M : Lam Var) (hy : y ∉ M.fv) :
+      LamEq (Lam.abs x M) (Lam.abs y (Lam.substCA M x (Lam.var y)))
 
-/-- Definition 23 (i): β-conversion. -/
+/-- Definition 23 (i): capture-avoiding β-conversion. -/
 def lamEq_beta [DecidableEq Var] (x : Var) (M N : Lam Var) : Prop :=
-  LamEq ((Lam.abs x M).app N) (Lam.subst M x N)
+  LamEq ((Lam.abs x M).app N) (Lam.substCA M x N)
+
+/-- Definition 23: the generators are CA-β, α, refl/symm/trans, app, and ξ. -/
+theorem definition_23 [DecidableEq Var] (x y : Var) (M N Z : Lam Var)
+    (hy : y ∉ M.fv) :
+    LamEq ((Lam.abs x M).app N) (Lam.substCA M x N) ∧
+      LamEq (Lam.abs x M) (Lam.abs y (Lam.substCA M x (Lam.var y))) ∧
+      LamEq M M ∧
+      (LamEq M N → LamEq N M) ∧
+      (LamEq M N → LamEq N Z → LamEq M Z) ∧
+      (LamEq M N → LamEq (M.app Z) (N.app Z)) ∧
+      (LamEq M N → LamEq (Z.app M) (Z.app N)) ∧
+      (LamEq M N → LamEq (Lam.abs x M) (Lam.abs x N)) :=
+  ⟨LamEq.beta x M N, LamEq.alpha x y M hy, LamEq.refl M, LamEq.symm,
+    LamEq.trans, LamEq.app_left, LamEq.app_right, LamEq.xi x⟩
 
 /-- Capture-free fragment of `LamEq`. Same rules as Definition 23, but β
 requires `Lam.FreeFor` (the paper’s capture-avoiding substitution). There is
@@ -187,7 +371,9 @@ theorem LamEqNC.toLamEq [DecidableEq Var] {M N : Lam Var} :
   | app_left _ ih => exact LamEq.app_left ih
   | app_right _ ih => exact LamEq.app_right ih
   | xi x _ ih => exact LamEq.xi x ih
-  | beta x M N _ => exact LamEq.beta x M N
+  | beta x M N hfree =>
+    have hβ := LamEq.beta x M N
+    rwa [Lam.substCA_eq_substNaive hfree] at hβ
 
 /-- Church Booleans on two distinct names (Definition 32 / Proposition 33). -/
 def churchTrue : Lam (Fin 2) :=

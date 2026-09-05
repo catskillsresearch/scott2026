@@ -697,17 +697,17 @@ theorem interpVA_subst (M N : Lam Var) (x : Var)
       interpVA (A := A) M (ρ.update x (interpVA (A := A) N ρ)) := by
   induction M generalizing ρ with
   | var y =>
-    simp only [Lam.subst]
+    simp only [Lam.subst, Lam.substNaive]
     by_cases hyx : y = x
     · subst hyx
       simp [interpVA]
     · simp [hyx, interpVA]
   | app M₁ M₂ ih₁ ih₂ =>
     obtain ⟨h₁, h₂⟩ := hfree
-    simp only [Lam.subst, interpVA]
+    simp only [Lam.subst, Lam.substNaive, interpVA]
     rw [ih₁ ρ h₁, ih₂ ρ h₂]
   | abs y M ih =>
-    simp only [Lam.subst]
+    simp only [Lam.subst, Lam.substNaive]
     split_ifs with hyx
     · subst hyx
       simp only [interpVA]
@@ -725,7 +725,8 @@ theorem interpVA_subst (M N : Lam Var) (x : Var)
           interpVA_update_fresh (A := A) N ρ y d hyN
         rw [ih (ρ.update y d) hM, hN, Valuation.update_comm hyx]
       | inr hxM =>
-        rw [Lam.subst_fresh N hxM]
+        have hsf : M.substNaive x N = M := Lam.subst_fresh N hxM
+        rw [hsf]
         refine interpVA_agree (A := A) M _ _ ?_
         intro z hz
         have hzx : z ≠ x := fun hzx => hxM (hzx ▸ hz)

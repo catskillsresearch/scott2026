@@ -216,7 +216,40 @@ theorem strict_iff (f : StrictIso S T) : S.IsStrict ↔ T.IsStrict := by
   · intro hT x₁ x₂ hx
     exact StrictIso.injective f (hT _ _ ((f.preserve_eq x₁ x₂).trans hx))
 
+/-- Completeness transports along a strict isomorphism (Definition 5). -/
+theorem complete_iff (f : StrictIso S T) : S.IsComplete.{v} ↔ T.IsComplete.{v} := by
+  constructor
+  · intro hS ι a y hcomp
+    have hcompS : ∀ i j, a i ⊓ a j ≤ S.eq (f.invFun (y i)) (f.invFun (y j)) := by
+      intro i j
+      have heq : T.eq (y i) (y j) = S.eq (f.invFun (y i)) (f.invFun (y j)) := by
+        simpa [f.right_inv] using f.preserve_eq (f.invFun (y i)) (f.invFun (y j))
+      exact (hcomp i j).trans_eq heq
+    obtain ⟨z, hz⟩ := hS ι a (fun i => f.invFun (y i)) hcompS
+    refine ⟨f.toFun z, fun i => ?_⟩
+    have heq : S.eq (f.invFun (y i)) z = T.eq (y i) (f.toFun z) := by
+      simpa [f.right_inv] using (f.preserve_eq (f.invFun (y i)) z).symm
+    exact (hz i).trans_eq heq
+  · intro hT ι a x hcomp
+    have hcompT : ∀ i j, a i ⊓ a j ≤ T.eq (f.toFun (x i)) (f.toFun (x j)) := by
+      intro i j
+      exact (hcomp i j).trans_eq (f.preserve_eq (x i) (x j)).symm
+    obtain ⟨w, hw⟩ := hT ι a (fun i => f.toFun (x i)) hcompT
+    refine ⟨f.invFun w, fun i => ?_⟩
+    have heq : T.eq (f.toFun (x i)) w = S.eq (x i) (f.invFun w) := by
+      have hpres := f.preserve_eq (x i) (f.invFun w)
+      rwa [f.right_inv w] at hpres
+    exact (hw i).trans_eq heq
+
 end StrictIso
+
+/-- Definition 5: a strict isomorphism transports totality, strictness, and
+completeness in both directions. -/
+theorem definition_5 {S : ASetoid (A := A) X} {T : ASetoid (A := A) Y}
+    (f : StrictIso S T) :
+    (S.IsTotal ↔ T.IsTotal) ∧ (S.IsStrict ↔ T.IsStrict) ∧
+      (S.IsComplete.{v} ↔ T.IsComplete.{v}) :=
+  ⟨f.total_iff, f.strict_iff, f.complete_iff⟩
 
 /-- Definition 6: product of `A`-setoids. -/
 def prod : ASetoid (A := A) (X × Y) where
@@ -235,6 +268,11 @@ def prod : ASetoid (A := A) (X × Y) where
 @[simp] theorem prod_eq (p q : X × Y) :
     (S.prod T).eq p q = S.eq p.1 q.1 ⊓ T.eq p.2 q.2 := rfl
 
+/-- Definition 6: product equality is the infimum of the component equalities. -/
+theorem definition_6 (p q : X × Y) :
+    (S.prod T).eq p q = S.eq p.1 q.1 ⊓ T.eq p.2 q.2 :=
+  prod_eq S T p q
+
 /-- Definition 7: a predicate on an `A`-setoid. -/
 structure Predicate (S : ASetoid (A := A) X) where
   val : X → A
@@ -244,6 +282,12 @@ structure Predicate (S : ASetoid (A := A) X) where
 /-- A binary relation `X → Y` is a predicate on the product (Definition 7). -/
 abbrev Rel (S : ASetoid (A := A) X) (T : ASetoid (A := A) Y) :=
   Predicate (S.prod T)
+
+/-- Definition 7: the two predicate axioms, unfolded. -/
+theorem definition_7 (P : Predicate S) :
+    (∀ x₁ x₂, S.eq x₁ x₂ ≤ himp (P.val x₁) (P.val x₂) ⊓ himp (P.val x₂) (P.val x₁)) ∧
+      (∀ x, P.val x ≤ S.eps x) :=
+  ⟨P.respects, P.le_eps⟩
 
 /-- Extensionality of `A`-valued equality in a predicate (Definition 7 (i)). -/
 theorem Predicate.respects_left (P : Predicate S) (x₁ x₂ : X) :
@@ -297,11 +341,75 @@ theorem AMonotone.map_eq {f : X → Y} (hf : AMonotone P Q f) (x₁ x₂ : X) :
 def Functional (S : ASetoid (A := A) X) (T : ASetoid (A := A) Y) (f : X → Y) : Prop :=
   ∀ x₁ x₂, S.eq x₁ x₂ ≤ T.eq (f x₁) (f x₂)
 
+/-- Identity is functional (Definition 9). -/
+theorem Functional.id {S : ASetoid (A := A) X} : Functional S S id :=
+  fun _ _ => le_rfl
+
+/-- Composition of functional maps is functional (Definition 9). -/
+theorem Functional.comp {Z : Type*} {S : ASetoid (A := A) X}
+    {T : ASetoid (A := A) Y} {U : ASetoid (A := A) Z}
+    {f : X → Y} {g : Y → Z} (hf : Functional S T f) (hg : Functional T U g) :
+    Functional S U (g ∘ f) :=
+  fun x₁ x₂ => (hf x₁ x₂).trans (hg (f x₁) (f x₂))
+
 /-- Lemma 12: `A`-monotone maps are functional on the induced setoids. -/
 theorem AMonotone.functional {f : X → Y} (hf : AMonotone P Q f) :
     Functional P.toASetoid Q.toASetoid f :=
   fun x₁ x₂ => AMonotone.map_eq (P := P) (Q := Q) hf x₁ x₂
 
+/-- Internal (A-valued) monotonicity: `∀ x₁ x₂, ‖x₁ ≤ x₂‖ ⇒ ‖f(x₁) ≤ f(x₂)‖` has
+Boolean value `⊤`. -/
+def InternallyMonotone (P : APoset (A := A) X) (Q : APoset (A := A) Y) (f : X → Y) :
+    Prop :=
+  (⨅ x₁, ⨅ x₂, himp (P.le x₁ x₂) (Q.le (f x₁) (f x₂))) = ⊤
+
+theorem internallyMonotone_iff_aMonotone {f : X → Y} :
+    InternallyMonotone P Q f ↔ AMonotone P Q f := by
+  constructor
+  · intro h x₁ x₂
+    unfold InternallyMonotone at h
+    have hx₁ : (⨅ x₂', himp (P.le x₁ x₂') (Q.le (f x₁) (f x₂'))) = ⊤ :=
+      iInf_eq_top.mp h x₁
+    exact himp_eq_top_iff.mp (iInf_eq_top.mp hx₁ x₂)
+  · intro h
+    unfold InternallyMonotone
+    refine iInf_eq_top.mpr fun x₁ => iInf_eq_top.mpr fun x₂ => ?_
+    exact himp_eq_top_iff.mpr (h x₁ x₂)
+
+/-- Lemma 12, converse: an internally monotone `SetoidF_A` map is `A`-monotone. -/
+theorem lemma_12_converse {f : X → Y}
+    (hf : Functional P.toASetoid Q.toASetoid f)
+    (hmono : InternallyMonotone P Q f) : AMonotone P Q f :=
+  let _ := hf
+  (internallyMonotone_iff_aMonotone (P := P) (Q := Q)).mp hmono
+
 end APoset
+
+/-- Definition 5 (paper name): strict isomorphisms transport totality, strictness,
+and completeness both ways. -/
+theorem definition_5 {X Y : Type*} {S : ASetoid (A := A) X} {T : ASetoid (A := A) Y}
+    (f : ASetoid.StrictIso S T) :
+    (S.IsTotal ↔ T.IsTotal) ∧ (S.IsStrict ↔ T.IsStrict) ∧
+      (S.IsComplete.{v} ↔ T.IsComplete.{v}) :=
+  ASetoid.definition_5 f
+
+/-- Definition 6 (paper name): product equality is the infimum of components. -/
+theorem definition_6 {X Y : Type*} (S : ASetoid (A := A) X) (T : ASetoid (A := A) Y)
+    (p q : X × Y) :
+    (S.prod T).eq p q = S.eq p.1 q.1 ⊓ T.eq p.2 q.2 :=
+  ASetoid.definition_6 S T p q
+
+/-- Definition 7 (paper name): the two predicate axioms. -/
+theorem definition_7 {X : Type*} {S : ASetoid (A := A) X} (P : ASetoid.Predicate S) :
+    (∀ x₁ x₂, S.eq x₁ x₂ ≤ himp (P.val x₁) (P.val x₂) ⊓ himp (P.val x₂) (P.val x₁)) ∧
+      (∀ x, P.val x ≤ S.eps x) :=
+  ASetoid.definition_7 S P
+
+/-- Lemma 12 converse (paper name): internally monotone functional maps are
+`A`-monotone. -/
+theorem lemma_12_converse {X Y : Type*} (P : APoset (A := A) X) (Q : APoset (A := A) Y)
+    {f : X → Y} (hf : APoset.Functional P.toASetoid Q.toASetoid f)
+    (hmono : APoset.InternallyMonotone P Q f) : APoset.AMonotone P Q f :=
+  APoset.lemma_12_converse (P := P) (Q := Q) hf hmono
 
 end Scott2026

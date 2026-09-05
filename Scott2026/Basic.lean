@@ -381,9 +381,9 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- Example 24 (CSL p.9): `λ` is encoded as pairs of tagged terms
 -- (`encodeEq` / `encodeEqB` via `pOpair` / `opairB`). `lamEqInductiveB`
 -- is the Boolean `λ`-inductive clause (not required to be `Δ₀`); `β`
--- reuses `Lam.subst` on the ground encoding. `lamEqB (checkVar Var)` is
--- `λ^A`, where `checkVar Var` is the unfolding of `check Var`
--- (`check_eq_mk`, so `idx` is `Var.Type`). Inductiveness and
+-- uses paper substitution `Lam.substCA`, and `α` is included. `lamEqB
+-- (checkVar Var)` is `λ^A`, where `checkVar Var` is the unfolding of
+-- `check Var` (`check_eq_mk`, so `idx` is `Var.Type`). Inductiveness and
 -- `‖check(λ) ⊆ lamEqB (checkVar Var)‖ = 1` are `example_24` /
 -- `example_24_va` / `example_24_subset` (induction on `LamEq`). The
 -- paper only claims `⊆`; equality is not exported. This is not
@@ -396,7 +396,9 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- applied to a map in the retract class. There is no constant clause.
 -- [4, Theorem 5.4.4] is `interp_sound` / `definition_25_sound` on the
 -- capture-free fragment `LamEqNC` (`interp_subst` needs `Lam.FreeFor`;
--- `Lam.subst` does not rename). Capturing `LamEq.beta` is not claimed.
+-- `Lam.subst` is naive and does not rename). Full paper soundness is
+-- `interp_sound_full` / `definition_25_sound_full` (`LamEq`, CA-β + α,
+-- `[Infinite Var]`). Naive capture is `interp_substNaive_captures`.
 -- This is not `SetoidF_A(Λ^A, D)`, not A-valued `⟦·⟧^A_ρ`, and not
 -- Theorem 26.
 --

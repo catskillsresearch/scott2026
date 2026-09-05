@@ -5,10 +5,14 @@ Authors: Lars Warren Ericson.
 -/
 
 import Mathlib.Data.Finset.Basic
+import Mathlib.Data.Finset.Sort
+import Mathlib.Data.Fintype.EquivFin
+import Mathlib.Data.Nat.Pairing
 import Mathlib.Logic.Function.Basic
 import Mathlib.Order.Bounds.Image
 import Mathlib.Order.CompleteLattice.Basic
 import Scott2026.Domain
+import Scott2026.Engeler
 import Scott2026.Lambda
 
 /-!
@@ -33,16 +37,12 @@ The meta-lambda `d ↦ ⟦M⟧_{ρ(x := d)}` is Scott-continuous
 (`interp_update_scott`), so `ReflexiveDcpo.lam` is applied to a map in
 the retract’s Scott-continuous class.
 
-[4, Theorem 5.4.4] soundness is `interp_sound` on the capture-free
-fragment `LamEqNC`: if `LamEqNC M N` then `interp R M ρ = interp R N ρ`
-(the valuation is a total `toFun`, as already used by `interp`;
-`interp_agree` makes dummy off-domain values irrelevant whenever
-`fv(M) ⊆ dom(ρ)`). The β case uses `ReflexiveDcpo.retract` and
-`interp_subst`, which requires `Lam.FreeFor` because `Lam.subst` does
-not rename binders. Unrestricted `interp_subst` and soundness of
-capturing `LamEq.beta` are false (e.g. `(λx. λy. x) y` versus `λy. y`).
-There is no α-rule, no `SetoidF_A` map, no A-valued `⟦·⟧^A_ρ`, and no
-Theorem 26.
+[4, Theorem 5.4.4] on the capture-free fragment is `interp_sound` /
+`definition_25_sound` (`LamEqNC`, `Lam.FreeFor`, naive `Lam.subst`).
+Unrestricted naive substitution is false (`interp_substNaive_captures`).
+The paper theory is `LamEq` (CA-β + α). Full ground soundness is
+`interp_sound_full` / `definition_25_sound_full` under `[Infinite Var]`.
+There is no `SetoidF_A` map, no A-valued `⟦·⟧^A_ρ`, and no Theorem 26.
 -/
 
 open Set Function
@@ -326,17 +326,17 @@ theorem interp_subst (R : ReflexiveDcpo D) (M N : Lam Var) (x : Var)
     interp R (M.subst x N) ρ = interp R M (ρ.update x (interp R N ρ)) := by
   induction M generalizing ρ with
   | var y =>
-    simp only [Lam.subst]
+    simp only [Lam.subst, Lam.substNaive]
     by_cases hyx : y = x
     · subst hyx
       simp [interp]
     · simp [hyx, interp]
   | app M₁ M₂ ih₁ ih₂ =>
     obtain ⟨h₁, h₂⟩ := hfree
-    simp only [Lam.subst, interp]
+    simp only [Lam.subst, Lam.substNaive, interp]
     rw [ih₁ ρ h₁, ih₂ ρ h₂]
   | abs y M ih =>
-    simp only [Lam.subst]
+    simp only [Lam.subst, Lam.substNaive]
     split_ifs with hyx
     · subst hyx
       simp only [interp]
@@ -353,7 +353,8 @@ theorem interp_subst (R : ReflexiveDcpo D) (M N : Lam Var) (x : Var)
           interp_update_fresh R N ρ y d hyN
         rw [ih (ρ.update y d) hM, hN, Valuation.update_comm hyx]
       | inr hxM =>
-        rw [Lam.subst_fresh N hxM]
+        have hsf : M.substNaive x N = M := Lam.subst_fresh N hxM
+        rw [hsf]
         refine interp_agree R M _ _ ?_
         intro z hz
         have hzx : z ≠ x := fun hzx => hxM (hzx ▸ hz)
@@ -419,5 +420,254 @@ theorem interpClosed_sound (R : ReflexiveDcpo D) {M N : Lam Var}
     (h : LamEqNC M N) :
     interpClosed R M = interpClosed R N :=
   interp_sound R h Valuation.empty
+
+/-!
+## Capture-avoiding substitution and full [4, Theorem 5.4.4]
+-/
+
+theorem pickFresh_not_mem [Infinite Var] (avoid : Finset Var) (default : Var) :
+    Lam.pickFresh avoid default ∉ avoid :=
+  Lam.pickFresh_of_exists (Infinite.exists_notMem_finset avoid)
+
+/-- [4, Theorem 5.4.4] substitution lemma for capture-avoiding `substCA`.
+Requires infinitely many names so `pickFresh` is always fresh. -/
+theorem interp_subst_CA [Infinite Var] (R : ReflexiveDcpo D) (M N : Lam Var)
+    (x : Var) (ρ : Valuation Var D) :
+    interp R (Lam.substCA M x N) ρ =
+      interp R M (ρ.update x (interp R N ρ)) := by
+  induction hsize : M.size using Nat.strong_induction_on generalizing M N x ρ with
+  | h k ih =>
+    match M with
+    | .var y =>
+      rw [Lam.substCA_var]
+      by_cases hyx : y = x
+      · subst hyx
+        simp [interp]
+      · simp [hyx, interp]
+    | .app M₁ M₂ =>
+      have h₁ : M₁.size < k := by
+        simp [Lam.size] at hsize; omega
+      have h₂ : M₂.size < k := by
+        simp [Lam.size] at hsize; omega
+      simp only [Lam.substCA_app, interp]
+      rw [ih M₁.size h₁ M₁ N x ρ rfl, ih M₂.size h₂ M₂ N x ρ rfl]
+    | .abs y M =>
+      rw [Lam.substCA_abs]
+      by_cases hyx : y = x
+      · rw [if_pos hyx]
+        subst hyx
+        simp only [interp]
+        congr 1
+        funext d
+        rw [Valuation.update_overwrite]
+      · rw [if_neg hyx]
+        by_cases hxM : x ∉ M.fv
+        · rw [if_pos hxM]
+          simp only [interp]
+          congr 1
+          funext d
+          have hcomm := Valuation.update_comm (Ne.symm hyx) ρ (interp R N ρ) d
+          rw [hcomm]
+          exact (interp_update_fresh R M (ρ.update y d) x (interp R N ρ) hxM).symm
+        · rw [if_neg hxM]
+          by_cases hyN : y ∉ N.fv
+          · rw [if_pos hyN]
+            simp only [interp]
+            congr 1
+            funext d
+            have hMs : M.size < k := by
+              simp [Lam.size] at hsize; omega
+            rw [ih M.size hMs M N x (ρ.update y d) rfl]
+            have hN : interp R N (ρ.update y d) = interp R N ρ :=
+              interp_update_fresh R N ρ y d hyN
+            rw [hN, Valuation.update_comm hyx]
+          · rw [if_neg hyN]
+            set z := Lam.pickFresh (M.vars ∪ N.fv ∪ {x, y}) y
+            have hz : z ∉ M.vars ∪ N.fv ∪ {x, y} :=
+              pickFresh_not_mem _ y
+            have hzM : z ∉ M.vars := fun h => hz (Finset.mem_union.mpr (Or.inl
+              (Finset.mem_union.mpr (Or.inl h))))
+            have hzN : z ∉ N.fv := fun h => hz (Finset.mem_union.mpr (Or.inl
+              (Finset.mem_union.mpr (Or.inr h))))
+            have hzx : z ≠ x := fun h => hz (by simp [h])
+            have hzy : z ≠ y := fun h => hz (by simp [h])
+            have hMs : M.size < k := by
+              simp [Lam.size] at hsize; omega
+            have hren : (M.substNaive y (Lam.var z)).size = M.size :=
+              Lam.size_substNaive_var M y z
+            simp only [interp]
+            congr 1
+            funext d
+            rw [ih M.size hMs (M.substNaive y (Lam.var z)) N x (ρ.update z d)
+              hren]
+            have hN : interp R N (ρ.update z d) = interp R N ρ :=
+              interp_update_fresh R N ρ z d hzN
+            rw [hN, Valuation.update_comm hzx]
+            have hfree : M.FreeFor y (Lam.var z) :=
+              Lam.freeFor_of_not_mem_vars y hzM
+            have hsub := interp_subst R M (Lam.var z) y
+              ((ρ.update x (interp R N ρ)).update z d) hfree
+            have hzval : interp R (Lam.var z)
+                ((ρ.update x (interp R N ρ)).update z d) = d := by
+              simp [interp]
+            rw [hsub, hzval]
+            have hzMf : z ∉ M.fv := fun h => hzM (Lam.fv_subset_vars M h)
+            rw [Valuation.update_comm hzy]
+            exact interp_update_fresh R M
+              ((ρ.update x (interp R N ρ)).update y d) z d hzMf
+
+/-- α-soundness: `⟦λx. M⟧_ρ = ⟦λy. M[x:=y]⟧_ρ` when `y ∉ fv(M)`. -/
+theorem interp_alpha [Infinite Var] (R : ReflexiveDcpo D) (x y : Var)
+    (M : Lam Var) (ρ : Valuation Var D) (hy : y ∉ M.fv) :
+    interp R (Lam.abs x M) ρ =
+      interp R (Lam.abs y (Lam.substCA M x (Lam.var y))) ρ := by
+  simp only [interp]
+  congr 1
+  funext d
+  rw [interp_subst_CA R M (Lam.var y) x (ρ.update y d)]
+  simp only [interp]
+  by_cases hyx : y = x
+  · subst hyx
+    rw [Valuation.update_toFun_self, Valuation.update_overwrite]
+  · rw [Valuation.update_toFun_self, Valuation.update_comm hyx]
+    exact (interp_update_fresh R M (ρ.update x d) y d hy).symm
+
+/-- [4, Theorem 5.4.4] β-case for capture-avoiding substitution. -/
+theorem interp_sound_beta_full [Infinite Var] (R : ReflexiveDcpo D)
+    (x : Var) (M N : Lam Var) (ρ : Valuation Var D) :
+    interp R ((Lam.abs x M).app N) ρ = interp R (Lam.substCA M x N) ρ := by
+  have hsc : IsScottContinuous (fun d => interp R M (ρ.update x d)) :=
+    interp_update_scott R M ρ x
+  calc
+    interp R ((Lam.abs x M).app N) ρ
+        = R.app (R.lam fun d => interp R M (ρ.update x d)) (interp R N ρ) :=
+      rfl
+    _ = (fun d => interp R M (ρ.update x d)) (interp R N ρ) := by
+      change R.funMap (R.lam fun d => interp R M (ρ.update x d)) (interp R N ρ) =
+        (fun d => interp R M (ρ.update x d)) (interp R N ρ)
+      rw [R.retract _ hsc]
+    _ = interp R M (ρ.update x (interp R N ρ)) :=
+      rfl
+    _ = interp R (Lam.substCA M x N) ρ :=
+      (interp_subst_CA R M N x ρ).symm
+
+/-- [4, Theorem 5.4.4] at full strength: `LamEq M N` implies `⟦M⟧_ρ = ⟦N⟧_ρ`.
+No `FreeFor` hypothesis. Requires `Infinite Var` so CA renaming is defined. -/
+theorem interp_sound_full [Infinite Var] (R : ReflexiveDcpo D) {M N : Lam Var}
+    (h : LamEq M N) (ρ : Valuation Var D) :
+    interp R M ρ = interp R N ρ := by
+  induction h generalizing ρ with
+  | refl M =>
+    rfl
+  | symm _ ih =>
+    exact (ih ρ).symm
+  | trans _ _ ih1 ih2 =>
+    exact (ih1 ρ).trans (ih2 ρ)
+  | app_left _ ih =>
+    simp only [interp]
+    rw [ih ρ]
+  | app_right _ ih =>
+    simp only [interp]
+    rw [ih ρ]
+  | xi x _ ih =>
+    simp only [interp]
+    congr 1
+    funext d
+    exact ih (ρ.update x d)
+  | beta x M N =>
+    exact interp_sound_beta_full R x M N ρ
+  | alpha x y M hy =>
+    exact interp_alpha R x y M ρ hy
+
+theorem interpClosed_sound_full [Infinite Var] (R : ReflexiveDcpo D)
+    {M N : Lam Var} (h : LamEq M N) :
+    interpClosed R M = interpClosed R N :=
+  interp_sound_full R h Valuation.empty
+
+/-- [4, Theorem 5.4.4] at full strength (paper name). -/
+theorem definition_25_sound_full [Infinite Var] (R : ReflexiveDcpo D)
+    {M N : Lam Var} (h : LamEq M N) (ρ : Valuation Var D) :
+    interp R M ρ = interp R N ρ :=
+  interp_sound_full R h ρ
+
+/-!
+## Counterexample: naive substitution captures
+-/
+
+/-- List encoding used to inject `List ℕ` into `ℕ`. -/
+def captureListCode : List ℕ → ℕ
+  | [] => 0
+  | n :: ns => Nat.pair n (captureListCode ns) + 1
+
+theorem captureListCode_injective : Function.Injective captureListCode := by
+  intro xs
+  induction xs with
+  | nil =>
+    intro ys h
+    cases ys with
+    | nil => rfl
+    | cons _ _ => simp [captureListCode] at h
+  | cons a as ih =>
+    intro ys h
+    cases ys with
+    | nil => simp [captureListCode] at h
+    | cons b bs =>
+      have hpair : Nat.pair a (captureListCode as) = Nat.pair b (captureListCode bs) :=
+        Nat.succ_injective (by simpa [captureListCode] using h)
+      have hab := Nat.pair_eq_pair.mp hpair
+      exact congr_arg₂ List.cons hab.1 (ih hab.2)
+
+/-- Injective pairing `P_fin(ℕ) × ℕ → ℕ`. -/
+def capturePair (p : Finset ℕ × ℕ) : ℕ :=
+  Nat.pair (captureListCode (p.1.sort (· ≤ ·))) p.2
+
+theorem capturePair_injective : Function.Injective capturePair := by
+  intro p q h
+  have hpq := Nat.pair_eq_pair.mp h
+  have hlist : p.1.sort (· ≤ ·) = q.1.sort (· ≤ ·) :=
+    captureListCode_injective hpq.1
+  refine Prod.ext ?_ hpq.2
+  apply Finset.ext
+  intro x
+  rw [← Finset.mem_sort (s := p.1) (r := (· ≤ ·)) (a := x), hlist]
+  exact Finset.mem_sort (s := q.1) (r := (· ≤ ·)) (a := x)
+
+/-- Engeler reflexive dcpo used to witness capture. -/
+def captureDcpo : ReflexiveDcpo (Set ℕ) :=
+  engelerReflexiveDcpo capturePair capturePair_injective
+
+/-- Unrestricted `interp_subst` is false for naive substitution:
+`(λy. x)[x:=y]` is `λy. y`, while the updated valuation still reads `x`
+as the value of `y`. -/
+def captureVal : Valuation (Fin 2) (Set ℕ) where
+  domain := {0, 1}
+  toFun := fun i => if i = 1 then ({0} : Set ℕ) else ∅
+
+theorem interp_substNaive_captures :
+    interp captureDcpo (Lam.substNaive (Lam.abs 1 (Lam.var 0)) 0 (Lam.var 1))
+        captureVal ≠
+      interp captureDcpo (Lam.abs 1 (Lam.var 0))
+        (captureVal.update 0 (interp captureDcpo (Lam.var 1) captureVal)) := by
+  intro h
+  have hLHS :
+      interp captureDcpo (Lam.substNaive (Lam.abs 1 (Lam.var 0)) 0 (Lam.var 1))
+        captureVal = captureDcpo.lam id := by
+    simp [captureVal, Lam.substNaive, interp, Valuation.update]
+    rfl
+  have hRHS :
+      interp captureDcpo (Lam.abs 1 (Lam.var 0))
+        (captureVal.update 0 (interp captureDcpo (Lam.var 1) captureVal)) =
+        captureDcpo.lam (fun _ => ({0} : Set ℕ)) := by
+    simp [captureVal, interp, Valuation.update]
+  rw [hLHS, hRHS] at h
+  have hconst :
+      capturePair (∅, 0) ∈ captureDcpo.lam (fun _ => ({0} : Set ℕ)) :=
+    ⟨∅, 0, by simp, rfl⟩
+  have hid : capturePair (∅, 0) ∉ captureDcpo.lam id := by
+    intro ⟨K, q, hq, heq⟩
+    have hKq : (K, q) = (∅, 0) := capturePair_injective heq.symm
+    cases hKq
+    simp at hq
+  exact hid (h ▸ hconst)
 
 end Scott2026

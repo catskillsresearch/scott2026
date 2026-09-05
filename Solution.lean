@@ -5,8 +5,10 @@ Authors: Lars Warren Ericson.
 -/
 import Scott2026.Basic
 
-export Scott2026 (scaffold_placeholder lemma_12 proposition_27 proposition_27_continuous
-  proposition_28_total proposition_28_strict proposition_29 theorem_17_mix
+export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
+  proposition_27 proposition_27_continuous
+  proposition_28_total proposition_28_strict proposition_29 proposition_29_full
+  theorem_17_mix
   theorem_17_complete lemma_41_const jech_lemma_14_15 jech_lemma_14_16
   jech_lemma_14_18 jech_lemma_14_19 theorem_1_iii jech_lemma_14_21
   memB_powerB eqB_singletonB eqB_pairB eqB_opairB
@@ -15,7 +17,9 @@ export Scott2026 (scaffold_placeholder lemma_12 proposition_27 proposition_27_co
   isFunctionB funsB homB idB compB
   isFunctionB_id isFunctionB_comp compB_congr memB_idB_funsB
   memB_funsB isHom_id isHom_comp
-  definition_4 definition_13 definition_14 definition_15 definition_16
+  definition_4 definition_5 definition_6 definition_7 definition_8
+  definition_9 definition_10 definition_13 definition_13_iso
+  definition_14 definition_15 definition_16
   definition_16_id definition_16_comp
   oid oid_eq oid_eps ePred ePred_val ePredPowerB
   oidRel oidRel_val oidHom oidRel_congr oidRel_id oidRel_comp relCompVal
@@ -50,10 +54,13 @@ export Scott2026 (scaffold_placeholder lemma_12 proposition_27 proposition_27_co
   Valuation interp interpClosed interp_var interp_app interp_abs
   interp_closed interp_agree interp_update_scott
   interp_subst interp_sound interp_sound_beta interpClosed_sound
-  LamEqNC
+  LamEq LamEqNC definition_23
+  interp_sound_full interpClosed_sound_full definition_25_sound_full
+  interp_substNaive_captures
   definition_25 definition_25_var definition_25_app definition_25_abs
   definition_25_closed definition_25_subst definition_25_sound
   definition_25_sound_beta definition_25_sound_closed
+  engelerReflexiveDcpo
   EngelerCarrier interpVA interpClosedVA
   interpVA_var interpVA_app interpVA_abs interpVA_closed
   interpVA_subst interpVA_sound interpVA_sound_beta interpClosedVA_sound
@@ -63,7 +70,8 @@ export Scott2026 (scaffold_placeholder lemma_12 proposition_27 proposition_27_co
   theorem_26_sound theorem_26_sound_beta theorem_26_sound_closed
   theorem_26_update_determined)
 
-export Scott2026.Lam (FreeFor subst_fresh freeFor_of_not_mem_fv freeFor_of_closed)
+export Scott2026.Lam (FreeFor subst_fresh freeFor_of_not_mem_fv freeFor_of_closed
+  substCA substNaive substNaive_captures substNaive_captures_not_freeFor)
 
 /-!
 # Solution to the Challenge
