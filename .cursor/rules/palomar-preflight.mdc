@@ -1,0 +1,28 @@
+---
+description: Prevent Palomar Comparator mismatches in Challenge/Solution declarations
+globs: "{Challenge.lean,Solution.lean,comparator.json,Scott2026/**/*.lean,scripts/*palomar*,formalization.yaml,docs/PALOMAR*.md}"
+alwaysApply: false
+---
+
+# Palomar Comparator safety
+
+- Read `docs/PALOMAR_STYLE.md` before changing compared declarations.
+- Read `docs/PALOMAR_EDITORIAL_AUDIT.md` before submission packaging changes.
+- Pin universe parameter names and make unstable instance paths explicit.
+- Keep every `definition_names` value and every transitively locked
+  Challenge/Solution definition structurally identical.
+- Audit named child definitions referenced by matching parent bodies; Palomar
+  compares those values independently.
+- Never use inline proofs in locked structure values: generated
+  `._proof_N` constants are mechanically compared.
+- Move proof fields to named theorems and list them in `theorem_names`.
+- Every material symbol in a compared theorem type must be pinned: either
+  defined without `sorry` in Challenge.lean or listed in `definition_names`.
+- Keep `formalization.yaml` aligned with `comparator.json` (`main_results`,
+  scope, limitations, sources).
+- Challenge may contain proof holes; Solution and `Scott2026/**/*.lean` may not.
+- **CI / routine edits:** `bash scripts/palomar_preflight.sh --mechanical-only`
+  (includes Palomar-pinned `../palomar-preflight/verify-comparator.sh`)
+- **Before Palomar submission:** full `bash scripts/palomar_preflight.sh`
+  (mechanical + editorial LLM audit). Do not claim readiness unless mechanical
+  preflight passes; treat editorial `neutral` synthesis as the submission bar.

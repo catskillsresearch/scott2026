@@ -1,0 +1,42 @@
+# Citation File Format — GitHub “Cite this repository.”
+# Authoritative Zenodo metadata (subjects, resource type, relations): .zenodo.json
+
+cff-version: 1.2.0
+title: "A Lean 4 Formalization of Interpreting Lambda Calculus in Domain-Valued Random Variables (CSL 2026)"
+message: "If you use this formalization, please cite it as below."
+type: software
+authors:
+  - family-names: Ericson
+    given-names: Lars Warren
+    affiliation: Catskills Research Company
+    orcid: "https://orcid.org/0000-0001-8299-9361"
+abstract: >-
+  Machine-checked Lean 4 formalization scaffold for Furber, Mardare, Panangaden,
+  and Scott's 2026 paper Interpreting Lambda Calculus in Domain-Valued Random
+  Variables (LIPIcs, CSL 2026). The paper develops Boolean-valued domain theory
+  and interprets the lambda-calculus using domain-valued random variables. The
+  paper's authors were not contacted and did not participate in, review, or
+  endorse this formalization.
+keywords:
+  - Lean 4
+  - domain theory
+  - lambda calculus
+  - denotational semantics
+  - probabilistic programming
+  - Boolean-valued models
+  - formal verification
+repository-code: "https://github.com/catskillsresearch/scott2026"
+license: Apache-2.0
+version: 0.1.0
+date-released: 2026-09-05
+# After Zenodo publish, add preferred-citation.doi here.
+preferred-citation:
+  type: software
+  title: "A Lean 4 Formalization of Interpreting Lambda Calculus in Domain-Valued Random Variables (CSL 2026)"
+  authors:
+    - family-names: Ericson
+      given-names: Lars Warren
+  year: 2026
+  version: 0.1.0
+  url: "https://github.com/catskillsresearch/scott2026"
+  notes: "Deposit dist/scott2026-zenodo.zip on Zenodo for a DOI; source lives on GitHub."

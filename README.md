@@ -1,0 +1,94 @@
+[![Lean 4](https://img.shields.io/github/actions/workflow/status/catskillsresearch/scott2026/build.yml?label=Lean%204)](https://github.com/catskillsresearch/scott2026/actions/workflows/build.yml)
+
+# scott2026
+
+Lean 4 formalization of Furber, Mardare, Panangaden, and Scott's **2026**
+*Interpreting Lambda Calculus in Domain-Valued Random Variables* (LIPIcs,
+Vol. 363, CSL 2026, Article 48).
+
+The paper develops Boolean-valued domain theory and shows how the
+lambda-calculus can be interpreted using domain-valued random variables,
+building on Dana Scott's vision of Boolean-valued models for probabilistic
+higher-type programming.
+
+Standalone package — no dependency on the 1972/1976/1980/1982 domain-theory
+formalizations. This repo is intended for submission to
+[Palomar](https://palomar-registry.org/about) on its own (see
+`PROVENANCE.md`).
+
+The pin is `leanprover/lean4:v4.33.0` (same as
+[`scott1976`](../scott1976) and [`scott1964`](../scott1964)).
+
+Original Lean and author-written docs are Apache-2.0. The source PDF
+`sources/Scott2026.pdf` is **not** under that license; see
+`NOTICE` and `sources/README.md`.
+
+## Status
+
+**Scaffold.** The Palomar Challenge / Solution pair and `Scott2026/` development
+are initialized but contain no compared theorems yet. Run vision OCR on the
+source PDF, inventory the paper's main results, and populate `Challenge.lean`,
+`comparator.json`, and `formalization.yaml` before submission.
+
+## Files (Palomar)
+
+| File | Role |
+|---|---|
+| `arxiv.md` | Formalization narrative and theorem inventory |
+| `sources/Scott2026.pdf` | Primary source PDF (CSL 2026) |
+| `Scott2026/` | Sorry-free development |
+| `Challenge.lean` | Palomar statement of record |
+| `Solution.lean` | Palomar solution module: imports `Scott2026/*` proofs |
+| `comparator.json` | Comparator config for the compared theorems and definitions |
+| `formalization.yaml` | Palomar / formalization.yaml v0.4 metadata |
+| `PROVENANCE.md` | Standalone Palomar submission; relation to siblings |
+| `docs/PALOMAR_EDITORIAL_AUDIT.md` | Full vs mechanical preflight; packaging checklist |
+
+## Build
+
+```bash
+lake exe cache get
+lake build
+```
+
+`lake build` typechecks `Scott2026`, `Challenge.lean`, and `Solution.lean`.
+
+**Routine / CI:** mechanical preflight only (pretty-print closure + Palomar-pinned Comparator):
+
+```bash
+bash scripts/palomar_preflight.sh --mechanical-only
+```
+
+**Before Palomar submission:** full preflight (mechanical + editorial LLM audit):
+
+```bash
+bash scripts/palomar_preflight.sh
+```
+
+See `docs/PALOMAR_EDITORIAL_AUDIT.md` for packaging checklist and auth.
+
+## Source OCR
+
+Triple-pass Cursor vision OCR (from [`scott_models`](../scott_models)):
+
+```bash
+bash scripts/ocr_pdf_pipeline.sh                 # sources/Scott2026.pdf
+bash scripts/ocr_pdf_pipeline.sh --pages 1-3     # smoke test
+bash scripts/ocr_pdf_pipeline.sh --status
+```
+
+See `sources/README.md`. Page PNGs and `.venv-ocr/` are gitignored.
+
+`Challenge.lean` imports only Mathlib and will state compared results with
+deliberate `sorry`s. `Solution.lean` imports the corresponding kernel-checked,
+sorry-free proofs. The proofs use only the standard axioms disclosed in
+`comparator.json`: `propext`, `Quot.sound`, and `Classical.choice`.
+
+## arXiv / Zenodo PDF
+
+```bash
+bash scripts/build_arxiv_pdf.sh      # arxiv.tex + arxiv.pdf + dist/arxiv_submit.zip
+bash scripts/package_zenodo.sh       # dist/scott2026-zenodo.zip
+```
+
+See `ZENODO.md`.

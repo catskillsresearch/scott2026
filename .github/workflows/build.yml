@@ -1,0 +1,34 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    name: Build Lean Project
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Checkout palomar-preflight
+        uses: actions/checkout@v4
+        with:
+          repository: catskillsresearch/palomar-preflight
+          ref: de7e8b926342c75358801c609efd1296af4ed412
+          path: palomar-preflight
+
+      - name: Install elan
+        run: |
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> $GITHUB_PATH
+
+      - name: Configure Lake cache
+        run: lake exe cache get || true
+
+      - name: Run mechanical Palomar preflight
+        run: bash scripts/palomar_preflight.sh --mechanical-only

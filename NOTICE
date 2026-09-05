@@ -1,0 +1,20 @@
+This repository's original Lean, scripts, and author-written documentation
+are licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Third-party source material (not Apache-2.0)
+--------------------------------------------
+
+sources/Scott2026.pdf is Robert Furber, Radu Mardare, Prakash Panangaden, and
+Dana S. Scott, *Interpreting Lambda Calculus in Domain-Valued Random Variables*,
+LIPIcs, Vol. 363, CSL 2026, Article 48 (DOI 10.4230/LIPIcs.CSL.2026.48).
+Copyright is held by the authors and/or Schloss Dagstuhl — Leibniz Center for
+Informatics under the LIPIcs open-access terms. It is included only as the
+cited primary source for this formalization. Palomar and other redistributors
+must not treat it as licensed under Apache-2.0.
+
+A working Markdown transcription (when present as
+sources/Scott2026.md) retains the authors' wording under their /
+the publisher's copyright. YAML headers, page markers, and editorial notes
+are part of this repository's documentation.
+
+See sources/README.md.

@@ -1,0 +1,130 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/formalization.schema.json
+version: "v0.4"
+
+project:
+  name: "Interpreting Lambda Calculus in Domain-Valued Random Variables (CSL 2026)"
+  description: >-
+    A Lean 4 / mathlib formalization of Furber, Mardare, Panangaden, and Scott's
+    2026 paper *Interpreting Lambda Calculus in Domain-Valued Random Variables*
+    (LIPIcs, Vol. 363, CSL 2026, Article 48). The paper develops Boolean-valued
+    domain theory from scratch and shows how the lambda-calculus can be interpreted
+    using domain-valued random variables, focusing on the reflexive domain
+    construction. Lean is written by AI agents under the direction and review of
+    the author. The paper's authors did not participate in or endorse this
+    formalization. There is no sorry outside the deliberate holes in Challenge.lean,
+    no project-defined axiom, and Mathlib is the only Lake dependency.
+  authors:
+    - "Lars Warren Ericson"
+  license: "Apache-2.0"
+  responsible_maintainers:
+    - "Lars Warren Ericson"
+
+repository:
+  role: substantive-development
+
+classification:
+  arxiv: [cs.LO, cs.PL]
+  msc2020: ["68Q55", "06D99", "03B70"]
+
+status:
+  scope: >-
+    Scaffold stage. Vision OCR and theorem inventory are pending. Compared
+    declarations will be added to Challenge.lean, Scott2026/, and comparator.json
+    as the formalization progresses.
+  sorry_count: 0
+  sorry_in_definitions: 0
+  axioms: ["propext", "Classical.choice", "Quot.sound"]
+  main_results: []
+
+fidelity:
+  divergences: >-
+    Working source: sources/Scott2026.pdf (a vision transcription
+    sources/Scott2026_vision.md is produced by scripts/ocr_pdf_pipeline.sh).
+    Exact divergences will be listed in known_gaps and in arxiv.md as the
+    formalization develops.
+
+sources:
+  - title: "Interpreting Lambda Calculus in Domain-Valued Random Variables"
+    authors:
+      - "Robert Furber"
+      - "Radu Mardare"
+      - "Prakash Panangaden"
+      - "Dana S. Scott"
+    type: "inproceedings"
+    location: >-
+      31st EACSL Annual Conference on Computer Science Logic (CSL 2026),
+      LIPIcs, Vol. 363, Article 48.
+    relationship: formalizes
+    author_endorsement: not-contacted
+    note: >-
+      Primary source. The paper's authors were not contacted and did not
+      participate in or endorse this formalization. Working PDF:
+      sources/Scott2026.pdf. Related full version: arXiv:2112.06339.
+
+related_formalizations:
+  - id: "https://github.com/catskillsresearch/scott1982"
+    relationship: other
+    note: "Same-author formalization of Scott Domains for Denotational Semantics (1982); not imported here."
+
+  - id: "https://github.com/catskillsresearch/scott1976"
+    relationship: other
+    note: "Same-author formalization of Scott Data Types as Lattices (1976); not imported here."
+
+  - id: "https://github.com/catskillsresearch/scott1972"
+    relationship: other
+    note: "Same-author formalization of Scott Continuous Lattices (1972); not imported here."
+
+automation:
+  methods:
+    - method: agent
+      models: ["Cursor Grok 4.6 High Fast (SpaceXAI / Cursor)"]
+      framework: "Cursor"
+      role: >-
+        Primary agent for Lean 4 / mathlib formalization, lake build repair,
+        vision-OCR transcription, and arxiv.md drafting.
+    - method: agent
+      models: ["Cursor Composer 2.5 Fast"]
+      framework: "Cursor"
+      role: "Routine scaffolding and medium-complexity proof obligations."
+    - method: agent
+      models: ["Anthropic Claude Sonnet 5 (medium reasoning)"]
+      framework: "Cursor"
+      role: "Day-to-day formalization and proof-engineering."
+    - method: agent
+      models: ["Anthropic Claude Opus 4.8 (high reasoning)"]
+      framework: "Cursor"
+      role: "Heaviest proof work."
+    - method: manual
+      models: []
+      role: >-
+        The author chose the formalization route, reviewed every definition
+        and claim, and takes sole responsibility for the mathematical content.
+        The paper's authors were not consulted.
+  notes: >-
+    Palomar Challenge / Solution / comparator / formalization.yaml packaging
+    follows the scott1964 / scott1982 template.
+
+review:
+  status: self-assessed
+  reviewers:
+    - "Lars Warren Ericson"
+  notes: >-
+    The author directed and reviewed the development. No external review of
+    the Lean source, and no review or endorsement by the paper's authors. Every
+    proof step is checked by the Lean kernel.
+
+known_gaps:
+  - >-
+    Formalization not yet started beyond repository scaffold. Run OCR, inventory
+    the paper's main theorems and definitions, and populate Challenge.lean.
+
+limitations:
+  - >-
+    No external mathematical review has been performed.
+  - >-
+    Challenge.lean may contain deliberate sorries; Solution.lean and
+    Scott2026/* must not.
+
+alignment:
+  namespace: "Scott2026"
+  statements: []
