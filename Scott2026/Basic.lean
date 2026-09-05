@@ -13,6 +13,7 @@ import Scott2026.RawPowerStrict
 import Scott2026.Domain
 import Scott2026.Lambda
 import Scott2026.Engeler
+import Scott2026.EngelerVA
 import Scott2026.Random
 import Scott2026.VA
 
@@ -262,6 +263,66 @@ theorem definition_13 {A : Type*} [CompleteBooleanAlgebra A] {X Y : Type*}
       (∀ x y, gamma S T (functionalOfRel hT f) x y = f.val x y) :=
   ⟨functionalOfRel_functional hT f, functionalOfRel_gamma hT f⟩
 
+/-- Theorem 30, retract at Boolean value `⊤`:
+`‖lam(f) · X = f(X)‖ = 1` for determined-by-finite `f`. This is a name
+calculation, not Theorem 1(i). -/
+theorem theorem_30_retract {A : Type u} [CompleteBooleanAlgebra A]
+    (f : CanonicalPowerIdx (AName.check (A := A) PSet.omega) →
+      CanonicalPowerIdx (AName.check (A := A) PSet.omega))
+    (hf : DeterminedByFiniteVA (A := A) f)
+    (X : CanonicalPowerIdx (AName.check (A := A) PSet.omega)) :
+    AName.eqB
+      ((powerB (AName.check (A := A) PSet.omega)).child
+        (engelerAppVA (A := A) (engelerLamVA (A := A) f) X).1)
+      ((powerB (AName.check (A := A) PSet.omega)).child (f X).1) = ⊤ :=
+  engelerVA_retract (A := A) f hf X
+
+/-- Theorem 30, retract as canonical `Oid` equality at `⊤`. -/
+theorem theorem_30_retract_oid {A : Type u} [CompleteBooleanAlgebra A]
+    (f : CanonicalPowerIdx (AName.check (A := A) PSet.omega) →
+      CanonicalPowerIdx (AName.check (A := A) PSet.omega))
+    (hf : DeterminedByFiniteVA (A := A) f)
+    (X : CanonicalPowerIdx (AName.check (A := A) PSet.omega)) :
+    (canonicalPowerSetoid (AName.check (A := A) PSet.omega)).eq
+      (engelerAppVA (A := A) (engelerLamVA (A := A) f) X) (f X) = ⊤ :=
+  engelerVA_retract_oid (A := A) f hf X
+
+/-- Theorem 30 data: `(P^A(check E), ‖⊆‖, ·, lam)` on the canonical carrier. -/
+noncomputable def theorem_30_model {A : Type u} [CompleteBooleanAlgebra A] :
+    AValuedReflexiveDcpo A
+      (CanonicalPowerIdx (AName.check (A := A) PSet.omega)) :=
+  engelerVA_model (A := A)
+
+theorem theorem_30_complete {A : Type u} [CompleteBooleanAlgebra A] :
+    (canonicalPowerSetoid (AName.check (A := A) PSet.omega)).IsComplete :=
+  engelerVA_complete (A := A)
+
+theorem theorem_30_total {A : Type u} [CompleteBooleanAlgebra A] :
+    (canonicalPowerSetoid (AName.check (A := A) PSet.omega)).IsTotal :=
+  engelerVA_total (A := A)
+
+/-- Canonical-carrier strictness only; the raw index carrier is not strict. -/
+theorem theorem_30_strict {A : Type u} [CompleteBooleanAlgebra A] :
+    (canonicalPowerSetoid (AName.check (A := A) PSet.omega)).IsStrict :=
+  engelerVA_strict (A := A)
+
+/-- Theorem 30: `(P^A(check E), ‖⊆‖, ·, lam)` is an `A`-valued reflexive
+dcpo (operations and retract at `⊤`). Not an internal continuous lattice
+and not a countable-base claim. -/
+theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
+    (theorem_30_model (A := A)).poset =
+      canonicalPowerPoset (AName.check (A := A) PSet.omega) ∧
+    (∀ F X, (theorem_30_model (A := A)).app F X =
+      engelerAppVA (A := A) F X) ∧
+    (∀ f, (theorem_30_model (A := A)).lam f = engelerLamVA (A := A) f) ∧
+    (∀ f X, DeterminedByFiniteVA (A := A) f →
+      (canonicalPowerSetoid (AName.check (A := A) PSet.omega)).eq
+        (engelerAppVA (A := A) (engelerLamVA (A := A) f) X) (f X) = ⊤) ∧
+    (canonicalPowerSetoid (AName.check (A := A) PSet.omega)).IsComplete ∧
+    (canonicalPowerSetoid (AName.check (A := A) PSet.omega)).IsTotal ∧
+    (canonicalPowerSetoid (AName.check (A := A) PSet.omega)).IsStrict :=
+  engelerVA (A := A)
+
 -- Jech 14.19, CSL Theorem 1(iii), and Jech 14.21 are `jech_lemma_14_19`,
 -- `theorem_1_iii`, and `jech_lemma_14_21` from `Scott2026.VA`.
 --
@@ -292,5 +353,15 @@ theorem definition_13 {A : Type*} [CompleteBooleanAlgebra A] {X Y : Type*}
 -- (`oid_powerB_not_strict`); there is no `proposition_28_va_strict`.
 -- The continuous-lattice-with-base clause is not stated (no internal
 -- formula language for way-below / continuous lattices in `V^A`).
+--
+-- Theorem 30 (CSL p.7): `(P^A(check E), ‖⊆‖, ·, lam)` is an `A`-valued
+-- reflexive dcpo on the canonical carrier (`theorem_30` / `theorem_30_model`
+-- / `theorem_30_retract` / `theorem_30_retract_oid`). The pairing on
+-- `P_fin(ℕ) × ℕ` is `engelerPair` (not the empty initial algebra of
+-- `P_fin × Id`). Internal `·` / `lam` are `engelerAppVA` / `engelerLamVA`.
+-- The retract is a name calculation at `⊤` for `DeterminedByFiniteVA`;
+-- this is not Theorem 1(i), Definition 19 at `V^A`, an internal
+-- continuous lattice, or a countable-base claim. Canonical strictness
+-- is `theorem_30_strict`; the raw index carrier is not claimed strict.
 
 end Scott2026

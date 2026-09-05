@@ -34,7 +34,13 @@ export Scott2026 (scaffold_placeholder lemma_12 proposition_27 proposition_27_co
   oid_powerB_not_strict
   corollary_18_prod corollary_18_funs corollary_18_prod_full corollary_18_funs_full
   oid_powerB_isComplete oid_funsB_isComplete mixPowerB restrictPowerIdx
-  oid_eq_powerB oid_powerB_check_canonical_eq powerBPoset_eq)
+  oid_eq_powerB oid_powerB_check_canonical_eq powerBPoset_eq
+  engelerE engelerPair engelerPair_injective
+  pairApplyB pairDomainB theorem_30_pair_injective
+  engelerAppVA engelerLamVA DeterminedByFiniteVA
+  AValuedReflexiveDcpo
+  theorem_30_retract theorem_30_retract_oid theorem_30_model
+  theorem_30_complete theorem_30_total theorem_30_strict theorem_30)
 
 /-!
 # Solution to the Challenge
