@@ -214,4 +214,60 @@ def RelFun.ofFunctional (S : ASetoid (A := A) X) (T : ASetoid (A := A) Y)
       le_inf le_rfl (by simpa [ASetoid.eps] using hε)
     exact this.trans (le_iSup (fun y => S.eps x ⊓ T.eq (f x) y) (f x))
 
+/-!
+## Definition 13: realizing a relational function on a complete codomain
+-/
+
+variable {S : ASetoid (A := A) X} {T : ASetoid (A := A) Y}
+
+/-- The family `y ↦ f(x,y)` is compatible by single-valuedness. -/
+theorem RelFun.val_compatible (f : RelFun S T) (x : X) (y₁ y₂ : Y) :
+    f.val x y₁ ⊓ f.val x y₂ ≤ T.eq y₁ y₂ :=
+  f.single_valued x y₁ y₂
+
+/-- Definition 13: choose `F(f)(x)` by mixing `f(x, –)` in a complete codomain. -/
+noncomputable def functionalOfRel (hT : T.IsComplete) (f : RelFun S T) : X → Y :=
+  fun x =>
+    Classical.choose (hT Y (fun y => f.val x y) id (f.val_compatible x))
+
+theorem functionalOfRel_le (hT : T.IsComplete) (f : RelFun S T) (x : X) (y : Y) :
+    f.val x y ≤ T.eq y (functionalOfRel hT f x) :=
+  Classical.choose_spec (hT Y (fun y => f.val x y) id (f.val_compatible x)) y
+
+/-- Definition 13: `F(f)` preserves `A`-valued equality. -/
+theorem functionalOfRel_functional (hT : T.IsComplete) (f : RelFun S T) :
+    APoset.Functional S T (functionalOfRel hT f) := by
+  intro x₁ x₂
+  have hx : S.eq x₁ x₂ ≤ ⨆ y, f.val x₁ y :=
+    (S.eq_le_eps_left x₁ x₂).trans (f.total x₁)
+  refine (le_inf (le_refl (S.eq x₁ x₂)) hx).trans ?_
+  rw [inf_iSup_eq]
+  refine iSup_le fun y => ?_
+  have h₁ : S.eq x₁ x₂ ⊓ f.val x₁ y ≤ T.eq y (functionalOfRel hT f x₁) :=
+    inf_le_right.trans (functionalOfRel_le hT f x₁ y)
+  have h₂ : S.eq x₁ x₂ ⊓ f.val x₁ y ≤ T.eq y (functionalOfRel hT f x₂) :=
+    (f.subst_left x₁ x₂ y).trans (functionalOfRel_le hT f x₂ y)
+  have : S.eq x₁ x₂ ⊓ f.val x₁ y ≤
+      T.eq (functionalOfRel hT f x₁) y ⊓ T.eq y (functionalOfRel hT f x₂) :=
+    le_inf (by rw [T.symm]; exact h₁) h₂
+  exact this.trans (T.trans _ _ _)
+
+/-- Definition 13: `γ(F(f)) = f`. -/
+theorem functionalOfRel_gamma (hT : T.IsComplete) (f : RelFun S T) (x : X) (y : Y) :
+    gamma S T (functionalOfRel hT f) x y = f.val x y := by
+  unfold gamma
+  refine le_antisymm ?le ?ge
+  · have htot : S.eps x ≤ ⨆ y', f.val x y' := f.total x
+    refine (inf_le_inf htot (le_refl (T.eq (functionalOfRel hT f x) y))).trans ?_
+    rw [iSup_inf_eq]
+    refine iSup_le fun y' => ?_
+    have hy' : f.val x y' ≤ T.eq y' (functionalOfRel hT f x) :=
+      functionalOfRel_le hT f x y'
+    have heq : f.val x y' ⊓ T.eq (functionalOfRel hT f x) y ≤ T.eq y' y :=
+      (le_inf (inf_le_left.trans hy') inf_le_right).trans
+        (T.trans y' (functionalOfRel hT f x) y)
+    exact (f.subst_right x y' y).trans' (le_inf heq inf_le_left)
+  · exact le_inf ((f.le_eps x y).trans inf_le_left)
+      (by rw [T.symm]; exact functionalOfRel_le hT f x y)
+
 end Scott2026

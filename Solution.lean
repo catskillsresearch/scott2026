@@ -15,10 +15,14 @@ export Scott2026 (scaffold_placeholder lemma_12 proposition_27 proposition_27_co
   isFunctionB funsB homB idB compB
   isFunctionB_id isFunctionB_comp compB_congr memB_idB_funsB
   memB_funsB isHom_id isHom_comp
-  definition_4 definition_14 definition_15 definition_16
+  definition_4 definition_13 definition_14 definition_15 definition_16
   definition_16_id definition_16_comp
   oid oid_eq oid_eps ePred ePred_val ePredPowerB
-  oidRel oidRel_val oidHom oidRel_congr oidRel_id oidRel_comp relCompVal)
+  oidRel oidRel_val oidHom oidRel_congr oidRel_id oidRel_comp relCompVal
+  functionalOfRel functionalOfRel_functional functionalOfRel_gamma
+  theorem_17_va_complete theorem_17_va_total theorem_17_va_full
+  corollary_18_prod corollary_18_funs corollary_18_prod_full corollary_18_funs_full
+  oid_powerB_isComplete oid_funsB_isComplete mixPowerB restrictPowerIdx)
 
 /-!
 # Solution to the Challenge

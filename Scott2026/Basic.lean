@@ -15,7 +15,7 @@ import Scott2026.Engeler
 import Scott2026.Random
 import Scott2026.VA
 
-universe u
+universe u v
 
 /-!
 # Scott 2026 — Interpreting Lambda Calculus in Domain-Valued Random Variables
@@ -42,7 +42,8 @@ theorem lemma_12 {A : Type*} [CompleteBooleanAlgebra A] {X Y : Type*}
 direction refines a compatible family by a maximal pairwise disjoint family with the
 same join. -/
 theorem definition_4 {A : Type*} [CompleteBooleanAlgebra A] {X : Type*}
-    (S : ASetoid (A := A) X) : S.IsComplete ↔ S.IsCompleteDisjoint :=
+    (S : ASetoid (A := A) X) :
+    ASetoid.IsComplete.{v} S ↔ ASetoid.IsCompleteDisjoint.{v} S :=
   ASetoid.isComplete_iff_isCompleteDisjoint S
 
 /-- Theorem 17, mixing witness on `A`-subsets. -/
@@ -144,6 +145,63 @@ theorem definition_16_comp {A : Type u} [CompleteBooleanAlgebra A]
       ((oidRel Y Z g hg).comp (oidRel X Y f hf)).val i k :=
   oidRel_comp hf hg i k
 
+/-- Theorem 17 at the `V^A` level: `Oid(P^A(X))` is complete. This is not the
+ground-type `theorem_17_complete`. -/
+theorem theorem_17_va_complete {A : Type u} [CompleteBooleanAlgebra A]
+    (X : AName.{u} A) : (oid (powerB X)).IsComplete :=
+  oid_powerB_isComplete X
+
+/-- Theorem 17, totality of `Oid(P^A(X))`. -/
+theorem theorem_17_va_total {A : Type u} [CompleteBooleanAlgebra A]
+    (X : AName.{u} A) : (oid (powerB X)).IsTotal :=
+  oid_powerB_isTotal X
+
+/-- Theorem 17, moreover: a congruent predicate on subsets of `X` is realized
+by an element of `Oid(P^A(X))`. -/
+theorem theorem_17_va_full {A : Type u} [CompleteBooleanAlgebra A]
+    (X : AName.{u} A) (Φ : AName.{u} A → A)
+    (hcongr : ∀ S T, AName.eqB S T ⊓ Φ S ≤ Φ T) (a : A)
+    (ha : a = ⨆ S, AName.memB S (powerB X) ⊓ Φ S) :
+    ∃ p : (powerB X).idx, Φ ((powerB X).child p) = a :=
+  oid_powerB_full X Φ hcongr a ha
+
+/-- Corollary 18: `Oid(P^A(X ×_A Y))` is complete. -/
+theorem corollary_18_prod {A : Type u} [CompleteBooleanAlgebra A]
+    (X Y : AName.{u} A) : (oid (powerB (prodB X Y))).IsComplete :=
+  oid_prodB_isComplete X Y
+
+/-- Corollary 18: `Oid({X →_A Y})` is complete. -/
+theorem corollary_18_funs {A : Type u} [CompleteBooleanAlgebra A]
+    (X Y : AName.{u} A) : (oid (funsB X Y)).IsComplete :=
+  oid_funsB_isComplete X Y
+
+/-- Corollary 18, fullness for relations. -/
+theorem corollary_18_prod_full {A : Type u} [CompleteBooleanAlgebra A]
+    (X Y : AName.{u} A) (Φ : AName.{u} A → A)
+    (hcongr : ∀ S T, AName.eqB S T ⊓ Φ S ≤ Φ T) (a : A)
+    (ha : a = ⨆ S, AName.memB S (powerB (prodB X Y)) ⊓ Φ S) :
+    ∃ p : (powerB (prodB X Y)).idx, Φ ((powerB (prodB X Y)).child p) = a :=
+  oid_prodB_full X Y Φ hcongr a ha
+
+/-- Corollary 18, fullness for functions. -/
+theorem corollary_18_funs_full {A : Type u} [CompleteBooleanAlgebra A]
+    (X Y : AName.{u} A) (Φ : AName.{u} A → A)
+    (hcongr : ∀ F G, AName.eqB F G ⊓ Φ F ≤ Φ G) (a : A)
+    (ha : a = ⨆ F, AName.memB F (funsB X Y) ⊓ Φ F) :
+    ∃ p : (funsB X Y).idx,
+      AName.memB ((funsB X Y).child p) (funsB X Y) ⊓
+        Φ ((funsB X Y).child p) = a :=
+  oid_funsB_full X Y Φ hcongr a ha
+
+/-- Definition 13: on a complete codomain, `F(f)` is functional and `γ(F(f)) = f`.
+This is not the hom-object isomorphism `SetoidR_A(X,Y) ≅ SetoidF_A(X,Y)`. -/
+theorem definition_13 {A : Type*} [CompleteBooleanAlgebra A] {X Y : Type*}
+    {S : ASetoid (A := A) X} {T : ASetoid (A := A) Y}
+    (hT : T.IsComplete) (f : RelFun S T) :
+    APoset.Functional S T (functionalOfRel hT f) ∧
+      (∀ x y, gamma S T (functionalOfRel hT f) x y = f.val x y) :=
+  ⟨functionalOfRel_functional hT f, functionalOfRel_gamma hT f⟩
+
 -- Jech 14.19, CSL Theorem 1(iii), and Jech 14.21 are `jech_lemma_14_19`,
 -- `theorem_1_iii`, and `jech_lemma_14_21` from `Scott2026.VA`.
 --
@@ -156,12 +214,13 @@ theorem definition_16_comp {A : Type u} [CompleteBooleanAlgebra A]
 -- `isFunctionB_comp`, `compB_congr`) are from `Scott2026.VA`.
 -- This is not Theorem 1(i) or 1(ii).
 --
--- §3 through Definition 16 (CSL p.4–6): `oid` / `oid_eq` / `oid_eps` (Definition 14),
+-- §3 through Corollary 18 (CSL p.4–7): `oid` / `oid_eq` / `oid_eps` (Definition 14),
 -- `ePred` / `ePredPowerB` (Definition 15), `oidRel` / `oidRel_id` / `oidRel_comp`
 -- (Definition 16) from `Scott2026.Oid`, with `RelFun.comp` (Definition 8 composition)
--- from `Scott2026.RelFun`. Definition 16 is proved only as functor data: fullness,
--- faithfulness and essential surjectivity of `Oid`, hence `Set_A ≃ SetoidR_A`, are not
--- claimed, and neither are Theorem 17, Corollary 18 or Proposition 28 at the
--- `Oid(P^A(X))` level (`theorem_17_*` / `proposition_28_*` are ground-type results).
+-- and `functionalOfRel` (Definition 13) from `Scott2026.RelFun`. Definition 16 is
+-- proved only as functor data: fullness, faithfulness and essential surjectivity of
+-- `Oid`, hence `Set_A ≃ SetoidR_A`, are not claimed. Theorem 17 / Corollary 18 at
+-- the `Oid(P^A(X))` level are `theorem_17_va_*` / `corollary_18_*`
+-- (`theorem_17_complete` / `proposition_28_*` remain ground-type).
 
 end Scott2026

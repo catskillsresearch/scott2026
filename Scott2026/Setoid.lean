@@ -8,6 +8,8 @@ import Mathlib.Order.CompleteBooleanAlgebra
 import Mathlib.Order.Zorn
 import Scott2026.BooleanLogic
 
+universe v
+
 /-!
 # Boolean-valued setoids and posets (CSL 2026, §3)
 
@@ -67,21 +69,24 @@ def IsTotal : Prop := ∀ x : X, S.eps x = ⊤
 /-- Strictness: `‖x = y‖ = 1` implies `x = y`. -/
 def IsStrict : Prop := ∀ x y : X, S.eq x y = ⊤ → x = y
 
-/-- Definition 4 (i): mixing along a compatible family. -/
-def IsComplete : Prop :=
-  ∀ (ι : Type) (a : ι → A) (x : ι → X),
+/-- Definition 4 (i): mixing along a compatible family. The index type is
+universe-polymorphic (`Type v`, auto-bound) so a complete setoid can mix a
+family indexed by another setoid's underlying type (`Type*`), as Definition 13
+requires. The sort mentions `v` so the Prop stays universe-polymorphic. -/
+def IsComplete : Sort (imax (v + 1) 0) :=
+  ∀ (ι : Type v) (a : ι → A) (x : ι → X),
     (∀ i j, a i ⊓ a j ≤ S.eq (x i) (x j)) →
       ∃ y : X, ∀ i, a i ≤ S.eq (x i) y
 
 /-- Definition 4 (ii): mixing along a pairwise disjoint family with `a_i ≤ ε(x_i)`. -/
-def IsCompleteDisjoint : Prop :=
-  ∀ (ι : Type) (a : ι → A) (x : ι → X),
+def IsCompleteDisjoint : Sort (imax (v + 1) 0) :=
+  ∀ (ι : Type v) (a : ι → A) (x : ι → X),
     (Pairwise fun i j => a i ⊓ a j = ⊥) →
     (∀ i, a i ≤ S.eps (x i)) →
       ∃ y : X, ∀ i, a i ≤ S.eq (x i) y
 
 /-- Definition 4 (i) implies Definition 4 (ii). -/
-theorem IsComplete.toDisjoint (h : S.IsComplete) : S.IsCompleteDisjoint := by
+theorem IsComplete.toDisjoint (h : IsComplete.{v} S) : IsCompleteDisjoint.{v} S := by
   intro ι a x hdis hε
   refine h ι a x fun i j => ?_
   by_cases hij : i = j
@@ -93,7 +98,7 @@ theorem IsComplete.toDisjoint (h : S.IsComplete) : S.IsCompleteDisjoint := by
 /-- Definition 4 (ii) implies Definition 4 (i). A maximal pairwise disjoint family of
 pieces `b ≤ a i` has join `⨆ i, a i`, so mixing along it also mixes the original
 compatible family. -/
-theorem IsCompleteDisjoint.toComplete (h : S.IsCompleteDisjoint) : S.IsComplete := by
+theorem IsCompleteDisjoint.toComplete (h : IsCompleteDisjoint.{v} S) : IsComplete.{v} S := by
   classical
   intro ι a x hcomp
   -- Pairs `(b, i)` with `b ≤ a i`, collected into pairwise disjoint sets.
@@ -157,14 +162,14 @@ theorem IsCompleteDisjoint.toComplete (h : S.IsCompleteDisjoint) : S.IsComplete 
     (inf_le_right.trans (hy j))
 
 /-- Definition 4: the two forms of completeness agree. -/
-theorem isComplete_iff_isCompleteDisjoint : S.IsComplete ↔ S.IsCompleteDisjoint :=
+theorem isComplete_iff_isCompleteDisjoint : IsComplete.{v} S ↔ IsCompleteDisjoint.{v} S :=
   ⟨IsComplete.toDisjoint S, IsCompleteDisjoint.toComplete S⟩
 
 /-- A complete setoid is inhabited (mix the empty family). -/
-theorem IsComplete.nonempty (h : S.IsComplete) : Nonempty X := by
-  let a : Empty → A := fun i => nomatch i
-  let x : Empty → X := fun i => nomatch i
-  obtain ⟨y, _⟩ := h Empty a x fun i => nomatch i
+theorem IsComplete.nonempty (h : IsComplete.{v} S) : Nonempty X := by
+  let a : PEmpty.{v + 1} → A := fun i => nomatch i
+  let x : PEmpty.{v + 1} → X := fun i => nomatch i
+  obtain ⟨y, _⟩ := h PEmpty.{v + 1} a x fun i => nomatch i
   exact ⟨y⟩
 
 /-- Definition 5: a bijection strictly preserving `A`-valued equality. -/
