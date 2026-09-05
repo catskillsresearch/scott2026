@@ -46,7 +46,11 @@ export Scott2026 (scaffold_placeholder lemma_12 proposition_27 proposition_27_co
   example_21 example_21_va
   proposition_22 proposition_22_least proposition_22_check_eq
   encodeEq pLamEqSet encodeEqB lamEqB lamEqInductiveB checkVar
-  example_24 example_24_va example_24_subset)
+  example_24 example_24_va example_24_subset
+  Valuation interp interpClosed interp_var interp_app interp_abs
+  interp_closed interp_agree interp_update_scott
+  definition_25 definition_25_var definition_25_app definition_25_abs
+  definition_25_closed)
 
 /-!
 # Solution to the Challenge

@@ -7,7 +7,7 @@ Authors: Lars Warren Ericson.
 import Mathlib.Data.Finset.Basic
 
 /-!
-# Untyped λ-calculus (Definitions 20, 23, 25 and Example 21)
+# Untyped λ-calculus (Definitions 20, 23 and Example 21)
 -/
 
 namespace Scott2026

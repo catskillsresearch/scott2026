@@ -12,6 +12,7 @@ import Scott2026.Oid
 import Scott2026.RawPowerStrict
 import Scott2026.Domain
 import Scott2026.Lambda
+import Scott2026.Interp
 import Scott2026.LambdaVA
 import Scott2026.Engeler
 import Scott2026.EngelerVA
@@ -385,7 +386,16 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- `‖check(λ) ⊆ lamEqB (checkVar Var)‖ = 1` are `example_24` /
 -- `example_24_va` / `example_24_subset` (induction on `LamEq`). The
 -- paper only claims `⊆`; equality is not exported. This is not
--- `Λ(D, check Var, 𝔎)^A`, Definition 25, or Theorem 26.
+-- `Λ(D, check Var, 𝔎)^A` or Theorem 26.
+--
+-- Definition 25 (CSL p.10): ground `⟦·⟧_ρ` on `ReflexiveDcpo` is `interp`
+-- (`interp_var` / `interp_app` / `interp_abs` / `interpClosed`). Valuations
+-- are Finset-supported (`Valuation` / `Valuation.update` / `Valuation.empty`).
+-- The meta-lambda is Scott-continuous (`interp_update_scott`), so `lam` is
+-- applied to a map in the retract class. There is no constant clause.
+-- [4, Theorem 5.4.4] soundness is not proved (needs a substitution lemma).
+-- This is not `SetoidF_A(Λ^A, D)`, not A-valued `⟦·⟧^A_ρ`, and not
+-- Theorem 26.
 
 /-- Example 21, ground: `Λ(Var)` is the least inductive set of pure terms. -/
 theorem example_21 {Var : Type*} {S : Set (Lam Var)} (h : Lam.IsInductive S) :
@@ -448,5 +458,41 @@ theorem example_24_subset {A : Type u} [CompleteBooleanAlgebra A]
     AName.subsetB (AName.check (A := A) (pLamEqSet Var))
       (lamEqB (checkVar (A := A) Var)) = ⊤ :=
   lamEq_check_subset (A := A) Var
+
+/-- Definition 25: the four ground interpretation clauses. -/
+theorem definition_25 {Var D : Type*} [DecidableEq Var] [CompleteLattice D]
+    (R : ReflexiveDcpo D) (x : Var) (M N : Lam Var) (ρ : Valuation Var D)
+    (hx : x ∈ ρ.domain) :
+    interp R (Lam.var x) ρ = ρ.lookup x hx ∧
+      interp R (M.app N) ρ = R.app (interp R M ρ) (interp R N ρ) ∧
+      interp R (Lam.abs x M) ρ =
+        R.lam (fun d => interp R M (ρ.update x d)) ∧
+      interpClosed R N = interp R N Valuation.empty :=
+  ⟨interp_var R x ρ hx, interp_app R M N ρ, interp_abs R x M ρ, interp_closed R N⟩
+
+/-- Definition 25, variable clause: `⟦x⟧_ρ = ρ(x)`. -/
+theorem definition_25_var {Var D : Type*} [DecidableEq Var] [CompleteLattice D]
+    (R : ReflexiveDcpo D) (x : Var) (ρ : Valuation Var D) (h : x ∈ ρ.domain) :
+    interp R (Lam.var x) ρ = ρ.lookup x h :=
+  interp_var R x ρ h
+
+/-- Definition 25, application clause: `⟦MN⟧_ρ = ⟦M⟧_ρ · ⟦N⟧_ρ`. -/
+theorem definition_25_app {Var D : Type*} [DecidableEq Var] [CompleteLattice D]
+    (R : ReflexiveDcpo D) (M N : Lam Var) (ρ : Valuation Var D) :
+    interp R (M.app N) ρ = R.app (interp R M ρ) (interp R N ρ) :=
+  interp_app R M N ρ
+
+/-- Definition 25, abstraction clause:
+`⟦λx. M⟧_ρ = lam(λd. ⟦M⟧_{ρ(x := d)})`. -/
+theorem definition_25_abs {Var D : Type*} [DecidableEq Var] [CompleteLattice D]
+    (R : ReflexiveDcpo D) (x : Var) (M : Lam Var) (ρ : Valuation Var D) :
+    interp R (Lam.abs x M) ρ = R.lam fun d => interp R M (ρ.update x d) :=
+  interp_abs R x M ρ
+
+/-- Definition 25, closed terms: `⟦M⟧ := ⟦M⟧_∅`. -/
+theorem definition_25_closed {Var D : Type*} [DecidableEq Var] [CompleteLattice D]
+    (R : ReflexiveDcpo D) (M : Lam Var) :
+    interpClosed R M = interp R M Valuation.empty :=
+  interp_closed R M
 
 end Scott2026
