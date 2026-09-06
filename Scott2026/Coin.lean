@@ -11,21 +11,45 @@ import Mathlib.Topology.UnitInterval
 import Scott2026.Random
 import Scott2026.Prop36
 import Scott2026.EngelerVA
+import Scott2026.Lemma31
+
+-- Transitive Scott 1972 import via `Prop36` / `Lemma35General` must not
+-- override `ENNReal`'s order with `specializationPreorder`.
+attribute [-instance] Scott1972.ContinuousLattice.specializationPreorder
 
 /-!
 # Coin space (Proposition 42, Theorem 43)
 
-Independent fair coins on `2^ω × 2^ω`. Proposition 42 is the
-measure-theoretic Boolean-value-0 reading: finite `A`-preimages are
-null, and `agreeSet f` / `agreeSet_swap f` are null for every
-`f : ℕ → ℕ` (infinite-image case via the finite distributive expansion,
-tex ~1161–1174). Borel coin space is not a `NegligibilitySpace`
-(`measurableRep` fails), so this is stated with `coinMeasure`.
+Independent fair coins on `2^ω × 2^ω`. `coinS1` / `coinS2` are
+equation (5): `S_i(check n) = [D_{i,n,1}]` in
+`𝒫^{A(X)}(check ω)` with `A(X) = coinAlgebra`. `proposition_42` is
+the raw measure-theoretic Boolean-value-0 core (`coinMeasure _ = 0`).
+`proposition_42_algebra` is the same statement as Boolean value `⊥`
+in `coinAlgebra`: the finite-`K` clause is a join over `Finset ℕ`
+(externalization of exists-over-standard-finite-sets); the paper’s
+`K ∈ P_fin^{A}(check ω)` also includes fuzzy `pfinB` names — that
+quantification is a remaining strengthening (no `proposition_42_va`
+in this unit). `proposition_42_mk_bot` lifts `agreeSet f` /
+`agreeSet_swap f` to `⊥`.
+
+Borel coin space has `coinAlgebra = Σ / N(μ)` (`MeasureAlgebra
+coinMeasure`). `coinL0` / `G_X_coin` are the paper `L⁰` / `G_X`
+on that algebra. All-sets `NegligibilitySpace.ofMeasure` still needs
+`hN` (every set null-measurable) so that `toMeasurable` is an a.e.
+representative; `coinNegligibility` is not inhabited at the all-sets
+`measurableRep` field. The all-sets lift
+`AssociatedAlgebra.mk _ (agreeSet f) = ⊥` remains
+`AssociatedAlgebra.ofMeasure_mk_bot` applied to `agreeSet_null`
+after `hN`.
 
 Theorem 43 is the external-oracle form: incomparable many-one degrees
-via `chiOracle` / `lemma_35_ii` / `proposition_36`. The paper’s internal
-appeal to Corollary 34 + Theorem 1 is unavailable
-(`corollary_34_check` only).
+via `chiOracle` / `lemma_35_ii` / `proposition_36`. `theorem_43_paper`
+is the paper chain: fiberwise Lemma 35(ii) oracles (`chiOracle` on
+`bitsᵢ`) mixed as an `L⁰` random variable, `dᵢ = G_X_measure` of that
+mix (Boolean-valued graphs of ground `lemma_35_ii`), numeral-mapping
+identity, `proposition_42_algebra`, then transport through
+`G_X_measure_inv` by Propositions 39–40 and Lemmas 31 and 41.
+`theorem_43` is unchanged (same conclusion type).
 -/
 
 open MeasureTheory ProbabilityTheory Set unitInterval
@@ -60,6 +84,13 @@ instance : IsProbabilityMeasure coinMeasure := by
   unfold coinMeasure
   infer_instance
 
+/-- Paper `A(X)` for fair-coin space: measurable sets modulo null. -/
+abbrev coinAlgebra := MeasureAlgebra coinMeasure
+
+abbrev coinL0 (Y) := L0Measure coinMeasure Y
+
+def G_X_coin {Y : Type*} [Countable Y] := G_X_measure (Y := Y) coinMeasure
+
 def D1 (n : ℕ) (b : Bool) : Set CoinSpace := {p | p.1 n = b}
 
 def D2 (n : ℕ) (b : Bool) : Set CoinSpace := {p | p.2 n = b}
@@ -73,6 +104,39 @@ theorem measurableSet_D2 (n : ℕ) (b : Bool) : MeasurableSet (D2 n b) := by
   change MeasurableSet ((fun ω : Cantor => ω n) ∘ Prod.snd ⁻¹' {b})
   exact MeasurableSet.preimage (MeasurableSet.singleton b)
     ((measurable_pi_apply n).comp measurable_snd)
+
+/-- Paper equation (5): `S₁(check n) = [D_{1,n,1}]` in `P^{A(X)}(check ω)`. -/
+noncomputable def coinS1 : ASubset coinAlgebra ℕ :=
+  fun n => MeasureAlgebra.mk coinMeasure (D1 n true) (measurableSet_D1 n true)
+
+/-- Paper equation (5): `S₂(check n) = [D_{2,n,1}]` in `P^{A(X)}(check ω)`. -/
+noncomputable def coinS2 : ASubset coinAlgebra ℕ :=
+  fun n => MeasureAlgebra.mk coinMeasure (D2 n true) (measurableSet_D2 n true)
+
+theorem coinS1_eq (n : ℕ) :
+    coinS1 n = MeasureAlgebra.mk coinMeasure (D1 n true) (measurableSet_D1 n true) :=
+  rfl
+
+theorem coinS2_eq (n : ℕ) :
+    coinS2 n = MeasureAlgebra.mk coinMeasure (D2 n true) (measurableSet_D2 n true) :=
+  rfl
+
+/-- `‖check n ∈ S₁‖ = S₁(check n)` (paper reminder after (5)). -/
+theorem memB_coinS1 (n : ℕ) :
+    memB n coinS1 = MeasureAlgebra.mk coinMeasure (D1 n true) (measurableSet_D1 n true) :=
+  rfl
+
+theorem memB_coinS2 (n : ℕ) :
+    memB n coinS2 = MeasureAlgebra.mk coinMeasure (D2 n true) (measurableSet_D2 n true) :=
+  rfl
+
+theorem D1_false_eq_compl (n : ℕ) : D1 n false = (D1 n true)ᶜ := by
+  ext p
+  simp [D1]
+
+theorem D2_false_eq_compl (n : ℕ) : D2 n false = (D2 n true)ᶜ := by
+  ext p
+  simp [D2]
 
 theorem toNNReal_halfI : ((toNNReal halfI) : ℝ≥0∞) = (2⁻¹ : ℝ≥0∞) := by
   have h : toNNReal halfI = (2⁻¹ : ℝ≥0) := by
@@ -222,6 +286,10 @@ theorem finitePreimageSet_swap_eq (f : ℕ → ℕ) (K : Finset ℕ) :
 theorem measurableSet_finitePreimageSet (f : ℕ → ℕ) (K : Finset ℕ) :
     MeasurableSet (finitePreimageSet f K) :=
   MeasurableSet.iInter fun n => measurableSet_D1 n (decide (f n ∈ K))
+
+theorem measurableSet_finitePreimageSet_swap (f : ℕ → ℕ) (K : Finset ℕ) :
+    MeasurableSet (finitePreimageSet_swap f K) :=
+  MeasurableSet.iInter fun n => measurableSet_D2 n (decide (f n ∈ K))
 
 theorem proposition_42_finite_swap (f : ℕ → ℕ) (K : Finset ℕ) :
     coinMeasure (finitePreimageSet_swap f K) = 0 := by
@@ -431,6 +499,11 @@ theorem agreeSet_swap_eq_preimage (f : ℕ → ℕ) :
   ext p
   simp [agreeSet_swap, agreeSet]
 
+theorem measurableSet_agreeSet_swap (f : ℕ → ℕ) :
+    MeasurableSet (agreeSet_swap f) := by
+  rw [agreeSet_swap_eq_preimage]
+  exact (measurableSet_agreeSet f).preimage measurable_swap
+
 theorem coinMeasure_agreeSet_swap (f : ℕ → ℕ) :
     coinMeasure (agreeSet_swap f) = coinMeasure (agreeSet f) := by
   rw [agreeSet_swap_eq_preimage, ← Measure.map_apply measurable_swap (measurableSet_agreeSet f)]
@@ -451,6 +524,193 @@ theorem proposition_42 (f : ℕ → ℕ) :
     fun K => proposition_42_finite_swap f K,
     agreeSet_null f,
     (coinMeasure_agreeSet_swap f).trans (agreeSet_null f)⟩
+
+theorem proposition_42_mk_bot (f : ℕ → ℕ) :
+    MeasureAlgebra.mk coinMeasure (agreeSet f) (measurableSet_agreeSet f) = ⊥ ∧
+    MeasureAlgebra.mk coinMeasure (agreeSet_swap f) (measurableSet_agreeSet_swap f) =
+      ⊥ :=
+  ⟨(MeasureAlgebra.mk_eq_bot coinMeasure).mpr (agreeSet_null f),
+    (MeasureAlgebra.mk_eq_bot coinMeasure).mpr
+      ((coinMeasure_agreeSet_swap f).trans (agreeSet_null f))⟩
+
+/-!
+## Proposition 42 in `coinAlgebra`
+
+The finite-`K` clause is a join over `Finset ℕ` (standard finite
+subsets). The paper’s `∃ K ∈ P_fin^{A}(check ω)` also ranges over
+fuzzy `pfinB` names; that quantification is a remaining strengthening
+and is not named `proposition_42_va` here.
+-/
+
+theorem agreeSet_eq_iInter (f : ℕ → ℕ) :
+    agreeSet f = ⋂ n, agreeBit f n true ∪ agreeBit f n false := by
+  ext p
+  simp only [agreeSet, agreeBit, mem_iInter, mem_union, mem_inter_iff, D1, D2,
+    mem_setOf]
+  refine forall_congr' fun n => ?_
+  cases p.1 n <;> cases p.2 (f n) <;> simp
+
+theorem agreeSet_swap_eq_iInter (f : ℕ → ℕ) :
+    agreeSet_swap f =
+      ⋂ n, (D2 n true ∩ D1 (f n) true) ∪ (D2 n false ∩ D1 (f n) false) := by
+  ext p
+  simp only [agreeSet_swap, mem_iInter, mem_union, mem_inter_iff, D1, D2,
+    mem_setOf]
+  refine forall_congr' fun n => ?_
+  cases p.2 n <;> cases p.1 (f n) <;> simp
+
+theorem measurableSet_agreeBitUnion (f : ℕ → ℕ) (n : ℕ) :
+    MeasurableSet (agreeBit f n true ∪ agreeBit f n false) :=
+  (measurableSet_agreeBit f n true).union (measurableSet_agreeBit f n false)
+
+theorem measurableSet_agreeBitUnion_swap (f : ℕ → ℕ) (n : ℕ) :
+    MeasurableSet ((D2 n true ∩ D1 (f n) true) ∪ (D2 n false ∩ D1 (f n) false)) :=
+  ((measurableSet_D2 n true).inter (measurableSet_D1 (f n) true)).union
+    ((measurableSet_D2 n false).inter (measurableSet_D1 (f n) false))
+
+theorem coinS1_iff_coinS2_eq_mk (f : ℕ → ℕ) (n : ℕ) :
+    (coinS1 n ⇨ coinS2 (f n)) ⊓ (coinS2 (f n) ⇨ coinS1 n) =
+      MeasureAlgebra.mk coinMeasure (agreeBit f n true ∪ agreeBit f n false)
+        (measurableSet_agreeBitUnion f n) := by
+  unfold coinS1 coinS2
+  have h := MeasureAlgebra.iff_mk coinMeasure (D1 n true) (D2 (f n) true)
+    (measurableSet_D1 n true) (measurableSet_D2 (f n) true)
+  refine h.trans ?_
+  refine (MeasureAlgebra.mk_eq_iff coinMeasure).mpr ?_
+  have heq : (D1 n true ∩ D2 (f n) true) ∪ ((D1 n true)ᶜ ∩ (D2 (f n) true)ᶜ) =
+      agreeBit f n true ∪ agreeBit f n false := by
+    simp [agreeBit, D1_false_eq_compl, D2_false_eq_compl]
+  simp [heq, symmDiff_self]
+
+theorem coinS2_iff_coinS1_eq_mk (f : ℕ → ℕ) (n : ℕ) :
+    (coinS2 n ⇨ coinS1 (f n)) ⊓ (coinS1 (f n) ⇨ coinS2 n) =
+      MeasureAlgebra.mk coinMeasure
+        ((D2 n true ∩ D1 (f n) true) ∪ (D2 n false ∩ D1 (f n) false))
+        (measurableSet_agreeBitUnion_swap f n) := by
+  unfold coinS1 coinS2
+  have h := MeasureAlgebra.iff_mk coinMeasure (D2 n true) (D1 (f n) true)
+    (measurableSet_D2 n true) (measurableSet_D1 (f n) true)
+  refine h.trans ?_
+  refine (MeasureAlgebra.mk_eq_iff coinMeasure).mpr ?_
+  have heq : (D2 n true ∩ D1 (f n) true) ∪ ((D2 n true)ᶜ ∩ (D1 (f n) true)ᶜ) =
+      (D2 n true ∩ D1 (f n) true) ∪ (D2 n false ∩ D1 (f n) false) := by
+    simp [D1_false_eq_compl, D2_false_eq_compl]
+  simp [heq, symmDiff_self]
+
+theorem coinS1_preimage_S2_eq_mk (f : ℕ → ℕ) :
+    (⨅ n, (coinS1 n ⇨ coinS2 (f n)) ⊓ (coinS2 (f n) ⇨ coinS1 n)) =
+      MeasureAlgebra.mk coinMeasure (agreeSet f) (measurableSet_agreeSet f) := by
+  simp_rw [coinS1_iff_coinS2_eq_mk]
+  rw [MeasureAlgebra.iInf_mk coinMeasure
+    (fun n => agreeBit f n true ∪ agreeBit f n false)
+    (fun n => measurableSet_agreeBitUnion f n)]
+  refine (MeasureAlgebra.mk_eq_iff coinMeasure).mpr ?_
+  simp [← agreeSet_eq_iInter, symmDiff_self]
+
+theorem coinS2_preimage_S1_eq_mk (f : ℕ → ℕ) :
+    (⨅ n, (coinS2 n ⇨ coinS1 (f n)) ⊓ (coinS1 (f n) ⇨ coinS2 n)) =
+      MeasureAlgebra.mk coinMeasure (agreeSet_swap f)
+        (measurableSet_agreeSet_swap f) := by
+  simp_rw [coinS2_iff_coinS1_eq_mk]
+  rw [MeasureAlgebra.iInf_mk coinMeasure
+    (fun n => (D2 n true ∩ D1 (f n) true) ∪ (D2 n false ∩ D1 (f n) false))
+    (fun n => measurableSet_agreeBitUnion_swap f n)]
+  refine (MeasureAlgebra.mk_eq_iff coinMeasure).mpr ?_
+  simp [← agreeSet_swap_eq_iInter, symmDiff_self]
+
+theorem coinS1_preimage_S2_eq_bot (f : ℕ → ℕ) :
+    (⨅ n, (coinS1 n ⇨ coinS2 (f n)) ⊓ (coinS2 (f n) ⇨ coinS1 n)) = ⊥ := by
+  rw [coinS1_preimage_S2_eq_mk, (proposition_42_mk_bot f).1]
+
+theorem coinS2_preimage_S1_eq_bot (f : ℕ → ℕ) :
+    (⨅ n, (coinS2 n ⇨ coinS1 (f n)) ⊓ (coinS1 (f n) ⇨ coinS2 n)) = ⊥ := by
+  rw [coinS2_preimage_S1_eq_mk, (proposition_42_mk_bot f).2]
+
+theorem coinS1_iff_checkSet_eq_mk (f : ℕ → ℕ) (K : Finset ℕ) (n : ℕ) :
+    (coinS1 n ⇨ checkSet (A := coinAlgebra) (K : Set ℕ) (f n)) ⊓
+        (checkSet (A := coinAlgebra) (K : Set ℕ) (f n) ⇨ coinS1 n) =
+      MeasureAlgebra.mk coinMeasure (D1 n (decide (f n ∈ K)))
+        (measurableSet_D1 n (decide (f n ∈ K))) := by
+  by_cases hmem : f n ∈ K
+  · have hcheck : checkSet (A := coinAlgebra) (K : Set ℕ) (f n) = ⊤ :=
+      checkSet_mem (A := coinAlgebra) (by exact_mod_cast hmem)
+    have hdec : decide (f n ∈ K) = true := decide_eq_true hmem
+    rw [hcheck, himp_top, top_himp, top_inf_eq, coinS1, hdec]
+  · have hcheck : checkSet (A := coinAlgebra) (K : Set ℕ) (f n) = ⊥ :=
+      checkSet_not_mem (A := coinAlgebra) (by exact_mod_cast hmem)
+    have hdec : decide (f n ∈ K) = false := decide_eq_false hmem
+    rw [hcheck, himp_bot, bot_himp, inf_top_eq, coinS1, hdec,
+      MeasureAlgebra.compl_mk]
+    exact (MeasureAlgebra.mk_eq_iff coinMeasure).mpr
+      (by simp [D1_false_eq_compl, symmDiff_self])
+
+theorem coinS2_iff_checkSet_eq_mk (f : ℕ → ℕ) (K : Finset ℕ) (n : ℕ) :
+    (coinS2 n ⇨ checkSet (A := coinAlgebra) (K : Set ℕ) (f n)) ⊓
+        (checkSet (A := coinAlgebra) (K : Set ℕ) (f n) ⇨ coinS2 n) =
+      MeasureAlgebra.mk coinMeasure (D2 n (decide (f n ∈ K)))
+        (measurableSet_D2 n (decide (f n ∈ K))) := by
+  by_cases hmem : f n ∈ K
+  · have hcheck : checkSet (A := coinAlgebra) (K : Set ℕ) (f n) = ⊤ :=
+      checkSet_mem (A := coinAlgebra) (by exact_mod_cast hmem)
+    have hdec : decide (f n ∈ K) = true := decide_eq_true hmem
+    rw [hcheck, himp_top, top_himp, top_inf_eq, coinS2, hdec]
+  · have hcheck : checkSet (A := coinAlgebra) (K : Set ℕ) (f n) = ⊥ :=
+      checkSet_not_mem (A := coinAlgebra) (by exact_mod_cast hmem)
+    have hdec : decide (f n ∈ K) = false := decide_eq_false hmem
+    rw [hcheck, himp_bot, bot_himp, inf_top_eq, coinS2, hdec,
+      MeasureAlgebra.compl_mk]
+    exact (MeasureAlgebra.mk_eq_iff coinMeasure).mpr
+      (by simp [D2_false_eq_compl, symmDiff_self])
+
+theorem coinS1_finite_preimage_eq_mk (f : ℕ → ℕ) (K : Finset ℕ) :
+    (⨅ n, (coinS1 n ⇨ checkSet (A := coinAlgebra) (K : Set ℕ) (f n)) ⊓
+        (checkSet (A := coinAlgebra) (K : Set ℕ) (f n) ⇨ coinS1 n)) =
+      MeasureAlgebra.mk coinMeasure (finitePreimageSet f K)
+        (measurableSet_finitePreimageSet f K) := by
+  simp_rw [coinS1_iff_checkSet_eq_mk]
+  rw [MeasureAlgebra.iInf_mk coinMeasure
+    (fun n => D1 n (decide (f n ∈ K)))
+    (fun n => measurableSet_D1 n (decide (f n ∈ K)))]
+  rfl
+
+theorem coinS2_finite_preimage_eq_mk (f : ℕ → ℕ) (K : Finset ℕ) :
+    (⨅ n, (coinS2 n ⇨ checkSet (A := coinAlgebra) (K : Set ℕ) (f n)) ⊓
+        (checkSet (A := coinAlgebra) (K : Set ℕ) (f n) ⇨ coinS2 n)) =
+      MeasureAlgebra.mk coinMeasure (finitePreimageSet_swap f K)
+        (measurableSet_finitePreimageSet_swap f K) := by
+  simp_rw [coinS2_iff_checkSet_eq_mk]
+  rw [MeasureAlgebra.iInf_mk coinMeasure
+    (fun n => D2 n (decide (f n ∈ K)))
+    (fun n => measurableSet_D2 n (decide (f n ∈ K)))]
+  rfl
+
+theorem coinS1_finite_preimage_eq_bot (f : ℕ → ℕ) (K : Finset ℕ) :
+    (⨅ n, (coinS1 n ⇨ checkSet (A := coinAlgebra) (K : Set ℕ) (f n)) ⊓
+        (checkSet (A := coinAlgebra) (K : Set ℕ) (f n) ⇨ coinS1 n)) = ⊥ := by
+  rw [coinS1_finite_preimage_eq_mk,
+    (MeasureAlgebra.mk_eq_bot coinMeasure).mpr (proposition_42_finite f K)]
+
+theorem coinS2_finite_preimage_eq_bot (f : ℕ → ℕ) (K : Finset ℕ) :
+    (⨅ n, (coinS2 n ⇨ checkSet (A := coinAlgebra) (K : Set ℕ) (f n)) ⊓
+        (checkSet (A := coinAlgebra) (K : Set ℕ) (f n) ⇨ coinS2 n)) = ⊥ := by
+  rw [coinS2_finite_preimage_eq_mk,
+    (MeasureAlgebra.mk_eq_bot coinMeasure).mpr (proposition_42_finite_swap f K)]
+
+/-- Proposition 42 as Boolean value `⊥` in `coinAlgebra`. The finite-`K`
+clause is a `Finset` join (not the full internal `pfinB` exists). -/
+theorem proposition_42_algebra (f : ℕ → ℕ) :
+    ((⨆ K : Finset ℕ, ⨅ n : ℕ,
+        (coinS1 n ⇨ checkSet (A := coinAlgebra) (K : Set ℕ) (f n)) ⊓
+        (checkSet (A := coinAlgebra) (K : Set ℕ) (f n) ⇨ coinS1 n)) = ⊥) ∧
+    ((⨆ K : Finset ℕ, ⨅ n : ℕ,
+        (coinS2 n ⇨ checkSet (A := coinAlgebra) (K : Set ℕ) (f n)) ⊓
+        (checkSet (A := coinAlgebra) (K : Set ℕ) (f n) ⇨ coinS2 n)) = ⊥) ∧
+    ((⨅ n, (coinS1 n ⇨ coinS2 (f n)) ⊓ (coinS2 (f n) ⇨ coinS1 n)) = ⊥) ∧
+    ((⨅ n, (coinS2 n ⇨ coinS1 (f n)) ⊓ (coinS1 (f n) ⇨ coinS2 n)) = ⊥) :=
+  ⟨iSup_eq_bot.mpr fun K => coinS1_finite_preimage_eq_bot f K,
+    iSup_eq_bot.mpr fun K => coinS2_finite_preimage_eq_bot f K,
+    coinS1_preimage_S2_eq_bot f,
+    coinS2_preimage_S1_eq_bot f⟩
 
 /-! ## Theorem 43 (external oracles; paper uses Cor 34 + Thm 1 internally) -/
 
@@ -524,6 +784,1249 @@ theorem theorem_43 :
       mem_iUnion.mpr ⟨M, mem_iUnion.mpr ⟨hM,
         Or.inr ((mem_agreeSet_swap_bits (mapsNumeralsFun M hM) p).mpr hf)⟩⟩
     exact hp hmem
+
+/-!
+## Theorem 43, paper chain
+
+Route: mix ground Lemma 35(ii) (`chiOracle`) on the fibers `bitsᵢ`,
+package as an `L⁰` random variable, and set `dᵢ = G_X_measure` of that
+mix. Application is `engelerAppA engelerPair` (Proposition 40). This is
+not the external `chiOracle` shortcut used by `theorem_43`.
+-/
+
+open Classical
+
+theorem coinAlgebra_nontrivial_pair :
+    (⊤ : coinAlgebra) ≠ ⊥ := by
+  intro h
+  have hmk : MeasureAlgebra.mk coinMeasure Set.univ MeasurableSet.univ = ⊥ := by
+    rw [MeasureAlgebra.mk_top, h]
+  have : coinMeasure (Set.univ : Set CoinSpace) = 0 :=
+    (MeasureAlgebra.mk_eq_bot coinMeasure).mp hmk
+  exact zero_ne_one (this.symm.trans measure_univ)
+
+instance : Nontrivial coinAlgebra :=
+  ⟨⊤, ⊥, coinAlgebra_nontrivial_pair⟩
+
+theorem MeasureAlgebra.mk_eq_top {X : Type*} [MeasurableSpace X]
+    (μ : Measure X) [IsFiniteMeasure μ] {s : Set X} {hs : MeasurableSet s} :
+    MeasureAlgebra.mk μ s hs = (⊤ : MeasureAlgebra μ) ↔ μ sᶜ = 0 := by
+  rw [← MeasureAlgebra.mk_top, MeasureAlgebra.mk_eq_iff]
+  have : symmDiff s (Set.univ : Set X) = sᶜ := by
+    ext x
+    simp [symmDiff]
+  simp [this]
+
+abbrev appCoin : ASubset coinAlgebra ℕ → ASubset coinAlgebra ℕ →
+    ASubset coinAlgebra ℕ :=
+  engelerAppA engelerPair
+
+/-- Membership of an Engeler carrier name as an `A`-subset of `ℕ`. -/
+def vaSubset {A : Type*} [CompleteBooleanAlgebra A]
+    (c : EngelerCarrier (A := A)) : ASubset A ℕ :=
+  fun n => memOfNat (A := A) c n
+
+theorem vaSubset_setToCanonical {A : Type*} [CompleteBooleanAlgebra A]
+    (S : Set ℕ) :
+    vaSubset (A := A) (setToCanonical (A := A) S) = checkSet S := by
+  funext n
+  exact memOfNat_setToCanonical (A := A) S n
+
+theorem vaSubset_interpClosedVA {A : Type*} [CompleteBooleanAlgebra A]
+    {Var : Type*} [DecidableEq Var] (M : Lam Var) (hcl : M.fv = ∅) :
+    vaSubset (interpClosedVA (A := A) M) =
+      checkSet (interpClosed
+        (engelerReflexiveDcpo engelerPair engelerPair_injective) M) := by
+  have h := lemma_31_closed (A := A) M hcl
+  funext n
+  change AName.memB (AName.check (PSet.ofNat n)) (childΩ (interpClosedVA (A := A) M)) =
+    checkSet (interpClosed
+      (engelerReflexiveDcpo engelerPair engelerPair_injective) M) n
+  rw [eqB_top_memB_right (z := AName.check (PSet.ofNat n)) h]
+  change memOfNat (A := A)
+      (setToCanonical (interpClosed
+        (engelerReflexiveDcpo engelerPair engelerPair_injective) M)) n =
+    checkSet (interpClosed
+      (engelerReflexiveDcpo engelerPair engelerPair_injective) M) n
+  rw [memOfNat_setToCanonical]
+  rfl
+
+theorem chiNum_eq_boolTop (S : Set ℕ) (n : ℕ) :
+    chiNum engelerWithNumerals S n = engelerWithNumerals.boolTop ↔ n ∈ S := by
+  simp only [chiNum]
+  by_cases hn : n ∈ S
+  · simp [hn]
+  · simp [hn]
+    exact engelerWithNumerals.bool_ne
+
+theorem chiNum_eq_boolBot (S : Set ℕ) (n : ℕ) :
+    chiNum engelerWithNumerals S n = engelerWithNumerals.boolBot ↔ n ∉ S := by
+  simp only [chiNum]
+  by_cases hn : n ∈ S
+  · simp [hn]
+    exact engelerWithNumerals.bool_ne.symm
+  · simp [hn]
+
+theorem mem_gbar_iff (S X : Set ℕ) (r : ℕ) :
+    r ∈ gbar S X ↔
+      ∃ n ∈ numeralFingerprint X, r ∈ chiNum engelerWithNumerals S n := by
+  constructor
+  · intro hr
+    obtain ⟨t, ht, hrt⟩ := mem_sUnion.mp hr
+    obtain ⟨n, hn, rfl⟩ := (mem_image _ _ _).mp ht
+    exact ⟨n, hn, hrt⟩
+  · intro ⟨n, hn, hr⟩
+    exact mem_sUnion.mpr
+      ⟨chiNum engelerWithNumerals S n, mem_image_of_mem _ hn, hr⟩
+
+theorem mem_chiOracle_iff (S : Set ℕ) (q : ℕ) :
+    q ∈ chiOracle S ↔
+      ∃ K : Finset ℕ, ∃ r : ℕ,
+        q = engelerPair (K, r) ∧ r ∈ gbar S (K : Set ℕ) := by
+  change q ∈ engelerLam engelerPair (gbar S) ↔ _
+  constructor
+  · intro h
+    obtain ⟨K, r, hr, heq⟩ := h
+    exact ⟨K, r, heq, hr⟩
+  · intro ⟨K, r, heq, hr⟩
+    exact ⟨K, r, hr, heq⟩
+
+theorem mem_chiNum_bits1 (p : CoinSpace) (n r : ℕ) :
+    r ∈ chiNum engelerWithNumerals (bits1 p) n ↔
+      (p.1 n = true ∧ r ∈ engelerWithNumerals.boolTop) ∨
+      (p.1 n = false ∧ r ∈ engelerWithNumerals.boolBot) := by
+  simp only [chiNum, bits1, mem_setOf]
+  cases hp : p.1 n
+  · simp [hp]
+  · simp [hp]
+
+theorem mem_chiNum_bits2 (p : CoinSpace) (n r : ℕ) :
+    r ∈ chiNum engelerWithNumerals (bits2 p) n ↔
+      (p.2 n = true ∧ r ∈ engelerWithNumerals.boolTop) ∨
+      (p.2 n = false ∧ r ∈ engelerWithNumerals.boolBot) := by
+  simp only [chiNum, bits2, mem_setOf]
+  cases hp : p.2 n
+  · simp [hp]
+  · simp [hp]
+
+theorem measurableSet_mem_chiNum_bits1 (n r : ℕ) :
+    MeasurableSet {p : CoinSpace | r ∈ chiNum engelerWithNumerals (bits1 p) n} := by
+  have hset :
+      {p : CoinSpace | r ∈ chiNum engelerWithNumerals (bits1 p) n} =
+        (if r ∈ engelerWithNumerals.boolTop then D1 n true else (∅ : Set CoinSpace)) ∪
+        (if r ∈ engelerWithNumerals.boolBot then D1 n false else (∅ : Set CoinSpace)) := by
+    ext p
+    simp only [mem_union, mem_ite, mem_empty_iff_false, mem_setOf, D1]
+    rw [mem_chiNum_bits1]
+    tauto
+  rw [hset]
+  refine MeasurableSet.union ?_ ?_
+  · by_cases hT : r ∈ engelerWithNumerals.boolTop
+    · simpa [hT] using measurableSet_D1 n true
+    · simp [hT]
+  · by_cases hB : r ∈ engelerWithNumerals.boolBot
+    · simpa [hB] using measurableSet_D1 n false
+    · simp [hB]
+
+theorem measurableSet_mem_chiNum_bits2 (n r : ℕ) :
+    MeasurableSet {p : CoinSpace | r ∈ chiNum engelerWithNumerals (bits2 p) n} := by
+  have hset :
+      {p : CoinSpace | r ∈ chiNum engelerWithNumerals (bits2 p) n} =
+        (if r ∈ engelerWithNumerals.boolTop then D2 n true else (∅ : Set CoinSpace)) ∪
+        (if r ∈ engelerWithNumerals.boolBot then D2 n false else (∅ : Set CoinSpace)) := by
+    ext p
+    simp only [mem_union, mem_ite, mem_empty_iff_false, mem_setOf, D2]
+    rw [mem_chiNum_bits2]
+    tauto
+  rw [hset]
+  refine MeasurableSet.union ?_ ?_
+  · by_cases hT : r ∈ engelerWithNumerals.boolTop
+    · simpa [hT] using measurableSet_D2 n true
+    · simp [hT]
+  · by_cases hB : r ∈ engelerWithNumerals.boolBot
+    · simpa [hB] using measurableSet_D2 n false
+    · simp [hB]
+
+theorem measurableSet_mem_gbar_bits1 (r : ℕ) (K : Finset ℕ) :
+    MeasurableSet {p : CoinSpace | r ∈ gbar (bits1 p) (K : Set ℕ)} := by
+  have hset :
+      {p : CoinSpace | r ∈ gbar (bits1 p) (K : Set ℕ)} =
+        ⋃ n : ℕ, if n ∈ numeralFingerprint (K : Set ℕ) then
+          {p : CoinSpace | r ∈ chiNum engelerWithNumerals (bits1 p) n}
+        else (∅ : Set CoinSpace) := by
+    ext p
+    simp only [mem_iUnion, mem_ite, mem_empty_iff_false, mem_setOf]
+    constructor
+    · intro hr
+      obtain ⟨n, hn, hrmem⟩ := (mem_gbar_iff (bits1 p) (K : Set ℕ) r).mp hr
+      exact ⟨n, by simp [hn, hrmem]⟩
+    · intro ⟨n, hn⟩
+      by_cases hΦ : n ∈ numeralFingerprint (K : Set ℕ)
+      · simp [hΦ] at hn
+        exact (mem_gbar_iff (bits1 p) (K : Set ℕ) r).mpr ⟨n, hΦ, hn⟩
+      · simp [hΦ] at hn
+  rw [hset]
+  refine MeasurableSet.iUnion fun n => ?_
+  by_cases hΦ : n ∈ numeralFingerprint (K : Set ℕ)
+  · simpa [hΦ] using measurableSet_mem_chiNum_bits1 n r
+  · simp [hΦ]
+
+theorem measurableSet_mem_gbar_bits2 (r : ℕ) (K : Finset ℕ) :
+    MeasurableSet {p : CoinSpace | r ∈ gbar (bits2 p) (K : Set ℕ)} := by
+  have hset :
+      {p : CoinSpace | r ∈ gbar (bits2 p) (K : Set ℕ)} =
+        ⋃ n : ℕ, if n ∈ numeralFingerprint (K : Set ℕ) then
+          {p : CoinSpace | r ∈ chiNum engelerWithNumerals (bits2 p) n}
+        else (∅ : Set CoinSpace) := by
+    ext p
+    simp only [mem_iUnion, mem_ite, mem_empty_iff_false, mem_setOf]
+    constructor
+    · intro hr
+      obtain ⟨n, hn, hrmem⟩ := (mem_gbar_iff (bits2 p) (K : Set ℕ) r).mp hr
+      exact ⟨n, by simp [hn, hrmem]⟩
+    · intro ⟨n, hn⟩
+      by_cases hΦ : n ∈ numeralFingerprint (K : Set ℕ)
+      · simp [hΦ] at hn
+        exact (mem_gbar_iff (bits2 p) (K : Set ℕ) r).mpr ⟨n, hΦ, hn⟩
+      · simp [hΦ] at hn
+  rw [hset]
+  refine MeasurableSet.iUnion fun n => ?_
+  by_cases hΦ : n ∈ numeralFingerprint (K : Set ℕ)
+  · simpa [hΦ] using measurableSet_mem_chiNum_bits2 n r
+  · simp [hΦ]
+
+theorem measurableSet_chiOracle_bits1 (q : ℕ) :
+    MeasurableSet {p : CoinSpace | q ∈ chiOracle (bits1 p)} := by
+  have hset :
+      {p : CoinSpace | q ∈ chiOracle (bits1 p)} =
+        ⋃ K : Finset ℕ, ⋃ r : ℕ,
+          if q = engelerPair (K, r) then
+            {p : CoinSpace | r ∈ gbar (bits1 p) (K : Set ℕ)}
+          else (∅ : Set CoinSpace) := by
+    ext p
+    simp only [mem_iUnion, mem_ite, mem_empty_iff_false, mem_setOf]
+    constructor
+    · intro hq
+      obtain ⟨K, r, heq, hr⟩ := (mem_chiOracle_iff (bits1 p) q).mp hq
+      exact ⟨K, r, by simp [heq, hr]⟩
+    · intro ⟨K, r, h⟩
+      by_cases heq : q = engelerPair (K, r)
+      · simp [heq] at h
+        exact (mem_chiOracle_iff (bits1 p) q).mpr ⟨K, r, heq, h⟩
+      · simp [heq] at h
+  rw [hset]
+  refine MeasurableSet.iUnion fun K => MeasurableSet.iUnion fun r => ?_
+  by_cases heq : q = engelerPair (K, r)
+  · simpa [heq] using measurableSet_mem_gbar_bits1 r K
+  · simp [heq]
+
+theorem measurableSet_chiOracle_bits2 (q : ℕ) :
+    MeasurableSet {p : CoinSpace | q ∈ chiOracle (bits2 p)} := by
+  have hset :
+      {p : CoinSpace | q ∈ chiOracle (bits2 p)} =
+        ⋃ K : Finset ℕ, ⋃ r : ℕ,
+          if q = engelerPair (K, r) then
+            {p : CoinSpace | r ∈ gbar (bits2 p) (K : Set ℕ)}
+          else (∅ : Set CoinSpace) := by
+    ext p
+    simp only [mem_iUnion, mem_ite, mem_empty_iff_false, mem_setOf]
+    constructor
+    · intro hq
+      obtain ⟨K, r, heq, hr⟩ := (mem_chiOracle_iff (bits2 p) q).mp hq
+      exact ⟨K, r, by simp [heq, hr]⟩
+    · intro ⟨K, r, h⟩
+      by_cases heq : q = engelerPair (K, r)
+      · simp [heq] at h
+        exact (mem_chiOracle_iff (bits2 p) q).mpr ⟨K, r, heq, h⟩
+      · simp [heq] at h
+  rw [hset]
+  refine MeasurableSet.iUnion fun K => MeasurableSet.iUnion fun r => ?_
+  by_cases heq : q = engelerPair (K, r)
+  · simpa [heq] using measurableSet_mem_gbar_bits2 r K
+  · simp [heq]
+
+noncomputable def coinChi1 : CoinSpace → Set ℕ := fun p => chiOracle (bits1 p)
+
+noncomputable def coinChi2 : CoinSpace → Set ℕ := fun p => chiOracle (bits2 p)
+
+theorem coinChi1_isL0 : IsL0 coinChi1 := fun q => by
+  change MeasurableSet (coinChi1 ⁻¹' posBasic q)
+  have : coinChi1 ⁻¹' posBasic q = {p : CoinSpace | q ∈ chiOracle (bits1 p)} := by
+    ext p
+    simp [coinChi1, posBasic]
+  rw [this]
+  exact measurableSet_chiOracle_bits1 q
+
+theorem coinChi2_isL0 : IsL0 coinChi2 := fun q => by
+  change MeasurableSet (coinChi2 ⁻¹' posBasic q)
+  have : coinChi2 ⁻¹' posBasic q = {p : CoinSpace | q ∈ chiOracle (bits2 p)} := by
+    ext p
+    simp [coinChi2, posBasic]
+  rw [this]
+  exact measurableSet_chiOracle_bits2 q
+
+noncomputable def coinChi1Fun : L0Fun CoinSpace ℕ := ⟨coinChi1, coinChi1_isL0⟩
+
+noncomputable def coinChi2Fun : L0Fun CoinSpace ℕ := ⟨coinChi2, coinChi2_isL0⟩
+
+/-- Paper `d₁ ∈ P^A(check E)`: `G_X` of the fiberwise Lemma 35(ii) oracle. -/
+noncomputable def coinD1 : ASubset coinAlgebra ℕ :=
+  G_X_measure coinMeasure (L0.mk_measure coinMeasure coinChi1Fun)
+
+/-- Paper `d₂ ∈ P^A(check E)`. -/
+noncomputable def coinD2 : ASubset coinAlgebra ℕ :=
+  G_X_measure coinMeasure (L0.mk_measure coinMeasure coinChi2Fun)
+
+/-- Paper `a₁` with `[a₁] = G_X^{-1}(d₁)`. -/
+noncomputable def coinA1Fun : L0Fun CoinSpace ℕ :=
+  G_X_measure_inv coinMeasure coinD1
+
+/-- Paper `a₂` with `[a₂] = G_X^{-1}(d₂)`. -/
+noncomputable def coinA2Fun : L0Fun CoinSpace ℕ :=
+  G_X_measure_inv coinMeasure coinD2
+
+theorem coinD1_eq_G_X_inv :
+    G_X_measure coinMeasure (L0.mk_measure coinMeasure coinA1Fun) = coinD1 :=
+  G_X_measure_inv_right coinMeasure coinD1
+
+theorem coinD2_eq_G_X_inv :
+    G_X_measure coinMeasure (L0.mk_measure coinMeasure coinA2Fun) = coinD2 :=
+  G_X_measure_inv_right coinMeasure coinD2
+
+theorem eqB_G_X_measure_mk {Y : Type*} [Countable Y]
+    (a b : L0Fun CoinSpace Y) :
+    eqB (G_X_measure coinMeasure (L0.mk_measure coinMeasure a))
+        (G_X_measure coinMeasure (L0.mk_measure coinMeasure b)) =
+      MeasureAlgebra.mk coinMeasure (l0Eq a.val b.val)
+        (measurableSet_l0Eq a.property b.property) := by
+  rw [eqB, G_X_measure_le, G_X_measure_le, L0.le_measure_mk, L0.le_measure_mk,
+    MeasureAlgebra.inf_mk]
+  refine (MeasureAlgebra.mk_eq_iff coinMeasure).mpr ?_
+  have : l0Le a.val b.val ∩ l0Le b.val a.val = l0Eq a.val b.val :=
+    (l0Eq_eq_le a.val b.val).symm
+  simp [this, symmDiff_self]
+
+noncomputable def constL0 (S : Set ℕ) : L0Fun CoinSpace ℕ :=
+  ⟨constRV (X := CoinSpace) S, constRV_isL0 (X := CoinSpace) S⟩
+
+noncomputable def appChi1L0 (S : Set ℕ) : L0Fun CoinSpace ℕ :=
+  ⟨l0App engelerPair coinChi1 (constRV (X := CoinSpace) S),
+    l0App_isL0 engelerPair coinChi1_isL0 (constRV_isL0 (X := CoinSpace) S)⟩
+
+noncomputable def appChi2L0 (S : Set ℕ) : L0Fun CoinSpace ℕ :=
+  ⟨l0App engelerPair coinChi2 (constRV (X := CoinSpace) S),
+    l0App_isL0 engelerPair coinChi2_isL0 (constRV_isL0 (X := CoinSpace) S)⟩
+
+theorem checkSet_eq_G_X (S : Set ℕ) :
+    checkSet (A := coinAlgebra) S =
+      G_X_measure coinMeasure (L0.mk_measure coinMeasure (constL0 S)) :=
+  (lemma_41_measure (Y := ℕ) coinMeasure S).symm
+
+theorem l0App_coinChi1_numeral (n : ℕ) (p : CoinSpace) :
+    l0App engelerPair coinChi1
+        (constRV (X := CoinSpace) (engelerWithNumerals.numeral n)) p =
+      chiNum engelerWithNumerals (bits1 p) n := by
+  change (engelerReflexiveDcpo engelerPair engelerPair_injective).funMap
+      (chiOracle (bits1 p)) (engelerWithNumerals.numeral n) =
+    chiNum engelerWithNumerals (bits1 p) n
+  exact chiOracle_spec (bits1 p) n
+
+theorem l0App_coinChi2_numeral (n : ℕ) (p : CoinSpace) :
+    l0App engelerPair coinChi2
+        (constRV (X := CoinSpace) (engelerWithNumerals.numeral n)) p =
+      chiNum engelerWithNumerals (bits2 p) n := by
+  change (engelerReflexiveDcpo engelerPair engelerPair_injective).funMap
+      (chiOracle (bits2 p)) (engelerWithNumerals.numeral n) =
+    chiNum engelerWithNumerals (bits2 p) n
+  exact chiOracle_spec (bits2 p) n
+
+theorem engelerApp_funMap (F X : Set ℕ) :
+    engelerApp engelerPair F X =
+      (engelerReflexiveDcpo engelerPair engelerPair_injective).funMap F X :=
+  rfl
+
+theorem appCoin_d1_of (S : Set ℕ) :
+    appCoin coinD1 (checkSet S) =
+      G_X_measure coinMeasure (L0.mk_measure coinMeasure (appChi1L0 S)) := by
+  have h40 := proposition_40_measure (E := ℕ) coinMeasure engelerPair
+    (L0.mk_measure coinMeasure coinChi1Fun)
+    (L0.mk_measure coinMeasure (constL0 S))
+  rw [← checkSet_eq_G_X] at h40
+  have happ := L0.app_measure_mk coinMeasure engelerPair coinChi1Fun (constL0 S)
+  rw [happ] at h40
+  exact h40.symm
+
+theorem appCoin_d2_of (S : Set ℕ) :
+    appCoin coinD2 (checkSet S) =
+      G_X_measure coinMeasure (L0.mk_measure coinMeasure (appChi2L0 S)) := by
+  have h40 := proposition_40_measure (E := ℕ) coinMeasure engelerPair
+    (L0.mk_measure coinMeasure coinChi2Fun)
+    (L0.mk_measure coinMeasure (constL0 S))
+  rw [← checkSet_eq_G_X] at h40
+  have happ := L0.app_measure_mk coinMeasure engelerPair coinChi2Fun (constL0 S)
+  rw [happ] at h40
+  exact h40.symm
+
+theorem appCoin_d1_numeral (n : ℕ) :
+    appCoin coinD1 (checkSet (engelerWithNumerals.numeral n)) =
+      G_X_measure coinMeasure (L0.mk_measure coinMeasure
+        (appChi1L0 (engelerWithNumerals.numeral n))) :=
+  appCoin_d1_of (engelerWithNumerals.numeral n)
+
+theorem appCoin_d2_numeral (n : ℕ) :
+    appCoin coinD2 (checkSet (engelerWithNumerals.numeral n)) =
+      G_X_measure coinMeasure (L0.mk_measure coinMeasure
+        (appChi2L0 (engelerWithNumerals.numeral n))) :=
+  appCoin_d2_of (engelerWithNumerals.numeral n)
+
+theorem coinD1_eqB_true (n : ℕ) :
+    eqB (appCoin coinD1 (checkSet (engelerWithNumerals.numeral n)))
+        (checkSet engelerWithNumerals.boolTop) = memB n coinS1 := by
+  rw [appCoin_d1_of, checkSet_eq_G_X, eqB_G_X_measure_mk]
+  refine (MeasureAlgebra.mk_eq_iff coinMeasure).mpr ?_
+  have hset :
+      l0Eq (appChi1L0 (engelerWithNumerals.numeral n)).val
+        (constL0 engelerWithNumerals.boolTop).val =
+      D1 n true := by
+    ext p
+    simp only [l0Eq, mem_setOf, D1, appChi1L0, constL0, constRV]
+    rw [l0App_coinChi1_numeral]
+    exact chiNum_eq_boolTop (bits1 p) n
+  simp [hset, coinS1, D1, bits1, symmDiff_self]
+
+theorem coinD1_eqB_false (n : ℕ) :
+    eqB (appCoin coinD1 (checkSet (engelerWithNumerals.numeral n)))
+        (checkSet engelerWithNumerals.boolBot) = (memB n coinS1)ᶜ := by
+  rw [appCoin_d1_of, checkSet_eq_G_X, eqB_G_X_measure_mk]
+  have hset :
+      l0Eq (appChi1L0 (engelerWithNumerals.numeral n)).val
+        (constL0 engelerWithNumerals.boolBot).val =
+      (D1 n true)ᶜ := by
+    ext p
+    simp only [l0Eq, mem_setOf, D1, appChi1L0, constL0, constRV, mem_compl_iff]
+    rw [l0App_coinChi1_numeral, chiNum_eq_boolBot]
+    simp [bits1]
+  rw [memB_coinS1, MeasureAlgebra.compl_mk]
+  exact MeasureAlgebra.mk_congr coinMeasure hset
+
+theorem coinD2_eqB_true (n : ℕ) :
+    eqB (appCoin coinD2 (checkSet (engelerWithNumerals.numeral n)))
+        (checkSet engelerWithNumerals.boolTop) = memB n coinS2 := by
+  rw [appCoin_d2_of, checkSet_eq_G_X, eqB_G_X_measure_mk]
+  refine (MeasureAlgebra.mk_eq_iff coinMeasure).mpr ?_
+  have hset :
+      l0Eq (appChi2L0 (engelerWithNumerals.numeral n)).val
+        (constL0 engelerWithNumerals.boolTop).val =
+      D2 n true := by
+    ext p
+    simp only [l0Eq, mem_setOf, D2, appChi2L0, constL0, constRV]
+    rw [l0App_coinChi2_numeral]
+    exact chiNum_eq_boolTop (bits2 p) n
+  simp [hset, coinS2, D2, bits2, symmDiff_self]
+
+theorem coinD2_eqB_false (n : ℕ) :
+    eqB (appCoin coinD2 (checkSet (engelerWithNumerals.numeral n)))
+        (checkSet engelerWithNumerals.boolBot) = (memB n coinS2)ᶜ := by
+  rw [appCoin_d2_of, checkSet_eq_G_X, eqB_G_X_measure_mk]
+  have hset :
+      l0Eq (appChi2L0 (engelerWithNumerals.numeral n)).val
+        (constL0 engelerWithNumerals.boolBot).val =
+      (D2 n true)ᶜ := by
+    ext p
+    simp only [l0Eq, mem_setOf, D2, appChi2L0, constL0, constRV, mem_compl_iff]
+    rw [l0App_coinChi2_numeral, chiNum_eq_boolBot]
+    simp [bits2]
+  rw [memB_coinS2, MeasureAlgebra.compl_mk]
+  exact MeasureAlgebra.mk_congr coinMeasure hset
+
+theorem coinD1_oracle_true (n : ℕ) :
+    eqB (appCoin coinD1 (vaSubset (interpClosedVA (A := coinAlgebra) (churchNumN n))))
+        (vaSubset (interpClosedVA (A := coinAlgebra) churchTrueN)) =
+      memB n coinS1 := by
+  have hnum := vaSubset_interpClosedVA (A := coinAlgebra) (churchNumN n)
+    (churchNumN_fv n)
+  have htop := vaSubset_interpClosedVA (A := coinAlgebra) churchTrueN churchTrueN_fv
+  rw [hnum, htop]
+  have hcn : interpClosed
+      (engelerReflexiveDcpo engelerPair engelerPair_injective) (churchNumN n) =
+      engelerWithNumerals.numeral n := by
+    rw [← churchNum_interpClosed_eq_churchNumN]
+    rfl
+  have ht : interpClosed
+      (engelerReflexiveDcpo engelerPair engelerPair_injective) churchTrueN =
+      engelerWithNumerals.boolTop :=
+    (churchTrue_interpClosed_eq_churchTrueN
+      (engelerReflexiveDcpo engelerPair engelerPair_injective)).symm
+  rw [hcn, ht, coinD1_eqB_true]
+
+theorem coinD1_oracle_false (n : ℕ) :
+    eqB (appCoin coinD1 (vaSubset (interpClosedVA (A := coinAlgebra) (churchNumN n))))
+        (vaSubset (interpClosedVA (A := coinAlgebra) churchFalseN)) =
+      (memB n coinS1)ᶜ := by
+  have hnum := vaSubset_interpClosedVA (A := coinAlgebra) (churchNumN n)
+    (churchNumN_fv n)
+  have hbot := vaSubset_interpClosedVA (A := coinAlgebra) churchFalseN churchFalseN_fv
+  rw [hnum, hbot]
+  have hcn : interpClosed
+      (engelerReflexiveDcpo engelerPair engelerPair_injective) (churchNumN n) =
+      engelerWithNumerals.numeral n := by
+    rw [← churchNum_interpClosed_eq_churchNumN]
+    rfl
+  have hb : interpClosed
+      (engelerReflexiveDcpo engelerPair engelerPair_injective) churchFalseN =
+      engelerWithNumerals.boolBot :=
+    (churchFalse_interpClosed_eq_churchFalseN
+      (engelerReflexiveDcpo engelerPair engelerPair_injective)).symm
+  rw [hcn, hb, coinD1_eqB_false]
+
+theorem coinD2_oracle_true (n : ℕ) :
+    eqB (appCoin coinD2 (vaSubset (interpClosedVA (A := coinAlgebra) (churchNumN n))))
+        (vaSubset (interpClosedVA (A := coinAlgebra) churchTrueN)) =
+      memB n coinS2 := by
+  have hnum := vaSubset_interpClosedVA (A := coinAlgebra) (churchNumN n)
+    (churchNumN_fv n)
+  have htop := vaSubset_interpClosedVA (A := coinAlgebra) churchTrueN churchTrueN_fv
+  rw [hnum, htop]
+  have hcn : interpClosed
+      (engelerReflexiveDcpo engelerPair engelerPair_injective) (churchNumN n) =
+      engelerWithNumerals.numeral n := by
+    rw [← churchNum_interpClosed_eq_churchNumN]
+    rfl
+  have ht : interpClosed
+      (engelerReflexiveDcpo engelerPair engelerPair_injective) churchTrueN =
+      engelerWithNumerals.boolTop :=
+    (churchTrue_interpClosed_eq_churchTrueN
+      (engelerReflexiveDcpo engelerPair engelerPair_injective)).symm
+  rw [hcn, ht, coinD2_eqB_true]
+
+theorem coinD2_oracle_false (n : ℕ) :
+    eqB (appCoin coinD2 (vaSubset (interpClosedVA (A := coinAlgebra) (churchNumN n))))
+        (vaSubset (interpClosedVA (A := coinAlgebra) churchFalseN)) =
+      (memB n coinS2)ᶜ := by
+  have hnum := vaSubset_interpClosedVA (A := coinAlgebra) (churchNumN n)
+    (churchNumN_fv n)
+  have hbot := vaSubset_interpClosedVA (A := coinAlgebra) churchFalseN churchFalseN_fv
+  rw [hnum, hbot]
+  have hcn : interpClosed
+      (engelerReflexiveDcpo engelerPair engelerPair_injective) (churchNumN n) =
+      engelerWithNumerals.numeral n := by
+    rw [← churchNum_interpClosed_eq_churchNumN]
+    rfl
+  have hb : interpClosed
+      (engelerReflexiveDcpo engelerPair engelerPair_injective) churchFalseN =
+      engelerWithNumerals.boolBot :=
+    (churchFalse_interpClosed_eq_churchFalseN
+      (engelerReflexiveDcpo engelerPair engelerPair_injective)).symm
+  rw [hcn, hb, coinD2_eqB_false]
+
+theorem interpClosed_mapsNumerals (M : Lam ℕ) (hM : MapsNumerals M) (n : ℕ) :
+    interpClosed engelerWithNumerals.toReflexiveDcpo (M.app (churchNumN n)) =
+      engelerWithNumerals.numeral (mapsNumeralsFun M hM n) :=
+  mapsNumerals_interp_numeral hM n
+
+theorem appCoin_d2_term (S : Set ℕ) :
+    appCoin coinD2 (checkSet S) =
+      G_X_measure coinMeasure (L0.mk_measure coinMeasure (appChi2L0 S)) :=
+  appCoin_d2_of S
+
+theorem appCoin_d1_term (S : Set ℕ) :
+    appCoin coinD1 (checkSet S) =
+      G_X_measure coinMeasure (L0.mk_measure coinMeasure (appChi1L0 S)) :=
+  appCoin_d1_of S
+
+theorem l0App_coinChi2_interp (M : Lam ℕ) (hM : MapsNumerals M) (n : ℕ)
+    (p : CoinSpace) :
+    l0App engelerPair coinChi2
+        (constRV (X := CoinSpace)
+          (interpClosed engelerWithNumerals.toReflexiveDcpo
+            (M.app (churchNumN n)))) p =
+      chiNum engelerWithNumerals (bits2 p) (mapsNumeralsFun M hM n) := by
+  rw [interpClosed_mapsNumerals M hM n]
+  exact l0App_coinChi2_numeral (mapsNumeralsFun M hM n) p
+
+theorem coinD2_app_maps_eqB (M : Lam ℕ) (hM : MapsNumerals M) (n : ℕ) :
+    eqB (appCoin coinD2 (checkSet
+          (interpClosed engelerWithNumerals.toReflexiveDcpo
+            (M.app (churchNumN n)))))
+        (appCoin coinD1 (checkSet (engelerWithNumerals.numeral n))) =
+      (coinS2 (mapsNumeralsFun M hM n) ⇨ coinS1 n) ⊓
+        (coinS1 n ⇨ coinS2 (mapsNumeralsFun M hM n)) := by
+  set f := mapsNumeralsFun M hM
+  rw [appCoin_d2_term, appCoin_d1_term, eqB_G_X_measure_mk]
+  have hset :
+      l0Eq (appChi2L0 (interpClosed engelerWithNumerals.toReflexiveDcpo
+            (M.app (churchNumN n)))).val
+        (appChi1L0 (engelerWithNumerals.numeral n)).val =
+      (agreeBit f n true ∪ agreeBit f n false) := by
+    ext p
+    simp only [l0Eq, mem_setOf, mem_union, agreeBit, D1, D2, mem_inter_iff,
+      mem_setOf_eq, appChi2L0, appChi1L0]
+    rw [l0App_coinChi2_interp M hM n, l0App_coinChi1_numeral]
+    have hiff :
+        chiNum engelerWithNumerals (bits2 p) (f n) =
+            chiNum engelerWithNumerals (bits1 p) n ↔
+          (n ∈ bits1 p ↔ f n ∈ bits2 p) :=
+      (chiNum_eq_iff engelerWithNumerals (bits2 p) (bits1 p) (f n) n).trans Iff.comm
+    constructor
+    · intro heq
+      have hmem := hiff.mp heq
+      cases hp1 : p.1 n <;> cases hp2 : p.2 (f n)
+      · simp [bits1, bits2, hp1, hp2] at hmem ⊢
+      · simp [bits1, bits2, hp1, hp2] at hmem
+      · simp [bits1, bits2, hp1, hp2] at hmem
+      · simp [hp1, hp2]
+    · intro h
+      apply hiff.mpr
+      cases hp1 : p.1 n <;> cases hp2 : p.2 (f n)
+      · simp [bits1, bits2, hp1, hp2] at h ⊢
+      · simp [bits1, bits2, hp1, hp2] at h ⊢
+      · simp [bits1, bits2, hp1, hp2] at h ⊢
+      · simp [bits1, bits2, hp1, hp2] at h ⊢
+  rw [inf_comm, coinS1_iff_coinS2_eq_mk]
+  exact MeasureAlgebra.mk_congr coinMeasure hset
+
+theorem coinD2_app_maps_eqB_va (M : Lam ℕ) (hM : MapsNumerals M) (n : ℕ) :
+    eqB (appCoin coinD2 (vaSubset (interpClosedVA (A := coinAlgebra)
+          (M.app (churchNumN n)))))
+        (appCoin coinD1 (vaSubset (interpClosedVA (A := coinAlgebra)
+          (churchNumN n)))) =
+      (coinS2 (mapsNumeralsFun M hM n) ⇨ coinS1 n) ⊓
+        (coinS1 n ⇨ coinS2 (mapsNumeralsFun M hM n)) := by
+  have hMcl : (M.app (churchNumN n)).fv = ∅ := by
+    simp [Lam.fv, hM.1, churchNumN_fv]
+  have hMc := vaSubset_interpClosedVA (A := coinAlgebra) (M.app (churchNumN n)) hMcl
+  have hcn := vaSubset_interpClosedVA (A := coinAlgebra) (churchNumN n)
+    (churchNumN_fv n)
+  rw [hMc, hcn]
+  convert coinD2_app_maps_eqB M hM n
+  · rfl
+  · rw [← churchNum_interpClosed_eq_churchNumN]
+    rfl
+
+theorem coinD2_app_maps_iInf_bot (M : Lam ℕ) (hM : MapsNumerals M) :
+    (⨅ n, eqB (appCoin coinD2 (checkSet
+          (interpClosed engelerWithNumerals.toReflexiveDcpo
+            (M.app (churchNumN n)))))
+        (appCoin coinD1 (checkSet (engelerWithNumerals.numeral n)))) = ⊥ := by
+  simp_rw [coinD2_app_maps_eqB M hM, inf_comm]
+  exact (proposition_42_algebra (mapsNumeralsFun M hM)).2.2.1
+
+theorem l0App_coinChi1_interp (M : Lam ℕ) (hM : MapsNumerals M) (n : ℕ)
+    (p : CoinSpace) :
+    l0App engelerPair coinChi1
+        (constRV (X := CoinSpace)
+          (interpClosed engelerWithNumerals.toReflexiveDcpo
+            (M.app (churchNumN n)))) p =
+      chiNum engelerWithNumerals (bits1 p) (mapsNumeralsFun M hM n) := by
+  rw [interpClosed_mapsNumerals M hM n]
+  exact l0App_coinChi1_numeral (mapsNumeralsFun M hM n) p
+
+theorem coinD1_app_maps_eqB (M : Lam ℕ) (hM : MapsNumerals M) (n : ℕ) :
+    eqB (appCoin coinD1 (checkSet
+          (interpClosed engelerWithNumerals.toReflexiveDcpo
+            (M.app (churchNumN n)))))
+        (appCoin coinD2 (checkSet (engelerWithNumerals.numeral n))) =
+      (coinS1 (mapsNumeralsFun M hM n) ⇨ coinS2 n) ⊓
+        (coinS2 n ⇨ coinS1 (mapsNumeralsFun M hM n)) := by
+  set f := mapsNumeralsFun M hM
+  rw [appCoin_d1_term, appCoin_d2_term, eqB_G_X_measure_mk]
+  have hset :
+      l0Eq (appChi1L0 (interpClosed engelerWithNumerals.toReflexiveDcpo
+            (M.app (churchNumN n)))).val
+        (appChi2L0 (engelerWithNumerals.numeral n)).val =
+      ((D2 n true ∩ D1 (f n) true) ∪ (D2 n false ∩ D1 (f n) false)) := by
+    ext p
+    simp only [l0Eq, mem_setOf, mem_union, D1, D2, mem_inter_iff, mem_setOf_eq,
+      appChi1L0, appChi2L0]
+    rw [l0App_coinChi1_interp M hM n, l0App_coinChi2_numeral]
+    have hiff :
+        chiNum engelerWithNumerals (bits1 p) (f n) =
+            chiNum engelerWithNumerals (bits2 p) n ↔
+          (n ∈ bits2 p ↔ f n ∈ bits1 p) :=
+      (chiNum_eq_iff engelerWithNumerals (bits1 p) (bits2 p) (f n) n).trans Iff.comm
+    constructor
+    · intro heq
+      have hmem := hiff.mp heq
+      cases hp2 : p.2 n <;> cases hp1 : p.1 (f n)
+      · simp [bits1, bits2, hp1, hp2] at hmem ⊢
+      · simp [bits1, bits2, hp1, hp2] at hmem
+      · simp [bits1, bits2, hp1, hp2] at hmem
+      · simp [hp1, hp2]
+    · intro h
+      apply hiff.mpr
+      cases hp2 : p.2 n <;> cases hp1 : p.1 (f n)
+      · simp [bits1, bits2, hp1, hp2] at h ⊢
+      · simp [bits1, bits2, hp1, hp2] at h ⊢
+      · simp [bits1, bits2, hp1, hp2] at h ⊢
+      · simp [bits1, bits2, hp1, hp2] at h ⊢
+  rw [inf_comm, coinS2_iff_coinS1_eq_mk]
+  exact MeasureAlgebra.mk_congr coinMeasure hset
+
+theorem coinD1_app_maps_iInf_bot (M : Lam ℕ) (hM : MapsNumerals M) :
+    (⨅ n, eqB (appCoin coinD1 (checkSet
+          (interpClosed engelerWithNumerals.toReflexiveDcpo
+            (M.app (churchNumN n)))))
+        (appCoin coinD2 (checkSet (engelerWithNumerals.numeral n)))) = ⊥ := by
+  simp_rw [coinD1_app_maps_eqB M hM, inf_comm]
+  exact (proposition_42_algebra (mapsNumeralsFun M hM)).2.2.2
+
+theorem appCoin_of_inv (d : ASubset coinAlgebra ℕ) (S : Set ℕ) :
+    appCoin d (checkSet S) =
+      G_X_measure coinMeasure (L0.app_measure coinMeasure engelerPair
+        (L0.mk_measure coinMeasure (G_X_measure_inv coinMeasure d))
+        (L0.mk_measure coinMeasure (constL0 S))) := by
+  have hd : G_X_measure coinMeasure (L0.mk_measure coinMeasure
+      (G_X_measure_inv coinMeasure d)) = d :=
+    G_X_measure_inv_right coinMeasure d
+  have h := proposition_40_measure (E := ℕ) coinMeasure engelerPair
+    (L0.mk_measure coinMeasure (G_X_measure_inv coinMeasure d))
+    (L0.mk_measure coinMeasure (constL0 S))
+  rw [hd, ← checkSet_eq_G_X] at h
+  exact h.symm
+
+noncomputable def invAppFun (d : ASubset coinAlgebra ℕ) (S : Set ℕ) :
+    L0Fun CoinSpace ℕ :=
+  ⟨l0App engelerPair (G_X_measure_inv coinMeasure d).val
+      (constRV (X := CoinSpace) S),
+    l0App_isL0 engelerPair (G_X_measure_inv coinMeasure d).property
+      (constRV_isL0 (X := CoinSpace) S)⟩
+
+theorem appCoin_of_inv_mk (d : ASubset coinAlgebra ℕ) (S : Set ℕ) :
+    appCoin d (checkSet S) =
+      G_X_measure coinMeasure (L0.mk_measure coinMeasure (invAppFun d S)) := by
+  rw [appCoin_of_inv]
+  have happ := L0.app_measure_mk coinMeasure engelerPair
+    (G_X_measure_inv coinMeasure d) (constL0 S)
+  rw [happ]
+  rfl
+
+theorem eqB_appCoin_inv (d₂ d₁ : ASubset coinAlgebra ℕ) (S T : Set ℕ) :
+    eqB (appCoin d₂ (checkSet S)) (appCoin d₁ (checkSet T)) =
+      MeasureAlgebra.mk coinMeasure
+        (l0Eq (invAppFun d₂ S).val (invAppFun d₁ T).val)
+        (measurableSet_l0Eq (invAppFun d₂ S).property
+          (invAppFun d₁ T).property) := by
+  rw [appCoin_of_inv_mk, appCoin_of_inv_mk, eqB_G_X_measure_mk]
+
+noncomputable def mapsAgreeSet (M : Lam ℕ) (hM : MapsNumerals M) :
+    Set CoinSpace :=
+  ⋂ n, {x | engelerApp engelerPair (coinA2Fun.val x)
+      (interpClosed engelerWithNumerals.toReflexiveDcpo (M.app (churchNumN n))) =
+    engelerApp engelerPair (coinA1Fun.val x) (engelerWithNumerals.numeral n)}
+
+theorem mapsAgreeSet_eq_iInter (M : Lam ℕ) (hM : MapsNumerals M) :
+    mapsAgreeSet M hM =
+      ⋂ n, l0Eq (invAppFun coinD2
+          (interpClosed engelerWithNumerals.toReflexiveDcpo
+            (M.app (churchNumN n)))).val
+        (invAppFun coinD1 (engelerWithNumerals.numeral n)).val := by
+  ext x
+  simp only [mapsAgreeSet, mem_iInter, mem_setOf, l0Eq, invAppFun, l0App, constRV]
+  rfl
+
+theorem measurableSet_mapsAgreeSet (M : Lam ℕ) (hM : MapsNumerals M) :
+    MeasurableSet (mapsAgreeSet M hM) := by
+  rw [mapsAgreeSet_eq_iInter]
+  exact MeasurableSet.iInter fun n =>
+    measurableSet_l0Eq
+      (invAppFun coinD2 (interpClosed engelerWithNumerals.toReflexiveDcpo
+        (M.app (churchNumN n)))).property
+      (invAppFun coinD1 (engelerWithNumerals.numeral n)).property
+
+theorem mapsAgreeSet_mk_bot (M : Lam ℕ) (hM : MapsNumerals M) :
+    MeasureAlgebra.mk coinMeasure (mapsAgreeSet M hM)
+      (measurableSet_mapsAgreeSet M hM) = ⊥ := by
+  have hinf := coinD2_app_maps_iInf_bot M hM
+  have hcongr :
+      (⨅ n, eqB (appCoin coinD2 (checkSet
+          (interpClosed engelerWithNumerals.toReflexiveDcpo
+            (M.app (churchNumN n)))))
+        (appCoin coinD1 (checkSet (engelerWithNumerals.numeral n)))) =
+      (⨅ n, MeasureAlgebra.mk coinMeasure
+        (l0Eq (invAppFun coinD2
+            (interpClosed engelerWithNumerals.toReflexiveDcpo
+              (M.app (churchNumN n)))).val
+          (invAppFun coinD1 (engelerWithNumerals.numeral n)).val)
+        (measurableSet_l0Eq
+          (invAppFun coinD2 (interpClosed engelerWithNumerals.toReflexiveDcpo
+            (M.app (churchNumN n)))).property
+          (invAppFun coinD1 (engelerWithNumerals.numeral n)).property)) :=
+    iInf_congr fun n => eqB_appCoin_inv coinD2 coinD1 _ _
+  rw [hcongr] at hinf
+  have hmk := MeasureAlgebra.iInf_mk coinMeasure
+    (fun n => l0Eq (invAppFun coinD2
+        (interpClosed engelerWithNumerals.toReflexiveDcpo
+          (M.app (churchNumN n)))).val
+      (invAppFun coinD1 (engelerWithNumerals.numeral n)).val)
+    (fun n => measurableSet_l0Eq
+      (invAppFun coinD2 (interpClosed engelerWithNumerals.toReflexiveDcpo
+        (M.app (churchNumN n)))).property
+      (invAppFun coinD1 (engelerWithNumerals.numeral n)).property)
+  exact (MeasureAlgebra.mk_congr coinMeasure (mapsAgreeSet_eq_iInter M hM)).trans
+    (hmk.symm.trans hinf)
+
+theorem mapsAgreeSet_null (M : Lam ℕ) (hM : MapsNumerals M) :
+    coinMeasure (mapsAgreeSet M hM) = 0 :=
+  (MeasureAlgebra.mk_eq_bot coinMeasure).mp (mapsAgreeSet_mk_bot M hM)
+
+noncomputable def mapsAgreeSet_swap (M : Lam ℕ) (hM : MapsNumerals M) :
+    Set CoinSpace :=
+  ⋂ n, {x | engelerApp engelerPair (coinA1Fun.val x)
+      (interpClosed engelerWithNumerals.toReflexiveDcpo (M.app (churchNumN n))) =
+    engelerApp engelerPair (coinA2Fun.val x) (engelerWithNumerals.numeral n)}
+
+theorem mapsAgreeSet_swap_eq_iInter (M : Lam ℕ) (hM : MapsNumerals M) :
+    mapsAgreeSet_swap M hM =
+      ⋂ n, l0Eq (invAppFun coinD1
+          (interpClosed engelerWithNumerals.toReflexiveDcpo
+            (M.app (churchNumN n)))).val
+        (invAppFun coinD2 (engelerWithNumerals.numeral n)).val := by
+  ext x
+  simp only [mapsAgreeSet_swap, mem_iInter, mem_setOf, l0Eq, invAppFun, l0App,
+    constRV]
+  rfl
+
+theorem measurableSet_mapsAgreeSet_swap (M : Lam ℕ) (hM : MapsNumerals M) :
+    MeasurableSet (mapsAgreeSet_swap M hM) := by
+  rw [mapsAgreeSet_swap_eq_iInter]
+  exact MeasurableSet.iInter fun n =>
+    measurableSet_l0Eq
+      (invAppFun coinD1 (interpClosed engelerWithNumerals.toReflexiveDcpo
+        (M.app (churchNumN n)))).property
+      (invAppFun coinD2 (engelerWithNumerals.numeral n)).property
+
+theorem mapsAgreeSet_swap_mk_bot (M : Lam ℕ) (hM : MapsNumerals M) :
+    MeasureAlgebra.mk coinMeasure (mapsAgreeSet_swap M hM)
+      (measurableSet_mapsAgreeSet_swap M hM) = ⊥ := by
+  have hinf := coinD1_app_maps_iInf_bot M hM
+  have hcongr :
+      (⨅ n, eqB (appCoin coinD1 (checkSet
+          (interpClosed engelerWithNumerals.toReflexiveDcpo
+            (M.app (churchNumN n)))))
+        (appCoin coinD2 (checkSet (engelerWithNumerals.numeral n)))) =
+      (⨅ n, MeasureAlgebra.mk coinMeasure
+        (l0Eq (invAppFun coinD1
+            (interpClosed engelerWithNumerals.toReflexiveDcpo
+              (M.app (churchNumN n)))).val
+          (invAppFun coinD2 (engelerWithNumerals.numeral n)).val)
+        (measurableSet_l0Eq
+          (invAppFun coinD1 (interpClosed engelerWithNumerals.toReflexiveDcpo
+            (M.app (churchNumN n)))).property
+          (invAppFun coinD2 (engelerWithNumerals.numeral n)).property)) :=
+    iInf_congr fun n => eqB_appCoin_inv coinD1 coinD2 _ _
+  rw [hcongr] at hinf
+  have hmk := MeasureAlgebra.iInf_mk coinMeasure
+    (fun n => l0Eq (invAppFun coinD1
+        (interpClosed engelerWithNumerals.toReflexiveDcpo
+          (M.app (churchNumN n)))).val
+      (invAppFun coinD2 (engelerWithNumerals.numeral n)).val)
+    (fun n => measurableSet_l0Eq
+      (invAppFun coinD1 (interpClosed engelerWithNumerals.toReflexiveDcpo
+        (M.app (churchNumN n)))).property
+      (invAppFun coinD2 (engelerWithNumerals.numeral n)).property)
+  exact (MeasureAlgebra.mk_congr coinMeasure (mapsAgreeSet_swap_eq_iInter M hM)).trans
+    (hmk.symm.trans hinf)
+
+theorem mapsAgreeSet_swap_null (M : Lam ℕ) (hM : MapsNumerals M) :
+    coinMeasure (mapsAgreeSet_swap M hM) = 0 :=
+  (MeasureAlgebra.mk_eq_bot coinMeasure).mp (mapsAgreeSet_swap_mk_bot M hM)
+
+noncomputable def paperReductionNull : Set CoinSpace :=
+  ⋃ M : {M : Lam ℕ // MapsNumerals M},
+    mapsAgreeSet M.1 M.2 ∪ mapsAgreeSet_swap M.1 M.2
+
+theorem paperReductionNull_null : coinMeasure paperReductionNull = 0 := by
+  haveI : Countable (Lam ℕ) := Function.Injective.countable lamEncode_injective
+  refine measure_iUnion_null fun M =>
+    measure_union_null (mapsAgreeSet_null M.1 M.2) (mapsAgreeSet_swap_null M.1 M.2)
+
+noncomputable def boolValSet1 : Set CoinSpace :=
+  ⋂ n, {x | engelerApp engelerPair (coinA1Fun.val x)
+      (engelerWithNumerals.numeral n) =
+    engelerWithNumerals.boolTop ∨
+    engelerApp engelerPair (coinA1Fun.val x)
+      (engelerWithNumerals.numeral n) =
+    engelerWithNumerals.boolBot}
+
+noncomputable def boolValSet2 : Set CoinSpace :=
+  ⋂ n, {x | engelerApp engelerPair (coinA2Fun.val x)
+      (engelerWithNumerals.numeral n) =
+    engelerWithNumerals.boolTop ∨
+    engelerApp engelerPair (coinA2Fun.val x)
+      (engelerWithNumerals.numeral n) =
+    engelerWithNumerals.boolBot}
+
+theorem boolValSlice1_eq (n : ℕ) :
+    {x : CoinSpace | engelerApp engelerPair (coinA1Fun.val x)
+        (engelerWithNumerals.numeral n) = engelerWithNumerals.boolTop ∨
+      engelerApp engelerPair (coinA1Fun.val x)
+        (engelerWithNumerals.numeral n) = engelerWithNumerals.boolBot} =
+      l0Eq (invAppFun coinD1 (engelerWithNumerals.numeral n)).val
+          (constRV (X := CoinSpace) engelerWithNumerals.boolTop) ∪
+      l0Eq (invAppFun coinD1 (engelerWithNumerals.numeral n)).val
+          (constRV (X := CoinSpace) engelerWithNumerals.boolBot) := by
+  ext x
+  simp [l0Eq, invAppFun, l0App, constRV, coinA1Fun]
+
+theorem boolValSlice2_eq (n : ℕ) :
+    {x : CoinSpace | engelerApp engelerPair (coinA2Fun.val x)
+        (engelerWithNumerals.numeral n) = engelerWithNumerals.boolTop ∨
+      engelerApp engelerPair (coinA2Fun.val x)
+        (engelerWithNumerals.numeral n) = engelerWithNumerals.boolBot} =
+      l0Eq (invAppFun coinD2 (engelerWithNumerals.numeral n)).val
+          (constRV (X := CoinSpace) engelerWithNumerals.boolTop) ∪
+      l0Eq (invAppFun coinD2 (engelerWithNumerals.numeral n)).val
+          (constRV (X := CoinSpace) engelerWithNumerals.boolBot) := by
+  ext x
+  simp [l0Eq, invAppFun, l0App, constRV, coinA2Fun]
+
+theorem measurableSet_boolValSlice1 (n : ℕ) :
+    MeasurableSet {x : CoinSpace | engelerApp engelerPair (coinA1Fun.val x)
+        (engelerWithNumerals.numeral n) = engelerWithNumerals.boolTop ∨
+      engelerApp engelerPair (coinA1Fun.val x)
+        (engelerWithNumerals.numeral n) = engelerWithNumerals.boolBot} := by
+  rw [boolValSlice1_eq]
+  exact (measurableSet_l0Eq
+      (invAppFun coinD1 (engelerWithNumerals.numeral n)).property
+      (constRV_isL0 (X := CoinSpace) engelerWithNumerals.boolTop)).union
+    (measurableSet_l0Eq
+      (invAppFun coinD1 (engelerWithNumerals.numeral n)).property
+      (constRV_isL0 (X := CoinSpace) engelerWithNumerals.boolBot))
+
+theorem measurableSet_boolValSlice2 (n : ℕ) :
+    MeasurableSet {x : CoinSpace | engelerApp engelerPair (coinA2Fun.val x)
+        (engelerWithNumerals.numeral n) = engelerWithNumerals.boolTop ∨
+      engelerApp engelerPair (coinA2Fun.val x)
+        (engelerWithNumerals.numeral n) = engelerWithNumerals.boolBot} := by
+  rw [boolValSlice2_eq]
+  exact (measurableSet_l0Eq
+      (invAppFun coinD2 (engelerWithNumerals.numeral n)).property
+      (constRV_isL0 (X := CoinSpace) engelerWithNumerals.boolTop)).union
+    (measurableSet_l0Eq
+      (invAppFun coinD2 (engelerWithNumerals.numeral n)).property
+      (constRV_isL0 (X := CoinSpace) engelerWithNumerals.boolBot))
+
+theorem measurableSet_boolValSet1 : MeasurableSet boolValSet1 :=
+  MeasurableSet.iInter measurableSet_boolValSlice1
+
+theorem measurableSet_boolValSet2 : MeasurableSet boolValSet2 :=
+  MeasurableSet.iInter measurableSet_boolValSlice2
+
+theorem eqB_appCoin_check (d : ASubset coinAlgebra ℕ) (S T : Set ℕ) :
+    eqB (appCoin d (checkSet S)) (checkSet T) =
+      MeasureAlgebra.mk coinMeasure
+        (l0Eq (invAppFun d S).val (constL0 T).val)
+        (measurableSet_l0Eq (invAppFun d S).property (constL0 T).property) := by
+  rw [appCoin_of_inv_mk, checkSet_eq_G_X]
+  exact eqB_G_X_measure_mk (invAppFun d S) (constL0 T)
+
+theorem boolValSlice1_mk_top (n : ℕ) :
+    MeasureAlgebra.mk coinMeasure
+      (l0Eq (invAppFun coinD1 (engelerWithNumerals.numeral n)).val
+          (constRV (X := CoinSpace) engelerWithNumerals.boolTop) ∪
+        l0Eq (invAppFun coinD1 (engelerWithNumerals.numeral n)).val
+          (constRV (X := CoinSpace) engelerWithNumerals.boolBot))
+      ((measurableSet_l0Eq
+          (invAppFun coinD1 (engelerWithNumerals.numeral n)).property
+          (constRV_isL0 (X := CoinSpace) engelerWithNumerals.boolTop)).union
+        (measurableSet_l0Eq
+          (invAppFun coinD1 (engelerWithNumerals.numeral n)).property
+          (constRV_isL0 (X := CoinSpace) engelerWithNumerals.boolBot))) = ⊤ := by
+  have h :
+      eqB (appCoin coinD1 (checkSet (engelerWithNumerals.numeral n)))
+          (checkSet engelerWithNumerals.boolTop) ⊔
+      eqB (appCoin coinD1 (checkSet (engelerWithNumerals.numeral n)))
+          (checkSet engelerWithNumerals.boolBot) = ⊤ := by
+    rw [coinD1_eqB_true, coinD1_eqB_false]
+    exact sup_compl_eq_top
+  rw [eqB_appCoin_check, eqB_appCoin_check, MeasureAlgebra.sup_mk] at h
+  exact h
+
+theorem boolValSlice2_mk_top (n : ℕ) :
+    MeasureAlgebra.mk coinMeasure
+      (l0Eq (invAppFun coinD2 (engelerWithNumerals.numeral n)).val
+          (constRV (X := CoinSpace) engelerWithNumerals.boolTop) ∪
+        l0Eq (invAppFun coinD2 (engelerWithNumerals.numeral n)).val
+          (constRV (X := CoinSpace) engelerWithNumerals.boolBot))
+      ((measurableSet_l0Eq
+          (invAppFun coinD2 (engelerWithNumerals.numeral n)).property
+          (constRV_isL0 (X := CoinSpace) engelerWithNumerals.boolTop)).union
+        (measurableSet_l0Eq
+          (invAppFun coinD2 (engelerWithNumerals.numeral n)).property
+          (constRV_isL0 (X := CoinSpace) engelerWithNumerals.boolBot))) = ⊤ := by
+  have h :
+      eqB (appCoin coinD2 (checkSet (engelerWithNumerals.numeral n)))
+          (checkSet engelerWithNumerals.boolTop) ⊔
+      eqB (appCoin coinD2 (checkSet (engelerWithNumerals.numeral n)))
+          (checkSet engelerWithNumerals.boolBot) = ⊤ := by
+    rw [coinD2_eqB_true, coinD2_eqB_false]
+    exact sup_compl_eq_top
+  rw [eqB_appCoin_check, eqB_appCoin_check, MeasureAlgebra.sup_mk] at h
+  exact h
+
+theorem boolValSet1_conull : coinMeasure boolValSet1ᶜ = 0 := by
+  have hslice : ∀ n, coinMeasure
+      ({x : CoinSpace | engelerApp engelerPair (coinA1Fun.val x)
+          (engelerWithNumerals.numeral n) = engelerWithNumerals.boolTop ∨
+        engelerApp engelerPair (coinA1Fun.val x)
+          (engelerWithNumerals.numeral n) = engelerWithNumerals.boolBot} : Set CoinSpace)ᶜ = 0 := by
+    intro n
+    have hmk :
+        MeasureAlgebra.mk coinMeasure
+          ({x : CoinSpace | engelerApp engelerPair (coinA1Fun.val x)
+              (engelerWithNumerals.numeral n) = engelerWithNumerals.boolTop ∨
+            engelerApp engelerPair (coinA1Fun.val x)
+              (engelerWithNumerals.numeral n) = engelerWithNumerals.boolBot})
+          (measurableSet_boolValSlice1 n) = ⊤ :=
+      (MeasureAlgebra.mk_congr coinMeasure (boolValSlice1_eq n).symm).trans
+        (boolValSlice1_mk_top n)
+    exact (MeasureAlgebra.mk_eq_top coinMeasure).mp hmk
+  have : boolValSet1ᶜ = ⋃ n, ({x : CoinSpace | engelerApp engelerPair (coinA1Fun.val x)
+      (engelerWithNumerals.numeral n) = engelerWithNumerals.boolTop ∨
+    engelerApp engelerPair (coinA1Fun.val x)
+      (engelerWithNumerals.numeral n) = engelerWithNumerals.boolBot} : Set CoinSpace)ᶜ := by
+    ext x
+    simp [boolValSet1]
+  rw [this]
+  exact measure_iUnion_null hslice
+
+theorem boolValSet2_conull : coinMeasure boolValSet2ᶜ = 0 := by
+  have hslice : ∀ n, coinMeasure
+      ({x : CoinSpace | engelerApp engelerPair (coinA2Fun.val x)
+          (engelerWithNumerals.numeral n) = engelerWithNumerals.boolTop ∨
+        engelerApp engelerPair (coinA2Fun.val x)
+          (engelerWithNumerals.numeral n) = engelerWithNumerals.boolBot} : Set CoinSpace)ᶜ = 0 := by
+    intro n
+    have hmk :
+        MeasureAlgebra.mk coinMeasure
+          ({x : CoinSpace | engelerApp engelerPair (coinA2Fun.val x)
+              (engelerWithNumerals.numeral n) = engelerWithNumerals.boolTop ∨
+            engelerApp engelerPair (coinA2Fun.val x)
+              (engelerWithNumerals.numeral n) = engelerWithNumerals.boolBot})
+          (measurableSet_boolValSlice2 n) = ⊤ :=
+      (MeasureAlgebra.mk_congr coinMeasure (boolValSlice2_eq n).symm).trans
+        (boolValSlice2_mk_top n)
+    exact (MeasureAlgebra.mk_eq_top coinMeasure).mp hmk
+  have : boolValSet2ᶜ = ⋃ n, ({x : CoinSpace | engelerApp engelerPair (coinA2Fun.val x)
+      (engelerWithNumerals.numeral n) = engelerWithNumerals.boolTop ∨
+    engelerApp engelerPair (coinA2Fun.val x)
+      (engelerWithNumerals.numeral n) = engelerWithNumerals.boolBot} : Set CoinSpace)ᶜ := by
+    ext x
+    simp [boolValSet2]
+  rw [this]
+  exact measure_iUnion_null hslice
+
+noncomputable def paperGoodSet : Set CoinSpace :=
+  paperReductionNullᶜ ∩ boolValSet1 ∩ boolValSet2
+
+theorem paperGoodSet_conull : coinMeasure paperGoodSetᶜ = 0 := by
+  have : paperGoodSetᶜ =
+      paperReductionNull ∪ boolValSet1ᶜ ∪ boolValSet2ᶜ := by
+    ext x
+    simp [paperGoodSet]
+    tauto
+  rw [this]
+  exact measure_union_null (measure_union_null paperReductionNull_null
+    boolValSet1_conull) boolValSet2_conull
+
+theorem exists_mem_paperGoodSet : ∃ x : CoinSpace, x ∈ paperGoodSet := by
+  by_contra h
+  push_neg at h
+  have heq : paperGoodSet = (∅ : Set CoinSpace) := eq_empty_iff_forall_notMem.mpr h
+  have : coinMeasure (Set.univ : Set CoinSpace) = 0 := by
+    have h1 : coinMeasure paperGoodSetᶜ = 0 := paperGoodSet_conull
+    rw [heq] at h1
+    simpa using h1
+  exact zero_ne_one (this.symm.trans measure_univ)
+
+theorem isOracle_of_mem_boolValSet1 {x : CoinSpace} (hx : x ∈ boolValSet1)
+    (T : Set ℕ)
+    (hT : T = {n | engelerApp engelerPair (coinA1Fun.val x)
+      (engelerWithNumerals.numeral n) = engelerWithNumerals.boolTop}) :
+    IsOracle engelerWithNumerals (coinA1Fun.val x) T := by
+  intro n
+  have hbool : engelerApp engelerPair (coinA1Fun.val x)
+      (engelerWithNumerals.numeral n) = engelerWithNumerals.boolTop ∨
+    engelerApp engelerPair (coinA1Fun.val x)
+      (engelerWithNumerals.numeral n) = engelerWithNumerals.boolBot :=
+    (mem_iInter.mp hx) n
+  have happ : engelerWithNumerals.app (coinA1Fun.val x)
+      (engelerWithNumerals.numeral n) =
+    engelerApp engelerPair (coinA1Fun.val x) (engelerWithNumerals.numeral n) :=
+    (engelerApp_funMap (coinA1Fun.val x) (engelerWithNumerals.numeral n)).symm
+  rw [happ]
+  by_cases htop : engelerApp engelerPair (coinA1Fun.val x)
+      (engelerWithNumerals.numeral n) = engelerWithNumerals.boolTop
+  · have hnT : n ∈ T := by
+      simp [hT, htop]
+    rw [htop, chiNum]
+    simp [hnT]
+  · have hbot : engelerApp engelerPair (coinA1Fun.val x)
+        (engelerWithNumerals.numeral n) = engelerWithNumerals.boolBot :=
+      hbool.resolve_left htop
+    have hnT : n ∉ T := by
+      simp [hT, htop]
+    rw [hbot, chiNum]
+    simp [hnT]
+
+theorem isOracle_of_mem_boolValSet2 {x : CoinSpace} (hx : x ∈ boolValSet2)
+    (T : Set ℕ)
+    (hT : T = {n | engelerApp engelerPair (coinA2Fun.val x)
+      (engelerWithNumerals.numeral n) = engelerWithNumerals.boolTop}) :
+    IsOracle engelerWithNumerals (coinA2Fun.val x) T := by
+  intro n
+  have hbool : engelerApp engelerPair (coinA2Fun.val x)
+      (engelerWithNumerals.numeral n) = engelerWithNumerals.boolTop ∨
+    engelerApp engelerPair (coinA2Fun.val x)
+      (engelerWithNumerals.numeral n) = engelerWithNumerals.boolBot :=
+    (mem_iInter.mp hx) n
+  have happ : engelerWithNumerals.app (coinA2Fun.val x)
+      (engelerWithNumerals.numeral n) =
+    engelerApp engelerPair (coinA2Fun.val x) (engelerWithNumerals.numeral n) :=
+    (engelerApp_funMap (coinA2Fun.val x) (engelerWithNumerals.numeral n)).symm
+  rw [happ]
+  by_cases htop : engelerApp engelerPair (coinA2Fun.val x)
+      (engelerWithNumerals.numeral n) = engelerWithNumerals.boolTop
+  · have hnT : n ∈ T := by
+      simp [hT, htop]
+    rw [htop, chiNum]
+    simp [hnT]
+  · have hbot : engelerApp engelerPair (coinA2Fun.val x)
+        (engelerWithNumerals.numeral n) = engelerWithNumerals.boolBot :=
+      hbool.resolve_left htop
+    have hnT : n ∉ T := by
+      simp [hT, htop]
+    rw [hbot, chiNum]
+    simp [hnT]
+
+/-- Theorem 43 by the paper chain: Corollary 34 Engeler application
+`engelerAppA`, fiberwise Lemma 35(ii) oracles mixed as `L⁰`, Proposition 42,
+and transport through `G_X_measure_inv` (Propositions 39–40, Lemmas 31 and 41). -/
+theorem theorem_43_paper :
+    ∃ T₁ T₂ : Set ℕ, ¬proposition_36_i T₁ T₂ ∧ ¬proposition_36_i T₂ T₁ := by
+  obtain ⟨x, hx⟩ := exists_mem_paperGoodSet
+  have hxN : x ∉ paperReductionNull := hx.1.1
+  have hx1 : x ∈ boolValSet1 := hx.1.2
+  have hx2 : x ∈ boolValSet2 := hx.2
+  let T₁ : Set ℕ := {n | engelerApp engelerPair (coinA1Fun.val x)
+    (engelerWithNumerals.numeral n) = engelerWithNumerals.boolTop}
+  let T₂ : Set ℕ := {n | engelerApp engelerPair (coinA2Fun.val x)
+    (engelerWithNumerals.numeral n) = engelerWithNumerals.boolTop}
+  have hor1 : IsOracle engelerWithNumerals (coinA1Fun.val x) T₁ :=
+    isOracle_of_mem_boolValSet1 hx1 T₁ rfl
+  have hor2 : IsOracle engelerWithNumerals (coinA2Fun.val x) T₂ :=
+    isOracle_of_mem_boolValSet2 hx2 T₂ rfl
+  refine ⟨T₁, T₂, ?_, ?_⟩
+  · intro h
+    obtain ⟨M, hM, hii⟩ := proposition_36_ii_of_i h
+    have hforall := hii (coinA1Fun.val x) (coinA2Fun.val x) hor1 hor2
+    have hmem : x ∈ mapsAgreeSet M hM := by
+      refine mem_iInter.mpr fun n => ?_
+      have hn := hforall n
+      simp [mapsAgreeSet, engelerApp_funMap]
+      exact hn
+    have : x ∈ paperReductionNull :=
+      mem_iUnion.mpr ⟨⟨M, hM⟩, Or.inl hmem⟩
+    exact hxN this
+  · intro h
+    obtain ⟨M, hM, hii⟩ := proposition_36_ii_of_i h
+    have hforall := hii (coinA2Fun.val x) (coinA1Fun.val x) hor2 hor1
+    have hmem : x ∈ mapsAgreeSet_swap M hM := by
+      refine mem_iInter.mpr fun n => ?_
+      have hn := hforall n
+      simp [mapsAgreeSet_swap, engelerApp_funMap]
+      exact hn
+    have : x ∈ paperReductionNull :=
+      mem_iUnion.mpr ⟨⟨M, hM⟩, Or.inr hmem⟩
+    exact hxN this
+
+theorem theorem_43_via_paper :
+    ∃ T₁ T₂ : Set ℕ, ¬proposition_36_i T₁ T₂ ∧ ¬proposition_36_i T₂ T₁ :=
+  theorem_43_paper
+
+/-- A first-sequence cylinder of all coordinates has measure zero. -/
+theorem coinMeasure_determined_fst (b : Cantor) :
+    coinMeasure (⋂ n, D1 n (b n)) = 0 := by
+  refine coinMeasure_le_half_pow fun N => ?_
+  have hsub : (⋂ n, D1 n (b n)) ⊆ ⋂ n ∈ Finset.range N, D1 n (b n) := by
+    intro p hp
+    simp only [mem_iInter] at hp ⊢
+    exact fun n _ => hp n
+  have hcard : ((2⁻¹ : ℝ≥0∞) ^ (Finset.range N).card) = (2⁻¹) ^ N := by
+    simp
+  exact (measure_mono hsub).trans
+    (hcard ▸ le_of_eq (coinMeasure_D1_cylinder (Finset.range N) b))
+
+/-- Positive-measure sets in coin space split along a first-sequence bit:
+either some `D1 n` cuts a proper positive subclass, or every bit of the
+first sequence is a.e. determined and the class is null. -/
+theorem exists_coin_split {s : Set CoinSpace} (hs : MeasurableSet s)
+    (hpos : coinMeasure s ≠ 0) :
+    ∃ t, MeasurableSet t ∧ t ⊆ s ∧ coinMeasure t ≠ 0 ∧
+      coinMeasure t < coinMeasure s := by
+  by_cases hsplit : ∃ n, 0 < coinMeasure (s ∩ D1 n true) ∧
+      coinMeasure (s ∩ D1 n true) < coinMeasure s
+  · obtain ⟨n, hpos', hlt⟩ := hsplit
+    exact ⟨s ∩ D1 n true, hs.inter (measurableSet_D1 n true),
+      inter_subset_left, ne_of_gt hpos', hlt⟩
+  · exfalso
+    have hnsplit : ∀ n,
+        coinMeasure (s ∩ D1 n true) = 0 ∨
+          coinMeasure (s ∩ D1 n true) = coinMeasure s := by
+      intro n
+      have hle : coinMeasure (s ∩ D1 n true) ≤ coinMeasure s :=
+        measure_mono inter_subset_left
+      by_cases h0 : coinMeasure (s ∩ D1 n true) = 0
+      · exact Or.inl h0
+      · refine Or.inr (le_antisymm hle (le_of_not_gt fun hlt =>
+          hsplit ⟨n, bot_lt_iff_ne_bot.mpr h0, hlt⟩))
+    let b : Cantor := fun n =>
+      decide (coinMeasure (s ∩ D1 n true) = coinMeasure s)
+    have hnull : ∀ n, coinMeasure (s \ D1 n (b n)) = 0 := by
+      intro n
+      by_cases heq : coinMeasure (s ∩ D1 n true) = coinMeasure s
+      · have hb : b n = true := decide_eq_true heq
+        rw [hb]
+        have hset : s \ D1 n true = s \ (s ∩ D1 n true) := by
+          ext p; simp [mem_sdiff]
+        rw [hset, measure_sdiff (μ := coinMeasure) inter_subset_left
+            (hs.inter (measurableSet_D1 n true)).nullMeasurableSet
+            (measure_ne_top coinMeasure _), heq, tsub_self]
+      · have hb : b n = false := decide_eq_false heq
+        have heq0 : coinMeasure (s ∩ D1 n true) = 0 :=
+          (hnsplit n).resolve_right heq
+        have hset : s \ D1 n false = s ∩ D1 n true := by
+          rw [D1_false_eq_compl]
+          ext p
+          simp [mem_inter_iff]
+        rw [hb, hset, heq0]
+    have hmeasI : MeasurableSet (⋂ n, D1 n (b n)) :=
+      MeasurableSet.iInter fun n => measurableSet_D1 n (b n)
+    have hdiff : coinMeasure (s \ ⋂ n, D1 n (b n)) = 0 := by
+      have : s \ ⋂ n, D1 n (b n) = ⋃ n, s \ D1 n (b n) := by
+        ext p; simp
+      rw [this]
+      exact measure_iUnion_null hnull
+    have hadd := measure_inter_add_sdiff (μ := coinMeasure) s hmeasI
+    have hinter : coinMeasure (s ∩ ⋂ n, D1 n (b n)) = 0 :=
+      measure_mono_null inter_subset_right (coinMeasure_determined_fst b)
+    rw [hinter, hdiff, add_zero] at hadd
+    exact hpos hadd.symm
+
+/-- Fair-coin `A(X)` is atomless: any positive class splits along a
+fresh first-sequence coordinate (or else determines the first sequence
+and is null). -/
+theorem not_isAtomic_coinAlgebra : ¬IsAtomic coinAlgebra :=
+  not_isAtomic_measureAlgebra_of_splits
+    (by
+      have : coinMeasure Set.univ = 1 := measure_univ
+      exact this.symm ▸ one_ne_zero)
+    fun {_s} hs hpos => exists_coin_split hs hpos
+
+/-- Proposition 44 at the fair-coin instance of `A(X) = Σ/N(μ)`. -/
+theorem proposition_44_coin {Y : Type*} [Nonempty Y] [Countable Y] :
+    ¬IsContinuousDcpo (L0Measure coinMeasure Y) :=
+  proposition_44_measure (μ := coinMeasure) not_isAtomic_coinAlgebra
 
 end
 

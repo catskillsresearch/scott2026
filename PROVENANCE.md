@@ -37,11 +37,13 @@ alone, following the same Challenge / Solution pattern as
 [`catskillsresearch/cardb`](https://github.com/catskillsresearch/cardb) and
 `scott1982`.
 
-At scaffold stage, `comparator.json` lists no compared theorems yet. Populate
-`Challenge.lean`, `Scott2026/`, and the comparator config as the formalization
-progresses.
+`comparator.json` compares a Mathlib-only Proposition 27 subset
+(`proposition_27_finite_directed`, `proposition_27_finite_sUnion`,
+`proposition_27_finite_countable`). The remaining paper headlines are
+proved in `Scott2026/` and re-exported by `Solution.lean`; their types
+mention project definitions and are not Comparator-locked.
 
-The sorry-free development lives in `Scott2026/`. `Challenge.lean` will contain
+The sorry-free development lives in `Scott2026/`. `Challenge.lean` contains
 the deliberate Palomar holes. No project-defined axioms are introduced; compared
 proofs use only `propext`, `Quot.sound`, and `Classical.choice`, as disclosed
 in `comparator.json`.

@@ -28,10 +28,15 @@ Original Lean and author-written docs are Apache-2.0. The source PDF
 
 ## Status
 
-**Scaffold.** The Palomar Challenge / Solution pair and `Scott2026/` development
-are initialized but contain no compared theorems yet. Run vision OCR on the
-source PDF, inventory the paper's main results, and populate `Challenge.lean`,
-`comparator.json`, and `formalization.yaml` before submission.
+**Library complete; Palomar Challenge is a Mathlib-only subset.** Sorry-free
+proofs of the CSL 2026 headlines live in `Scott2026/` (`corollary_34`,
+`lemma_35_of`, `proposition_36_of`, `theorem26Full` / `theorem_26`,
+`theorem_30_va` / `theorem_30`, `proposition_42_algebra`, `theorem_43_paper`,
+`proposition_44_coin`). `[Nontrivial A]` makes the paper’s implicit
+`⊥ ≠ ⊤` convention explicit. The Challenge / Solution pair compares three
+Proposition 27 wrappers whose types mention only Mathlib constants; the
+remaining paper-type theorems are not Comparator-locked because they pull
+project definitions.
 
 ## Files (Palomar)
 

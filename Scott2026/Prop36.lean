@@ -7,15 +7,25 @@ Authors: Lars Warren Ericson.
 import Mathlib.Data.Fintype.EquivFin
 import Mathlib.Data.Nat.Pairing
 import Scott2026.Interp
+import Scott2026.Lemma35General
+
+-- `Lemma35General` pulls in Scott 1972 `specializationPreorder`, which
+-- diamonds with `ENNReal`'s order in `Coin`. Keep the lattice/order
+-- instances of later modules (measure theory) as Mathlib's.
+attribute [-instance] Scott1972.ContinuousLattice.specializationPreorder
 
 /-!
 # Proposition 36: many-one comparison via a numeral-to-numeral combinator
 
-Furber–Mardare–Panangaden–Scott, CSL 2026, Proposition 36, on
-`engelerWithNumerals`. Paper (i) and (ii) are equivalent: a closed
-`M` that sends Church numerals to Church numerals (`MapsNumerals`)
-reduces `S₁` to `S₂` at some pair of `χ`-oracles iff it does so at
-every such pair.
+Furber–Mardare–Panangaden–Scott, CSL 2026, Proposition 36.
+`proposition_36_of` is the paper type on an arbitrary reflexive
+continuous lattice with Church numerals (`churchWithNumerals`).
+Engeler `proposition_36` remains the special case, also recovered as
+`proposition_36_via_general`.
+
+Paper (i) and (ii) are equivalent: a closed `M` that sends Church
+numerals to Church numerals (`MapsNumerals`) reduces `S₁` to `S₂` at
+some pair of `χ`-oracles iff it does so at every such pair.
 
 `ManyOneLe` remains the algebraic predicate (any `f : ℕ → ℕ`, no
 λ-term). Paper (i) implies `ManyOneLe`; the converse would require a
@@ -30,104 +40,10 @@ namespace Scott2026
 noncomputable section
 
 /-!
-## Church numerals: `Fin 2` vs `ℕ`
-
-`engelerWithNumerals.numeral n` interprets `churchNum n : Lam (Fin 2)`.
-Paper identities live on `churchNumN : ℕ → Lam ℕ`. Both unfold to the
-same meta-lambdas, so their closed interpretations agree.
--/
-
-theorem churchNum_interpClosed_zero {D : Type*} [CompleteLattice D]
-    (R : ReflexiveDcpo D) :
-    interpClosed R (churchNum 0) = R.lam fun _ => R.lam fun Y => Y := by
-  simp [interpClosed, churchNum, interp, Valuation.update, Valuation.empty,
-    Function.update]
-
-theorem churchNumN_interpClosed_zero {D : Type*} [CompleteLattice D]
-    (R : ReflexiveDcpo D) :
-    interpClosed R (churchNumN 0) = R.lam fun _ => R.lam fun Y => Y := by
-  simp [interpClosed, churchNumN, interp, Valuation.update, Valuation.empty,
-    Function.update]
-
-theorem churchNum_interpClosed_succ {D : Type*} [CompleteLattice D]
-    (R : ReflexiveDcpo D) (n : ℕ) :
-    interpClosed R (churchNum (n + 1)) =
-      R.lam fun F => R.lam fun X =>
-        R.app F (R.app (R.app (interpClosed R (churchNum n)) F) X) := by
-  have h1 : interpClosed R (churchNum (n + 1)) =
-      R.lam fun F =>
-        interp R
-          (Lam.abs 1
-            (Lam.app (Lam.var 0)
-              (Lam.app (Lam.app (churchNum n) (Lam.var 0)) (Lam.var 1))))
-          (Valuation.empty.update (0 : Fin 2) F) := by
-    simp [interpClosed, churchNum, interp]
-  refine h1.trans ?_
-  congr 1
-  funext F
-  simp only [interp]
-  congr 1
-  funext X
-  have hcn : interp R (churchNum n)
-      ((Valuation.empty.update (0 : Fin 2) F).update 1 X) =
-        interpClosed R (churchNum n) :=
-    interp_closed_of_fv_empty R (churchNum n) _ (churchNum_fv n)
-  have h0 : ((Valuation.empty.update (0 : Fin 2) F).update 1 X).toFun 0 = F :=
-    Valuation.update_toFun_of_ne (Valuation.empty.update (0 : Fin 2) F)
-      (x := 1) (y := 0) X Fin.zero_ne_one
-  have hX : ((Valuation.empty.update (0 : Fin 2) F).update 1 X).toFun 1 = X :=
-    Valuation.update_toFun_self _ 1 X
-  simp [interp, h0, hX, hcn]
-
-theorem churchNumN_interpClosed_succ {D : Type*} [CompleteLattice D]
-    (R : ReflexiveDcpo D) (n : ℕ) :
-    interpClosed R (churchNumN (n + 1)) =
-      R.lam fun F => R.lam fun X =>
-        R.app F (R.app (R.app (interpClosed R (churchNumN n)) F) X) := by
-  have h1 : interpClosed R (churchNumN (n + 1)) =
-      R.lam fun F =>
-        interp R
-          (Lam.abs 1
-            (Lam.app (Lam.var 0)
-              (Lam.app (Lam.app (churchNumN n) (Lam.var 0)) (Lam.var 1))))
-          (Valuation.empty.update (0 : ℕ) F) := by
-    simp [interpClosed, churchNumN, interp]
-  refine h1.trans ?_
-  congr 1
-  funext F
-  simp only [interp]
-  congr 1
-  funext X
-  have hcn : interp R (churchNumN n)
-      ((Valuation.empty.update (0 : ℕ) F).update 1 X) =
-        interpClosed R (churchNumN n) :=
-    interp_closed_of_fv_empty R (churchNumN n) _ (churchNumN_fv n)
-  have h0 : ((Valuation.empty.update (0 : ℕ) F).update 1 X).toFun 0 = F :=
-    Valuation.update_toFun_of_ne (Valuation.empty.update (0 : ℕ) F)
-      (x := 1) (y := 0) X (by decide)
-  have hX : ((Valuation.empty.update (0 : ℕ) F).update 1 X).toFun 1 = X :=
-    Valuation.update_toFun_self _ 1 X
-  simp [interp, h0, hX, hcn]
-
-/-- Closed interpretations of `churchNum` (`Fin 2`) and `churchNumN` (`ℕ`)
-agree: binders are only names. -/
-theorem churchNum_interpClosed_eq_churchNumN {D : Type*} [CompleteLattice D]
-    (R : ReflexiveDcpo D) (n : ℕ) :
-    interpClosed R (churchNum n) = interpClosed R (churchNumN n) := by
-  induction n with
-  | zero =>
-    rw [churchNum_interpClosed_zero, churchNumN_interpClosed_zero]
-  | succ n ih =>
-    rw [churchNum_interpClosed_succ, churchNumN_interpClosed_succ, ih]
-
-theorem numeral_eq_interpClosed_churchNumN (n : ℕ) :
-    engelerWithNumerals.numeral n =
-      interpClosed engelerWithNumerals.toReflexiveDcpo (churchNumN n) := by
-  rw [← churchNum_interpClosed_eq_churchNumN]
-  rfl
-
-/-!
 ## Numeral-to-numeral combinators
+
+Church `Fin 2`/`ℕ` closed-interpretation agreement lives in
+`Lemma35General` (`churchNum_interpClosed_eq_churchNumN`).
 -/
 
 /-- Closed `M` sending each Church numeral to a Church numeral. -/
@@ -155,6 +71,14 @@ theorem churchNumN_lamEq_injective {n m : ℕ}
     rw [numeral_eq_interpClosed_churchNumN, numeral_eq_interpClosed_churchNumN, himg]
   exact engelerWithNumerals.numeral_inj hnum
 
+/-- Domain-general injectivity of Church numerals under `LamEq`, via
+`m?` (`numeral_inj_of_churchTest`). -/
+theorem churchNumN_lamEq_injective_of {D : Type*} [CompleteLattice D]
+    (R : ReflexiveDcpo D)
+    (hbool : interpClosed R churchTrueN ≠ interpClosed R churchFalseN)
+    {n m : ℕ} (h : LamEq (churchNumN n) (churchNumN m)) : n = m :=
+  numeral_inj_of_churchTest R hbool (interpClosed_sound_full R h)
+
 theorem mapsNumerals_unique {M : Lam ℕ} (_hM : MapsNumerals M) {n m m' : ℕ}
     (hm : LamEq (M.app (churchNumN n)) (churchNumN m))
     (hm' : LamEq (M.app (churchNumN n)) (churchNumN m')) : m = m' :=
@@ -178,6 +102,12 @@ theorem mapsNumerals_interp_numeral {M : Lam ℕ} (hM : MapsNumerals M) (n : ℕ
       engelerWithNumerals.numeral (mapsNumeralsFun M hM n) := by
   rw [interpClosed_sound_full engelerWithNumerals.toReflexiveDcpo
       (mapsNumeralsFun_spec M hM n), numeral_eq_interpClosed_churchNumN]
+
+theorem mapsNumerals_interp_numeral_of {D : Type*} [CompleteLattice D]
+    (R : ReflexiveDcpo D) {M : Lam ℕ} (hM : MapsNumerals M) (n : ℕ) :
+    interpClosed R (M.app (churchNumN n)) =
+      interpClosed R (churchNumN (mapsNumeralsFun M hM n)) :=
+  interpClosed_sound_full R (mapsNumeralsFun_spec M hM n)
 
 /-!
 ## Oracles (reuse Lemma 35(ii) on Engeler)
@@ -284,6 +214,153 @@ theorem proposition_36 (S₁ S₂ : Set ℕ) :
   ⟨proposition_36_ii_of_i, proposition_36_i_of_ii⟩
 
 /-!
+## Proposition 36 at paper type (`churchWithNumerals`)
+-/
+
+/-- Proposition 36(i) on an arbitrary reflexive dcpo with Church numerals. -/
+def proposition_36_i_of {D : Type*} [CompleteLattice D] (R : ReflexiveDcpo D)
+    (hbool : interpClosed R churchTrueN ≠ interpClosed R churchFalseN)
+    (S₁ S₂ : Set ℕ) : Prop :=
+  ∃ M : Lam ℕ, MapsNumerals M ∧
+    ∃ d₁ d₂ : D,
+      IsOracle (churchWithNumerals R hbool) d₁ S₁ ∧
+      IsOracle (churchWithNumerals R hbool) d₂ S₂ ∧
+      ∀ n, R.app d₂ (interpClosed R (M.app (churchNumN n))) =
+           R.app d₁ (interpClosed R (churchNumN n))
+
+/-- Proposition 36(ii) on an arbitrary reflexive dcpo with Church numerals. -/
+def proposition_36_ii_of {D : Type*} [CompleteLattice D] (R : ReflexiveDcpo D)
+    (hbool : interpClosed R churchTrueN ≠ interpClosed R churchFalseN)
+    (S₁ S₂ : Set ℕ) : Prop :=
+  ∃ M : Lam ℕ, MapsNumerals M ∧
+    ∀ d₁ d₂ : D,
+      IsOracle (churchWithNumerals R hbool) d₁ S₁ →
+      IsOracle (churchWithNumerals R hbool) d₂ S₂ →
+      ∀ n, R.app d₂ (interpClosed R (M.app (churchNumN n))) =
+           R.app d₁ (interpClosed R (churchNumN n))
+
+/-- Paper (i) → (ii): agreement at some oracles plus numeral-mapping
+soundness implies agreement at every oracle pair. No oracle existence. -/
+theorem proposition_36_ii_of_i_of {D : Type*} [CompleteLattice D]
+    (R : ReflexiveDcpo D)
+    (hbool : interpClosed R churchTrueN ≠ interpClosed R churchFalseN)
+    {S₁ S₂ : Set ℕ} (h : proposition_36_i_of R hbool S₁ S₂) :
+    proposition_36_ii_of R hbool S₁ S₂ := by
+  obtain ⟨M, hM, d₁, d₂, hd₁, hd₂, hagree⟩ := h
+  refine ⟨M, hM, ?_⟩
+  intro e₁ e₂ he₁ he₂ n
+  set RN := churchWithNumerals R hbool
+  set f := mapsNumeralsFun M hM
+  have hMn : interpClosed R (M.app (churchNumN n)) =
+      interpClosed R (churchNumN (f n)) := mapsNumerals_interp_numeral_of R hM n
+  have hchi : chiNum RN S₂ (f n) = chiNum RN S₁ n := by
+    calc
+      chiNum RN S₂ (f n) = RN.app d₂ (RN.numeral (f n)) := (hd₂ (f n)).symm
+      _ = R.app d₂ (interpClosed R (churchNumN (f n))) := rfl
+      _ = R.app d₂ (interpClosed R (M.app (churchNumN n))) := by rw [hMn]
+      _ = R.app d₁ (interpClosed R (churchNumN n)) := hagree n
+      _ = RN.app d₁ (RN.numeral n) := rfl
+      _ = chiNum RN S₁ n := hd₁ n
+  calc
+    R.app e₂ (interpClosed R (M.app (churchNumN n)))
+        = R.app e₂ (interpClosed R (churchNumN (f n))) := by rw [hMn]
+    _ = RN.app e₂ (RN.numeral (f n)) := rfl
+    _ = chiNum RN S₂ (f n) := he₂ (f n)
+    _ = chiNum RN S₁ n := hchi
+    _ = RN.app e₁ (RN.numeral n) := (he₁ n).symm
+
+/-- Paper (ii) → (i): Lemma 35(ii) supplies oracles on a continuous lattice. -/
+theorem proposition_36_i_of_ii_of {D : Type*} [CompleteLattice D]
+    (R : ReflexiveDcpo D)
+    (hbool : interpClosed R churchTrueN ≠ interpClosed R churchFalseN)
+    (hcont : Scott1972.ContinuousLattice.IsContinuousLattice D)
+    {S₁ S₂ : Set ℕ} (h : proposition_36_ii_of R hbool S₁ S₂) :
+    proposition_36_i_of R hbool S₁ S₂ := by
+  obtain ⟨M, hM, hforall⟩ := h
+  obtain ⟨d₁, hd₁⟩ := lemma_35_ii_of R hbool hcont S₁
+  obtain ⟨d₂, hd₂⟩ := lemma_35_ii_of R hbool hcont S₂
+  refine ⟨M, hM, d₁, d₂, hd₁, hd₂, ?_⟩
+  exact hforall d₁ d₂ hd₁ hd₂
+
+/-- Proposition 36 at paper type: (i) ↔ (ii) on a reflexive continuous
+lattice with Church numerals. Oracle existence (ii) → (i) uses
+`lemma_35_ii_of`. -/
+theorem proposition_36_of {D : Type*} [CompleteLattice D] (R : ReflexiveDcpo D)
+    (hbool : interpClosed R churchTrueN ≠ interpClosed R churchFalseN)
+    (hcont : Scott1972.ContinuousLattice.IsContinuousLattice D)
+    (S₁ S₂ : Set ℕ) :
+    proposition_36_i_of R hbool S₁ S₂ ↔ proposition_36_ii_of R hbool S₁ S₂ :=
+  ⟨proposition_36_ii_of_i_of R hbool,
+    proposition_36_i_of_ii_of R hbool hcont⟩
+
+theorem chiNum_churchWithNumerals_engeler (S : Set ℕ) (n : ℕ) :
+    chiNum (churchWithNumerals engelerWithNumerals.toReflexiveDcpo
+        engeler_churchTrueN_ne_churchFalseN) S n =
+      chiNum engelerWithNumerals S n := by
+  simp [chiNum, churchWithNumerals_engeler_boolTop,
+    churchWithNumerals_engeler_boolBot]
+
+theorem isOracle_churchWithNumerals_engeler (d : Set ℕ) (S : Set ℕ) :
+    IsOracle (churchWithNumerals engelerWithNumerals.toReflexiveDcpo
+        engeler_churchTrueN_ne_churchFalseN) d S ↔
+    IsOracle engelerWithNumerals d S := by
+  constructor
+  · intro hd n
+    rw [← churchWithNumerals_engeler_numeral n, ← chiNum_churchWithNumerals_engeler]
+    exact hd n
+  · intro hd n
+    rw [churchWithNumerals_engeler_numeral n, chiNum_churchWithNumerals_engeler]
+    exact hd n
+
+theorem proposition_36_i_iff_of (S₁ S₂ : Set ℕ) :
+    proposition_36_i_of engelerWithNumerals.toReflexiveDcpo
+      engeler_churchTrueN_ne_churchFalseN S₁ S₂ ↔
+    proposition_36_i S₁ S₂ := by
+  constructor
+  · intro ⟨M, hM, d₁, d₂, hd₁, hd₂, hagree⟩
+    refine ⟨M, hM, d₁, d₂, (isOracle_churchWithNumerals_engeler d₁ S₁).mp hd₁,
+      (isOracle_churchWithNumerals_engeler d₂ S₂).mp hd₂, ?_⟩
+    intro n
+    rw [numeral_eq_interpClosed_churchNumN n]
+    exact hagree n
+  · intro ⟨M, hM, d₁, d₂, hd₁, hd₂, hagree⟩
+    refine ⟨M, hM, d₁, d₂, (isOracle_churchWithNumerals_engeler d₁ S₁).mpr hd₁,
+      (isOracle_churchWithNumerals_engeler d₂ S₂).mpr hd₂, ?_⟩
+    intro n
+    rw [← numeral_eq_interpClosed_churchNumN n]
+    exact hagree n
+
+theorem proposition_36_ii_iff_of (S₁ S₂ : Set ℕ) :
+    proposition_36_ii_of engelerWithNumerals.toReflexiveDcpo
+      engeler_churchTrueN_ne_churchFalseN S₁ S₂ ↔
+    proposition_36_ii S₁ S₂ := by
+  constructor
+  · intro ⟨M, hM, hforall⟩
+    refine ⟨M, hM, ?_⟩
+    intro d₁ d₂ hd₁ hd₂ n
+    have hd₁' := (isOracle_churchWithNumerals_engeler d₁ S₁).mpr hd₁
+    have hd₂' := (isOracle_churchWithNumerals_engeler d₂ S₂).mpr hd₂
+    rw [numeral_eq_interpClosed_churchNumN n]
+    exact hforall d₁ d₂ hd₁' hd₂' n
+  · intro ⟨M, hM, hforall⟩
+    refine ⟨M, hM, ?_⟩
+    intro d₁ d₂ hd₁ hd₂ n
+    have hd₁' := (isOracle_churchWithNumerals_engeler d₁ S₁).mp hd₁
+    have hd₂' := (isOracle_churchWithNumerals_engeler d₂ S₂).mp hd₂
+    rw [← numeral_eq_interpClosed_churchNumN n]
+    exact hforall d₁ d₂ hd₁' hd₂' n
+
+/-- Engeler `proposition_36` follows from `proposition_36_of` after
+Church `Fin 2`/`ℕ` agreement. The original Engeler proof is unchanged. -/
+theorem proposition_36_via_general (S₁ S₂ : Set ℕ) :
+    proposition_36_i S₁ S₂ ↔ proposition_36_ii S₁ S₂ := by
+  have hcont : Scott1972.ContinuousLattice.IsContinuousLattice (Set ℕ) :=
+    isContinuousLattice_set_1972 ℕ
+  rw [← proposition_36_i_iff_of, ← proposition_36_ii_iff_of]
+  exact proposition_36_of engelerWithNumerals.toReflexiveDcpo
+    engeler_churchTrueN_ne_churchFalseN hcont S₁ S₂
+
+/-!
 ## Relation to the algebraic predicate `ManyOneLe`
 -/
 
@@ -326,6 +403,49 @@ theorem manyOneLe_iff_chi (S₁ S₂ : Set ℕ) :
       _ = chiNum engelerWithNumerals S₁ n := hf n
       _ = engelerWithNumerals.app (chiOracle S₁) (engelerWithNumerals.numeral n) :=
         (chiOracle_spec S₁ n).symm
+
+theorem manyOneLe_of_proposition_36_i_of {D : Type*} [CompleteLattice D]
+    (R : ReflexiveDcpo D)
+    (hbool : interpClosed R churchTrueN ≠ interpClosed R churchFalseN)
+    {S₁ S₂ : Set ℕ} (h : proposition_36_i_of R hbool S₁ S₂) :
+    ManyOneLe (churchWithNumerals R hbool) S₁ S₂ := by
+  obtain ⟨M, hM, d₁, d₂, hd₁, hd₂, hagree⟩ := h
+  refine ⟨mapsNumeralsFun M hM, d₁, d₂, hd₁, hd₂, ?_⟩
+  intro n
+  have hMn := mapsNumerals_interp_numeral_of R hM n
+  change R.app d₂ (interpClosed R (churchNumN (mapsNumeralsFun M hM n))) =
+    R.app d₁ (interpClosed R (churchNumN n))
+  rw [← hMn]
+  exact hagree n
+
+/-- Algebraic many-one comparison on `churchWithNumerals`. Oracles exist
+via `lemma_35_ii_of` (not `chiOracle` / `gbar`). -/
+theorem manyOneLe_iff_chi_of {D : Type*} [CompleteLattice D]
+    (R : ReflexiveDcpo D)
+    (hbool : interpClosed R churchTrueN ≠ interpClosed R churchFalseN)
+    (hcont : Scott1972.ContinuousLattice.IsContinuousLattice D)
+    (S₁ S₂ : Set ℕ) :
+    ManyOneLe (churchWithNumerals R hbool) S₁ S₂ ↔
+      ∃ f : ℕ → ℕ, ∀ n,
+        chiNum (churchWithNumerals R hbool) S₂ (f n) =
+        chiNum (churchWithNumerals R hbool) S₁ n := by
+  set RN := churchWithNumerals R hbool
+  constructor
+  · intro ⟨f, d₁, d₂, hd₁, hd₂, hf⟩
+    refine ⟨f, fun n => ?_⟩
+    calc
+      chiNum RN S₂ (f n) = RN.app d₂ (RN.numeral (f n)) := (hd₂ (f n)).symm
+      _ = RN.app d₁ (RN.numeral n) := hf n
+      _ = chiNum RN S₁ n := hd₁ n
+  · intro ⟨f, hf⟩
+    obtain ⟨d₁, hd₁⟩ := lemma_35_ii_of R hbool hcont S₁
+    obtain ⟨d₂, hd₂⟩ := lemma_35_ii_of R hbool hcont S₂
+    refine ⟨f, d₁, d₂, hd₁, hd₂, ?_⟩
+    intro n
+    calc
+      RN.app d₂ (RN.numeral (f n)) = chiNum RN S₂ (f n) := hd₂ (f n)
+      _ = chiNum RN S₁ n := hf n
+      _ = RN.app d₁ (RN.numeral n) := (hd₁ n).symm
 
 /-!
 ## Not every `f : ℕ → ℕ` is given by a closed λ-term

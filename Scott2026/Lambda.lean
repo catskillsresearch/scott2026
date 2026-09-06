@@ -1229,4 +1229,174 @@ theorem definition_32 :
     churchIfN_true, churchIfN_false, churchSucc_num, churchPred_succ,
     churchPred_zero, churchIsZero_zero, churchIsZero_succ⟩
 
+/-!
+## Lemma 35(i) combinators: negation and `m?`
+
+Paper: `¬` is Church negation, `1? = λm. if (0? m) ⊥ (0? (pred m))`,
+and `n? = λm. (n-1)? (pred m)` for `n ≥ 2`. `0?` is `churchIsZero`.
+These stay on `ℕ`; `churchNot` on `Fin 2` is unchanged.
+-/
+
+/-- Church negation `λb. b ⊥ ⊤` on `ℕ`. -/
+def churchNotN : Lam ℕ :=
+  Lam.abs 0 (((Lam.var 0).app churchFalseN).app churchTrueN)
+
+theorem churchNotN_fv : churchNotN.fv = ∅ := by
+  simp [churchNotN, churchFalseN_fv, churchTrueN_fv, Lam.fv]
+
+theorem churchNotN_true :
+    LamEq (churchNotN.app churchTrueN) churchFalseN := by
+  refine (lamEq_beta_closed 0 _ churchTrueN churchTrueN_fv).trans ?_
+  have hF : churchFalseN.substNaive 0 churchTrueN = churchFalseN :=
+    Lam.subst_fresh churchTrueN (by simp [churchFalseN_fv])
+  have hT : churchTrueN.substNaive 0 churchTrueN = churchTrueN :=
+    Lam.subst_fresh churchTrueN (by simp [churchTrueN_fv])
+  simp [Lam.substNaive, hF, hT]
+  exact churchTrueN_app churchFalseN churchTrueN
+
+theorem churchNotN_false :
+    LamEq (churchNotN.app churchFalseN) churchTrueN := by
+  refine (lamEq_beta_closed 0 _ churchFalseN churchFalseN_fv).trans ?_
+  have hF : churchFalseN.substNaive 0 churchFalseN = churchFalseN :=
+    Lam.subst_fresh churchFalseN (by simp [churchFalseN_fv])
+  have hT : churchTrueN.substNaive 0 churchFalseN = churchTrueN :=
+    Lam.subst_fresh churchFalseN (by simp [churchTrueN_fv])
+  simp [Lam.substNaive, hF, hT]
+  exact churchFalseN_app churchFalseN churchTrueN
+
+/-- Paper `m?`: `0?` is `churchIsZero`; `1?` and `n?` (`n ≥ 2`) follow the
+paper's closed-term recurrences. Binder `0` is free only in the applied
+argument; the combinators are closed. -/
+def churchTest : ℕ → Lam ℕ
+  | 0 => churchIsZero
+  | 1 =>
+      Lam.abs 0
+        (((churchIfN.app (churchIsZero.app (Lam.var 0))).app churchFalseN).app
+          (churchIsZero.app (churchPred.app (Lam.var 0))))
+  | n + 2 =>
+      Lam.abs 0 ((churchTest (n + 1)).app (churchPred.app (Lam.var 0)))
+
+theorem churchTest_fv : ∀ m, (churchTest m).fv = ∅
+  | 0 => churchIsZero_fv
+  | 1 => by
+    simp [churchTest, churchIfN_fv, churchIsZero_fv, churchFalseN_fv,
+      churchPred_fv, Lam.fv]
+  | n + 2 => by
+    simp [churchTest, churchTest_fv (n + 1), churchPred_fv, Lam.fv]
+
+theorem churchTest_one_app (N : Lam ℕ) (hN : N.fv = ∅) :
+    LamEq ((churchTest 1).app N)
+      (((churchIfN.app (churchIsZero.app N)).app churchFalseN).app
+        (churchIsZero.app (churchPred.app N))) := by
+  refine (lamEq_beta_closed 0 _ N hN).trans ?_
+  have hIf : churchIfN.substNaive 0 N = churchIfN :=
+    Lam.subst_fresh N (by simp [churchIfN_fv])
+  have hZ : churchIsZero.substNaive 0 N = churchIsZero :=
+    Lam.subst_fresh N (by simp [churchIsZero_fv])
+  have hF : churchFalseN.substNaive 0 N = churchFalseN :=
+    Lam.subst_fresh N (by simp [churchFalseN_fv])
+  have hP : churchPred.substNaive 0 N = churchPred :=
+    Lam.subst_fresh N (by simp [churchPred_fv])
+  simp [Lam.substNaive, hIf, hZ, hF, hP]
+  exact LamEq.refl _
+
+theorem churchTest_succ_app (m : ℕ) (N : Lam ℕ) (hN : N.fv = ∅) :
+    LamEq ((churchTest (m + 2)).app N)
+      ((churchTest (m + 1)).app (churchPred.app N)) := by
+  refine (lamEq_beta_closed 0 _ N hN).trans ?_
+  have hT : (churchTest (m + 1)).substNaive 0 N = churchTest (m + 1) :=
+    Lam.subst_fresh N (by simp [churchTest_fv (m + 1)])
+  have hP : churchPred.substNaive 0 N = churchPred :=
+    Lam.subst_fresh N (by simp [churchPred_fv])
+  simp [Lam.substNaive, hT, hP]
+  exact LamEq.refl _
+
+theorem churchTest_num : ∀ m n : ℕ,
+    LamEq ((churchTest m).app (churchNumN n))
+      (if n = m then churchTrueN else churchFalseN)
+  | 0, n => by
+    change LamEq (churchIsZero.app (churchNumN n))
+      (if n = 0 then churchTrueN else churchFalseN)
+    by_cases hn : n = 0
+    · subst hn
+      simpa using churchIsZero_zero
+    · obtain ⟨k, rfl⟩ := Nat.exists_eq_succ_of_ne_zero hn
+      simpa using churchIsZero_succ k
+  | 1, n => by
+    refine (churchTest_one_app (churchNumN n) (churchNumN_fv n)).trans ?_
+    match n with
+    | 0 =>
+      have hif : LamEq
+          (((churchIfN.app (churchIsZero.app (churchNumN 0))).app churchFalseN).app
+            (churchIsZero.app (churchPred.app (churchNumN 0))))
+          (((churchIfN.app churchTrueN).app churchFalseN).app
+            (churchIsZero.app (churchPred.app (churchNumN 0)))) :=
+        LamEq.app_left (LamEq.app_left (LamEq.app_right churchIsZero_zero))
+      refine hif.trans ?_
+      simpa using churchIfN_true churchFalseN
+        (churchIsZero.app (churchPred.app (churchNumN 0)))
+    | 1 =>
+      have hZ : LamEq (churchIsZero.app (churchNumN 1)) churchFalseN :=
+        churchIsZero_succ 0
+      have hif : LamEq
+          (((churchIfN.app (churchIsZero.app (churchNumN 1))).app churchFalseN).app
+            (churchIsZero.app (churchPred.app (churchNumN 1))))
+          (((churchIfN.app churchFalseN).app churchFalseN).app
+            (churchIsZero.app (churchPred.app (churchNumN 1)))) :=
+        LamEq.app_left (LamEq.app_left (LamEq.app_right hZ))
+      refine hif.trans ?_
+      have helse : LamEq
+          (((churchIfN.app churchFalseN).app churchFalseN).app
+            (churchIsZero.app (churchPred.app (churchNumN 1))))
+          (churchIsZero.app (churchPred.app (churchNumN 1))) :=
+        churchIfN_false churchFalseN (churchIsZero.app (churchPred.app (churchNumN 1)))
+      refine helse.trans ?_
+      have hp : LamEq (churchPred.app (churchNumN 1)) (churchNumN 0) :=
+        churchPred_succ 0
+      exact (LamEq.app_right hp).trans churchIsZero_zero
+    | k + 2 =>
+      have hZ : LamEq (churchIsZero.app (churchNumN (k + 2))) churchFalseN :=
+        churchIsZero_succ (k + 1)
+      have hif : LamEq
+          (((churchIfN.app (churchIsZero.app (churchNumN (k + 2)))).app
+            churchFalseN).app
+            (churchIsZero.app (churchPred.app (churchNumN (k + 2)))))
+          (((churchIfN.app churchFalseN).app churchFalseN).app
+            (churchIsZero.app (churchPred.app (churchNumN (k + 2))))) :=
+        LamEq.app_left (LamEq.app_left (LamEq.app_right hZ))
+      refine hif.trans ?_
+      have helse : LamEq
+          (((churchIfN.app churchFalseN).app churchFalseN).app
+            (churchIsZero.app (churchPred.app (churchNumN (k + 2)))))
+          (churchIsZero.app (churchPred.app (churchNumN (k + 2)))) :=
+        churchIfN_false churchFalseN
+          (churchIsZero.app (churchPred.app (churchNumN (k + 2))))
+      refine helse.trans ?_
+      have hp : LamEq (churchPred.app (churchNumN (k + 2))) (churchNumN (k + 1)) :=
+        churchPred_succ (k + 1)
+      exact (LamEq.app_right hp).trans (churchIsZero_succ k)
+  | m + 2, n => by
+    refine (churchTest_succ_app m (churchNumN n) (churchNumN_fv n)).trans ?_
+    match n with
+    | 0 =>
+      have hp : LamEq (churchPred.app (churchNumN 0)) (churchNumN 0) :=
+        churchPred_zero
+      refine (LamEq.app_right hp).trans ?_
+      have ih := churchTest_num (m + 1) 0
+      have hne : ¬(0 = m + 1) := (Nat.succ_ne_zero m).symm
+      have hne' : ¬(0 = m + 2) := (Nat.succ_ne_zero (m + 1)).symm
+      simpa [hne, hne'] using ih
+    | j + 1 =>
+      have hp : LamEq (churchPred.app (churchNumN (j + 1))) (churchNumN j) :=
+        churchPred_succ j
+      refine (LamEq.app_right hp).trans ?_
+      have ih := churchTest_num (m + 1) j
+      by_cases hj : j = m + 1
+      · subst hj
+        simpa using ih
+      · have hj' : ¬(j + 1 = m + 2) := by
+          intro h
+          exact hj (Nat.succ_injective h)
+        simpa [hj, hj'] using ih
+
 end Scott2026

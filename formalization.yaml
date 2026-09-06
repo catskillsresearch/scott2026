@@ -30,20 +30,64 @@ classification:
 
 status:
   scope: >-
-    Scaffold stage. Vision OCR and theorem inventory are pending. Compared
-    declarations will be added to Challenge.lean, Scott2026/, and comparator.json
-    as the formalization progresses.
-  sorry_count: 0
+    Sorry-free formalization of the CSL 2026 paper development in Scott2026/,
+    including corollary_34, lemma_35_of, proposition_36_of, theorem26Full /
+    theorem_26, theorem_30_va / theorem_30, proposition_42_algebra,
+    theorem_43_paper, and proposition_44_coin. The Palomar Challenge surface
+    compares three Mathlib-only Proposition 27 wrappers
+    (proposition_27_finite_directed, proposition_27_finite_sUnion,
+    proposition_27_finite_countable). Headline theorems whose types mention
+    project definitions are proved in the library and are not Comparator-locked.
+  sorry_count: 3
   sorry_in_definitions: 0
   axioms: ["propext", "Classical.choice", "Quot.sound"]
-  main_results: []
+  main_results:
+    - declaration: "Scott2026.proposition_27_finite_directed"
+      file: "Scott2026/Basic.lean"
+      note: "Proposition 27 directed finite-subset clause; Mathlib-only Comparator target."
+    - declaration: "Scott2026.proposition_27_finite_sUnion"
+      file: "Scott2026/Basic.lean"
+      note: "Proposition 27 join-of-finite-subsets clause; Mathlib-only Comparator target."
+    - declaration: "Scott2026.proposition_27_finite_countable"
+      file: "Scott2026/Basic.lean"
+      note: "Proposition 27 countable-base clause; Mathlib-only Comparator target."
+    - paper: "corollary_34"
+      file: "Scott2026/Corollary34.lean"
+      note: "Internal reflexive continuous lattice with numerals; not Comparator-locked."
+    - paper: "lemma_35_of"
+      file: "Scott2026/Lemma35General.lean"
+      note: "Domain-general Lemma 35; Engeler lemma_35 remains the special case."
+    - paper: "proposition_36_of"
+      file: "Scott2026/Prop36.lean"
+      note: "Domain-general Proposition 36; Engeler proposition_36 remains the special case."
+    - paper: "theorem26Full"
+      file: "Scott2026/Theorem26.lean"
+      note: "Internal SetoidF_A Theorem 26; Engeler theorem_26 remains the weaker packaging."
+    - paper: "theorem_30_va"
+      file: "Scott2026/Theorem30Internal.lean"
+      note: "Internal Definition 19 form of Theorem 30; theorem_30 remains the carrier packaging."
+    - paper: "proposition_42_algebra"
+      file: "Scott2026/Coin.lean"
+      note: "Boolean-value-0 statement in coinAlgebra; finite-K is a Finset join."
+    - paper: "theorem_43_paper"
+      file: "Scott2026/Coin.lean"
+      note: "Paper-chain Theorem 43; theorem_43 remains the external-oracle form."
+    - paper: "proposition_44_coin"
+      file: "Scott2026/Coin.lean"
+      note: "Fair-coin instance of Proposition 44; not a continuous dcpo."
 
 fidelity:
   divergences: >-
     Working source: sources/Scott2026.pdf (a vision transcription
     sources/Scott2026_vision.md is produced by scripts/ocr_pdf_pipeline.sh).
-    Exact divergences will be listed in known_gaps and in arxiv.md as the
-    formalization develops.
+    [Nontrivial A] makes the paper’s implicit ⊥ ≠ ⊤ convention explicit.
+    proposition_42_algebra finite-K is a Finset join (fuzzy pfinB exists-quantifier
+    not fully internalized). theorem_43_paper uses fiberwise Lemma 35(ii) mixed
+    in L⁰/G_X_measure, not a direct theorem_1_iii hookup; theorem_43 remains
+    the external-oracle form. All-sets NegligibilitySpace.measurableRep /
+    ofMeasure hN is stronger than paper Σ/N; paper A(X) is MeasureAlgebra.
+    Engeler-only lemma_35 / proposition_36 / proposition_42 / theorem_43 keep
+    weaker or special-case names.
 
 sources:
   - title: "Interpreting Lambda Calculus in Domain-Valued Random Variables"
@@ -138,8 +182,25 @@ review:
 
 known_gaps:
   - >-
-    Formalization not yet started beyond repository scaffold. Run OCR, inventory
-    the paper's main theorems and definitions, and populate Challenge.lean.
+    The Palomar Challenge surface is a Mathlib-only headline subset
+    (Proposition 27 finite-subset wrappers). Full paper proofs live in
+    Scott2026/ and are re-exported by Solution.lean; their types mention
+    project definitions and are not Comparator-locked.
+  - >-
+    proposition_42_algebra finite-K is a Finset join; the paper’s fuzzy
+    pfinB exists-quantifier over P_fin^A(check ω) is not fully internalized
+    (no proposition_42_va).
+  - >-
+    theorem_43_paper uses fiberwise Lemma 35(ii) mixed in L⁰ / G_X_measure
+    rather than a direct theorem_1_iii hookup; theorem_43 remains the
+    external-oracle form of the same conclusion type.
+  - >-
+    All-sets NegligibilitySpace.measurableRep / ofMeasure hN is stronger than
+    paper Σ/N; coin space does not inhabit that all-sets instance. Paper
+    A(X) is MeasureAlgebra.
+  - >-
+    Engeler-only lemma_35 / proposition_36 / proposition_42 / theorem_43
+    keep weaker or special-case names beside the paper-type theorems.
 
 limitations:
   - >-
@@ -147,7 +208,25 @@ limitations:
   - >-
     Challenge.lean may contain deliberate sorries; Solution.lean and
     Scott2026/* must not.
+  - >-
+    Challenge/Solution type comparison covers only the Mathlib-expressible
+    Proposition 27 wrappers, not the full paper-type inventory.
 
 alignment:
   namespace: "Scott2026"
-  statements: []
+  statements:
+    - source: "Proposition 27, directed finite subsets of 𝒫(X)"
+      lean: "proposition_27_finite_directed"
+      module: "Scott2026.Basic"
+      status: proved
+      note: "Mathlib-only Comparator target."
+    - source: "Proposition 27, union of finite subsets of 𝒫(X)"
+      lean: "proposition_27_finite_sUnion"
+      module: "Scott2026.Basic"
+      status: proved
+      note: "Mathlib-only Comparator target."
+    - source: "Proposition 27, countable family of finite subsets"
+      lean: "proposition_27_finite_countable"
+      module: "Scott2026.Basic"
+      status: proved
+      note: "Mathlib-only Comparator target."

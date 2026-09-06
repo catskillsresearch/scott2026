@@ -5,7 +5,7 @@ Authors: Lars Warren Ericson.
 -/
 import Scott2026.Basic
 
-export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
+export Scott2026 (lemma_12 lemma_12_converse
   Proposition27Statement proposition_27 proposition_27_wayBelow
   proposition_27_continuous finite_subsets_countable
   proposition_28_total proposition_28_strict proposition_29 proposition_29_full
@@ -177,7 +177,7 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   definition_32
   churchTrue_interp_ne_churchFalse churchNum_interp_injective
   engelerWithNumerals proposition_33
-  corollary_34_check
+  corollary_34_check corollary_34
   eqB_interpClosedVA_churchTrue_churchFalse
   churchNum_interpClosedVA_injective
   eqB_interpClosedVA_churchNum_subsingleton
@@ -189,7 +189,22 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   definition_37 lemma_38 G_X proposition_39 proposition_40
   lemma_41
   proposition_42 proposition_42_finite proposition_42_finite_image
-  theorem_43 proposition_44)
+  theorem_43 proposition_44
+  churchNotN churchTest churchWithNumerals
+  lemma_35_of lemma_35_i_of lemma_35_ii_of lemma_35_via_general
+  proposition_36_of proposition_36_i_of proposition_36_ii_of
+  proposition_36_via_general
+  theorem26Full theorem26Pure theorem26Pure_sound
+  theorem_30_va theorem_30_internalModel
+  MeasureAlgebra coinAlgebra coinS1 coinS2
+  proposition_42_algebra proposition_42_mk_bot
+  G_X_measure proposition_39_measure proposition_40_measure
+  lemma_41_measure lemma_41_algebra
+  theorem_43_paper theorem_43_via_paper
+  IsContinuousDcpo proposition_44_dcpo proposition_44_measure
+  proposition_44_coin not_isAtomic_coinAlgebra
+  proposition_27_finite_directed proposition_27_finite_sUnion
+  proposition_27_finite_countable)
 
 export Scott2026.Lam (FreeFor subst_fresh freeFor_of_not_mem_fv freeFor_of_closed
   substCA substNaive substNaive_captures substNaive_captures_not_freeFor)

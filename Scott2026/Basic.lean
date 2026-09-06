@@ -16,6 +16,7 @@ import Scott2026.RawPowerStrict
 import Scott2026.Domain
 import Scott2026.Lambda
 import Scott2026.Interp
+import Scott2026.Lemma35General
 import Scott2026.InterpConst
 import Scott2026.InterpVA
 import Scott2026.InterpConstVA
@@ -48,8 +49,23 @@ This module re-exports the sorry-free development.
 
 namespace Scott2026
 
-/-- Temporary Palomar hook; replace once the compared inventory is chosen. -/
-theorem scaffold_placeholder : True := trivial
+/-- Proposition 27: finite subsets of `T` are directed under inclusion.
+Mathlib-only Palomar wrapper (`Type u`, `Set.Subset`). -/
+theorem proposition_27_finite_directed {X : Type u} (T : Set X) :
+    DirectedOn Set.Subset {S : Set X | S.Finite ∧ Set.Subset S T} :=
+  finite_subsets_directed T
+
+/-- Proposition 27: `T` is the union of its finite subsets.
+Mathlib-only Palomar wrapper (`Type u`, `Set.Subset`). -/
+theorem proposition_27_finite_sUnion {X : Type u} (T : Set X) :
+    ⋃₀ {S : Set X | S.Finite ∧ Set.Subset S T} = T :=
+  sUnion_finite_subsets T
+
+/-- Proposition 27: if `X` is countable, so is the family of finite subsets.
+Mathlib-only Palomar wrapper (`Type u`). -/
+theorem proposition_27_finite_countable {X : Type u} [Countable X] :
+    Set.Countable {S : Set X | S.Finite} :=
+  finite_subsets_countable (X := X)
 
 /-- Lemma 12: `A`-monotone maps are functional. -/
 theorem lemma_12 {A : Type*} [CompleteBooleanAlgebra A] {X Y : Type*}
@@ -456,14 +472,10 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- `interpVA_sound` / `theorem_26_sound` (`LamEqNC`). Full paper
 -- soundness on this carrier is `interpVA_sound_full` /
 -- `theorem_26_sound_full` (`LamEq`, CA-β + α, `[Infinite Var]`).
--- This is not `Λ(D, check Var, 𝔎)^A`, not tag 3, not an internal
--- reflexive-dcpo hypothesis, and not `SetoidF_A` membership.
--- The missing lemma for `SetoidF_A(oid(lamB (check Var)),
--- canonicalPowerSetoid)` (or `oid(check (pLamSet Var))`) is congruence
--- of `interpVA` under `eqB (encodeLamB M) (encodeLamB N)`, equivalently
--- injectivity of `encodeLamB` at every Boolean value (pairwise
--- Boolean-unequal variable children). Definition 16 `oidRel` would need
--- a function name with `isFunctionB = ⊤` and the same single-valuedness.
+-- This Engeler packaging is not the internal `SetoidF_A` form: that is
+-- `theorem26Full` / `theorem26Pure` in `Theorem26.lean`, with Definition
+-- 25 clauses `interpDKGraph_*` and checked `LamEq` soundness
+-- `theorem26Pure_sound` in `InternalEvalPack.lean`.
 --
 -- Lemma 31 (CSL p.11): `lemma_31` / `lemma_31_closed` are Boolean
 -- equality at `⊤` between `interpVA` of a checked valuation and the
@@ -479,48 +491,77 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- model as a reflexive continuous lattice with Church numerals
 -- (`engelerWithNumerals`, `IsContinuousLattice (Set ℕ)`).
 --
--- Corollary 34 (CSL p.11): the paper name is the internal V^A statement
--- “reflexive continuous lattice with numerals”. The internal `≪` /
--- continuous-lattice language (subset order) is in `InternalDomain.lean`
--- (`wayBelowSubsetF`, `isContinuousLatticeSubsetF`, matching `*B`
--- Boolean values). `corollary_34` is still unnamed: numerals are
--- `corollary_34_check`; the continuous-lattice half is
+-- Corollary 34 (CSL p.11): `corollary_34` is the paper name — the
+-- internal V^A statement “reflexive continuous lattice with numerals”.
+-- The internal `≪` / continuous-lattice language (subset order) is in
+-- `InternalDomain.lean` (`wayBelowSubsetF`, `isContinuousLatticeSubsetF`,
+-- matching `*B` Boolean values). `corollary_34_check` remains the
+-- check/VA numeral fragment; the continuous-lattice half is
 -- `isContinuousLatticeSubsetB_powerB`; the base is
 -- `isBaseSubsetB_pfinB_powerB` (not `proposition_28`); check-base
 -- transfer is `isBaseSubsetB_check_pfin_powerB`. The reflexive
--- dcpo is `theorem_30`. Internal Proposition 27 is
+-- dcpo is `theorem_30_va`. Internal Proposition 27 is
 -- `wayBelowSubsetB_eq_finite_subset` (`≪ ↔` finite `⊆`, via
 -- `isFiniteB_of_subset`); not named `proposition_27`.
 -- `eqB_interpClosedVA_churchNum_subsingleton` records that numeral
 -- injectivity needs `[Nontrivial A]`.
 --
--- Lemma 35 (CSL p.12): `lemma_35` / `lemma_35_i` / `lemma_35_ii` are
--- Engeler-only (`engelerWithNumerals` on `𝒫(ℕ)`). Scott-discrete
--- Booleans/numerals via Scott-open separators (`ScottOpen`); oracles
--- via `gbar` and the retract. `lemma_35_ii_of_extension` stays the
--- weaker “given a Scott-continuous extension” lemma. A general
--- `ReflexiveDcpoWithNumerals` statement is blocked: the structure does
--- not store `if`/`succ`/`pred`/`0?`.
+-- Lemma 35 (CSL p.12): `lemma_35_of` / `lemma_35_i_of` / `lemma_35_ii_of`
+-- are the paper-type theorems on an arbitrary reflexive dcpo whose
+-- distinguished elements are Church interpretations
+-- (`churchWithNumerals`; numeral injectivity from `m?`). Part (ii)
+-- uses Scott 1972 `scottExtend` on a continuous lattice. Engeler
+-- `lemma_35` / `lemma_35_i` / `lemma_35_ii` keep their original
+-- proofs (`gbar` fingerprint) and are also recovered as
+-- `lemma_35_via_general` / `_i_via_general` / `_ii_via_general`.
+-- `lemma_35_ii_of_extension` stays the weaker “given a Scott-continuous
+-- extension” lemma. `lemma_35_i_general` still takes
+-- `NumeralSeparators`; the paper-named theorems do not.
 --
--- Proposition 36 (CSL p.12): `proposition_36` is paper (i) ↔ (ii) on
--- `engelerWithNumerals` with a closed numeral-to-numeral `M`
--- (`MapsNumerals`). `ManyOneLe` stays algebraic (any `f : ℕ → ℕ`).
--- `exists_nat_fun_not_lambda_definable` is why
+-- Proposition 36 (CSL p.12): `proposition_36_of` is the paper type on
+-- an arbitrary reflexive continuous lattice with Church numerals
+-- (`churchWithNumerals`; (ii)→(i) uses `lemma_35_ii_of`). Engeler
+-- `proposition_36` remains the special case, also recovered as
+-- `proposition_36_via_general`. `ManyOneLe` stays algebraic
+-- (any `f : ℕ → ℕ`). `exists_nat_fun_not_lambda_definable` is why
 -- `ManyOneLe → proposition_36_i` is not claimed.
 --
 -- §5 Random Variables (CSL p.13–15): `definition_37`, `lemma_38`,
 -- `G_X`, `proposition_39`, `proposition_40`, `lemma_41` /
--- `lemma_41_const` are paper-named. `AssociatedAlgebra` is `A(X)=Σ/𝒩`.
--- `proposition_42` is the measure-theoretic Boolean-value-0 reading
--- (`coinMeasure`; Borel coin space is not a `NegligibilitySpace`).
+-- `lemma_41_const` are paper-named. `MeasureAlgebra` is the paper
+-- `A(X)=Σ/N(μ)` (quotient of measurable sets). `coinAlgebra` is the
+-- fair-coin instance. `coinS1` / `coinS2` are equation (5):
+-- `S_i(check n) = [D_{i,n,1}]` in `P^{A(X)}(check ω)`.
+-- `G_X_measure` / `proposition_39_measure` / `proposition_40_measure`
+-- / `lemma_41_measure` are the paper maps on `MeasureAlgebra`
+-- (`L0Measure`); the un-suffixed names remain the all-sets
+-- `AssociatedAlgebra` forms. `coinL0` / `G_X_coin` instantiate
+-- those maps at `coinMeasure`. `proposition_42_algebra` is the
+-- Boolean-value-0 statement in `coinAlgebra` (finite-`K` via
+-- `Finset` join; fuzzy `pfinB` quantification remains).
+-- `proposition_42` remains the raw measure core (`coinMeasure`).
+-- `proposition_42_mk_bot` lifts the null sets `agreeSet` /
+-- `agreeSet_swap` to `⊥`. All-sets `AssociatedAlgebra` /
+-- `ofMeasure hN` remain the stronger presentation that coin space
+-- does not inhabit (`toMeasurable` needs every set
+-- null-measurable). `lemma_41` remains the pre-quotient core;
+-- `lemma_41_algebra` is the quotient form `G_X([K_S]) = checkSet S`
+-- on `AssociatedAlgebra`. There is no `coinNegligibility` instance.
 -- Weaker lemmas `proposition_42_finite` / `_finite_image` /
--- `_finite_swap` / `_infinite_image` keep weaker names.
--- `theorem_43` is the external-oracle form (same paper type) via
--- `chiOracle` / `lemma_35_ii` / `proposition_36`; the paper's internal
--- Corollary 34 + Theorem 1 appeal is unavailable
--- (`corollary_34_check` only). `proposition_44` transports
+-- `_finite_swap` / `_infinite_image` keep weaker names. The
+-- paper-proof of Theorem 43 is `theorem_43_paper` (Corollary 34
+-- Engeler / `engelerAppA` + fiberwise Lemma 35(ii) mix + Prop 42 +
+-- `G_X_measure`). `theorem_43` remains the external-oracle form
+-- (same paper type) via `chiOracle` / `lemma_35_ii` /
+-- `proposition_36`. `proposition_44` transports
 -- `CompleteLattice` along `G_X` and records `¬IsContinuousLattice`
--- when `¬IsAtomic`.
+-- when `¬IsAtomic`. On a complete lattice the paper’s “continuous
+-- dcpo” is `IsContinuousDcpo` (definitional alias of
+-- `IsContinuousLattice`); `proposition_44_dcpo` is that wording.
+-- `proposition_44_measure` is the paper `A(X)=Σ/N(μ)` form on
+-- `L0Measure`; `proposition_44_coin` is the fair-coin instance
+-- (`¬IsAtomic coinAlgebra` by splitting a positive class along a
+-- first-sequence `D1` coordinate).
 
 /-- Example 21, ground: `Λ(Var)` is the least inductive set of pure terms. -/
 theorem example_21 {Var : Type*} {S : Set (Lam Var)} (h : Lam.IsInductive S) :
@@ -746,9 +787,10 @@ theorem theorem_26_update_determined {A : Type u} [CompleteBooleanAlgebra A]
   interpVA_update_determined (A := A) M ρ x
 
 /-- Theorem 26, packaged: clauses, determinedness of the meta-lambda, and
-capture-free soundness on the Theorem 30 carrier. The paper’s full
-statement (constants / tag 3, internal reflexive-dcpo hypothesis,
-`SetoidF_A(Λ^A, D)`, unrestricted `λ ⊢ M = N`) is out of scope. -/
+capture-free soundness on the Theorem 30 carrier. This remains the
+weaker Engeler-carrier packaging. The internal `SetoidF_A` maps,
+Definition 25 clauses, and full `LamEq` soundness are `theorem26Full` /
+`theorem26Pure` / `theorem26Pure_sound`. -/
 theorem theorem_26 {A : Type u} [CompleteBooleanAlgebra A] {Var : Type*}
     [DecidableEq Var] (x : Var) (M N : Lam Var)
     (ρ : Valuation Var (EngelerCarrier (A := A)))

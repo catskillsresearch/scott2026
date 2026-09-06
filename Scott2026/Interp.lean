@@ -875,11 +875,13 @@ theorem proposition_33 :
 ## Lemma 35 (Engeler model)
 
 Paper Lemma 35 is stated for an arbitrary reflexive dcpo with numerals.
-`ReflexiveDcpoWithNumerals` does not store `if`/`succ`/`pred`/`0?` as
-domain elements, so the paper's `n?` argument is not available in
-general. The constructions below are for `engelerWithNumerals` on
-`𝒫(ℕ)`, using the Scott-continuous fingerprint
-`Φ(X) = X · succGraph · {0}` (with `Φ(⟦c_n⟧) = {n}`) in place of `n?`.
+The paper-type theorems are `lemma_35_of` / `lemma_35_i_of` /
+`lemma_35_ii_of` in `Lemma35General.lean` (Church `¬` / `m?`,
+`scottExtend`). The constructions below are the Engeler specialisation
+on `engelerWithNumerals`, using the Scott-continuous fingerprint
+`Φ(X) = X · succGraph · {0}` (with `Φ(⟦c_n⟧) = {n}`) as a concrete
+`gbar`; names `lemma_35` / `lemma_35_i` / `lemma_35_ii` stay
+Engeler-only.
 -/
 
 /-- Church negation `λb. b ⊥ ⊤` on `Fin 2`. -/

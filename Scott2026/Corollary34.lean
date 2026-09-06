@@ -5,22 +5,23 @@ Authors: Lars Warren Ericson.
 -/
 
 import Scott2026.Lemma31
+import Scott2026.Theorem30Internal
 
 /-!
-# Corollary 34: check/VA numerals on the Theorem 30 carrier
+# Corollary 34: reflexive continuous lattice with numerals in `V^A`
 
 Furber–Mardare–Panangaden–Scott, CSL 2026, Corollary 34. The paper says
 the Engeler model in `V^A` (Theorem 30) is a reflexive continuous lattice
 with numerals, given check of the Church Booleans and numerals, with the
 whole statement interpreted in `V^A`.
 
-The internal `≪` / continuous-lattice language (subset order) lives in
-`InternalDomain.lean`. The Lean name remains `corollary_34_check`, not
-`corollary_34`: the paper type is the single internal statement that
-`P^A(check E)` is a reflexive continuous lattice with numerals. Numerals
-are here; the continuous-lattice half is `isContinuousLatticeSubsetB_powerB`;
-the base is `isBaseSubsetB_pfinB_powerB` (not named `proposition_28`);
-the reflexive dcpo is `theorem_30`. Internal `≪ ↔` finite `⊆` is
+The paper name is `corollary_34`: one internal conjunction that
+`P^A(checkExt ω)` is a reflexive continuous lattice with numerals.
+`corollary_34_check` remains the check/VA numeral fragment (Lemma 31
+commutation plus Definition 32(ii)–(iv) on `interpClosedVA`). The
+continuous-lattice half is `isContinuousLatticeSubsetB_powerB`; the base
+is `isBaseSubsetB_pfinB_powerB` (not named `proposition_28`); the
+reflexive dcpo is `theorem_30_va`. Internal `≪ ↔` finite `⊆` is
 `wayBelowSubsetB_eq_finite_subset`.
 
 Proof sketch (vision ll.786–788):
@@ -399,11 +400,12 @@ theorem definition_32_interpClosedVA :
     interpClosedVA_churchIsZero_zero (A := A),
     interpClosedVA_churchIsZero_succ (A := A)⟩
 
-/-- Corollary 34, check/VA fragment. Not named `corollary_34`: that paper
-name is the internal statement “`P^A(check E)` is a reflexive continuous
-lattice with numerals”. The numerals half is here; the continuous-lattice
-half is `isContinuousLatticeSubsetB_powerB`; the base is
-`isBaseSubsetB_pfinB_powerB`; the reflexive dcpo is `theorem_30`. -/
+/-- Corollary 34, check/VA fragment. The paper name `corollary_34` is the
+internal statement “`P^A(checkExt ω)` is a reflexive continuous lattice
+with numerals”; this lemma remains the numeral identities and check/VA
+commutation. The continuous-lattice half is
+`isContinuousLatticeSubsetB_powerB`; the base is
+`isBaseSubsetB_pfinB_powerB`; the reflexive dcpo is `theorem_30_va`. -/
 theorem corollary_34_check :
     (interpClosedVA (A := A) churchTrue =
       setToCanonical (interpClosed
@@ -452,6 +454,68 @@ theorem corollary_34_check :
     interpClosedVA_churchPred_zero (A := A),
     interpClosedVA_churchIsZero_zero (A := A),
     interpClosedVA_churchIsZero_succ (A := A)⟩
+
+/-- The proposition packaged by `corollary_34_check`. A theorem cannot
+appear as an `∧`-conjunct, so the paper statement names this type. -/
+def Corollary34Check : Prop :=
+  (interpClosedVA (A := A) churchTrue =
+    setToCanonical (interpClosed
+      (engelerReflexiveDcpo engelerPair engelerPair_injective)
+      churchTrue)) ∧
+  (interpClosedVA (A := A) churchFalse =
+    setToCanonical (interpClosed
+      (engelerReflexiveDcpo engelerPair engelerPair_injective)
+      churchFalse)) ∧
+  (∀ n, interpClosedVA (A := A) (churchNum n) =
+    setToCanonical (interpClosed
+      (engelerReflexiveDcpo engelerPair engelerPair_injective)
+      (churchNum n))) ∧
+  (eqB (childΩ (interpClosedVA (A := A) churchTrue))
+    (childΩ (interpClosedVA churchFalse)) = ⊥) ∧
+  (Nontrivial A →
+    ∀ n m, eqB (childΩ (interpClosedVA (A := A) (churchNum n)))
+        (childΩ (interpClosedVA (churchNum m))) = ⊤ → n = m) ∧
+  (∀ M N : Lam ℕ,
+    interpClosedVA (A := A) (((churchIfN.app churchTrueN).app M).app N) =
+      interpClosedVA M) ∧
+  (∀ M N : Lam ℕ,
+    interpClosedVA (A := A) (((churchIfN.app churchFalseN).app M).app N) =
+      interpClosedVA N) ∧
+  (∀ n, interpClosedVA (A := A) (churchSucc.app (churchNumN n)) =
+    interpClosedVA (churchNumN (n + 1))) ∧
+  (∀ n, interpClosedVA (A := A) (churchPred.app (churchNumN (n + 1))) =
+    interpClosedVA (churchNumN n)) ∧
+  interpClosedVA (A := A) (churchPred.app (churchNumN 0)) =
+    interpClosedVA (churchNumN 0) ∧
+  interpClosedVA (A := A) (churchIsZero.app (churchNumN 0)) =
+    interpClosedVA churchTrueN ∧
+  (∀ n, interpClosedVA (A := A) (churchIsZero.app (churchNumN (n + 1))) =
+    interpClosedVA churchFalseN)
+
+/-- Corollary 34: the Engeler model in `V^A` is a reflexive continuous
+lattice with numerals. Distinctness and `theorem_30_va` need
+`[Nontrivial A]`. `Corollary34Check` is the type of `corollary_34_check`;
+the last two conjuncts restate Definition 32(i) at Boolean `⊥` / numeral
+injectivity without the `Nontrivial A →` wrapper. -/
+theorem corollary_34 [Nontrivial A] :
+    isReflexiveDcpoB (engelerD (A := A)) (engelerR (A := A))
+      (engelerC (A := A)) (engelerQ (A := A))
+      (engelerFun (A := A)) (engelerLamB (A := A)) = ⊤ ∧
+    isContinuousLatticeSubsetB (engelerD (A := A)) = ⊤ ∧
+    isBaseSubsetB (pfinB (checkExt (A := A) PSet.omega))
+      (engelerD (A := A)) = ⊤ ∧
+    Corollary34Check (A := A) ∧
+    (eqB (childΩ (interpClosedVA (A := A) churchTrue))
+      (childΩ (interpClosedVA churchFalse)) = ⊥) ∧
+    (∀ n m, eqB (childΩ (interpClosedVA (A := A) (churchNum n)))
+      (childΩ (interpClosedVA (churchNum m))) = ⊤ → n = m) :=
+  ⟨theorem_30_va (A := A),
+    isContinuousLatticeSubsetB_powerB (checkExt (A := A) PSet.omega),
+    isBaseSubsetB_pfinB_powerB (checkExt (A := A) PSet.omega),
+    corollary_34_check (A := A),
+    eqB_interpClosedVA_churchTrue_churchFalse (A := A),
+    fun n m h =>
+      churchNum_interpClosedVA_injective (A := A) (n := n) (m := m) h⟩
 
 end
 

@@ -4,14 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lars Warren Ericson.
 -/
 
-import Scott2026.Oid
+import Scott2026.ExtensionalVA
 
 /-!
-# Raw `Oid(P^A(X))` is not index-strict
+# Regression test for raw presentation indices
 
 Isolated counterexample: a pre-set that lists `∅` twice admits two different
 valuations on `dom(P^A(check Y))` that are Boolean-equal at `⊤`. This is not a
-paper theorem; it only records why the raw carrier is not `IsStrict`.
+paper counterexample: `PSet` presentations are implementation details, while
+the paper works with extensional ZFC sets. It records why public checked-set
+theorems use `checkZF`/`checkExt` rather than raw `check`.
 -/
 
 namespace Scott2026
@@ -102,5 +104,11 @@ theorem oid_powerB_not_strict :
     (hstrict rawPowerTrueFalse rawPowerFalseTrue (by
       rw [oid_eq_powerB]
       exact eqB_raw_dup))
+
+/-- The extensional checked presentation removes precisely the duplicate-key
+artifact exercised by this regression test. -/
+theorem oid_powerB_checkExt_psetDupEmpty_strict :
+    (oid (powerB (checkExt (A := Prop) psetDupEmpty))).IsStrict :=
+  oid_powerB_checkExt_isStrict psetDupEmpty
 
 end Scott2026

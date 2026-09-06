@@ -451,6 +451,89 @@ theorem RelFun.update_self (f : RelFun S T)
   rw [RelFun.update_val, hxx, top_inf_eq, compl_top, bot_inf_eq,
     sup_bot_eq]
 
+/-- Simultaneous extensional variation of an environment and its replacement
+value.  The Boolean degree `a` may encode equality of parameters in an
+arbitrary indexing setoid. -/
+theorem RelFun.updateVal_le_updateVal
+    (f g : RelFun S T) (x : X) (d₁ d₂ : Y) (a : A)
+    (hfg : ∀ i j, a ⊓ f.val i j ≤ g.val i j)
+    (hd : a ≤ T.eq d₁ d₂) (i : X) (j : Y) :
+    a ⊓ f.updateVal x d₁ i j ≤ g.updateVal x d₂ i j := by
+  unfold RelFun.updateVal
+  rw [inf_sup_left]
+  refine sup_le ?_ ?_
+  · apply le_sup_of_le_left
+    refine le_inf (inf_le_right.trans inf_le_left) ?_
+    refine (T.trans d₂ d₁ j).trans' (le_inf ?_ ?_)
+    · exact (inf_le_left.trans hd).trans_eq (T.symm d₁ d₂)
+    · exact inf_le_right.trans inf_le_right
+  · apply le_sup_of_le_right
+    refine le_inf (inf_le_right.trans inf_le_left) ?_
+    exact (hfg i j).trans' <| le_inf inf_le_left
+      (inf_le_right.trans inf_le_right)
+
+/-- Exact congruence of update under pointwise equality of environments and
+setoid equality `⊤` of replacement values. -/
+theorem RelFun.update_congr
+    (f g : RelFun S T) (hS : S.IsTotal) (hT : T.IsTotal)
+    (x : X) (d₁ d₂ : Y)
+    (hfg : ∀ i j, f.val i j = g.val i j)
+    (hd : T.eq d₁ d₂ = ⊤) :
+    f.update hS hT x d₁ = g.update hS hT x d₂ := by
+  apply RelFun.ext
+  intro i j
+  apply le_antisymm
+  · change f.updateVal x d₁ i j ≤ g.updateVal x d₂ i j
+    simpa only [top_inf_eq] using
+      f.updateVal_le_updateVal g x d₁ d₂ ⊤
+        (fun i j => by rw [top_inf_eq, hfg i j])
+        (by rw [hd]) i j
+  · change g.updateVal x d₂ i j ≤ f.updateVal x d₁ i j
+    simpa only [top_inf_eq] using
+      g.updateVal_le_updateVal f x d₂ d₁ ⊤
+        (fun i j => by rw [top_inf_eq, hfg i j])
+        (by rw [T.symm d₂ d₁, hd]) i j
+
+/-- A family of relational functions varying extensionally pointwise over
+an `A`-setoid of parameters.  This is the hypothesis needed to run a
+valuation-parametric induction: equality of parameters transports every
+matrix coefficient of the environment. -/
+def RelFun.IsPointwiseFamily {U : Type*}
+    (R : ASetoid (A := A) U) (F : U → RelFun S T) : Prop :=
+  ∀ u v i j, R.eq u v ⊓ (F u).val i j ≤ (F v).val i j
+
+/-- A constant environment is a pointwise relational family. -/
+theorem RelFun.isPointwiseFamily_const {U : Type*}
+    (R : ASetoid (A := A) U) (f : RelFun S T) :
+    RelFun.IsPointwiseFamily R (fun _ => f) := by
+  intro u v i j
+  exact inf_le_right
+
+/-- Updating a pointwise family by an equality-preserving replacement family
+again gives a pointwise family.  Both the ambient environment and the
+replacement are allowed to vary with the parameter. -/
+theorem RelFun.IsPointwiseFamily.update {U : Type*}
+    {R : ASetoid (A := A) U} {F : U → RelFun S T}
+    (hF : RelFun.IsPointwiseFamily R F)
+    (hS : S.IsTotal) (hT : T.IsTotal) (x : X)
+    (d : U → Y) (hd : APoset.Functional R T d) :
+    RelFun.IsPointwiseFamily R
+      (fun u => (F u).update hS hT x (d u)) := by
+  intro u v i j
+  rw [RelFun.update_val, RelFun.update_val]
+  exact (RelFun.updateVal_le_updateVal
+    (F u) (F v) x (d u) (d v) (R.eq u v)
+    (hF u v) (hd u v) i j)
+
+/-- The abstraction family `d ↦ η[x := d]` is pointwise relational over the
+codomain setoid itself. -/
+theorem RelFun.isPointwiseFamily_update
+    (f : RelFun S T) (hS : S.IsTotal) (hT : T.IsTotal) (x : X) :
+    RelFun.IsPointwiseFamily T
+      (fun d => f.update hS hT x d) :=
+  (RelFun.isPointwiseFamily_const T f).update hS hT x _root_.id
+    APoset.Functional.id
+
 end RelationalUpdate
 
 /-- An updated relational environment represented as an internal function

@@ -49,6 +49,13 @@ directed supremum of elements way-below it (§4.1). -/
 def IsContinuousLattice (D : Type*) [CompleteLattice D] : Prop :=
   ∀ d : D, DirectedOn (· ≤ ·) {e | e ≪ d} ∧ d = sSup {e | e ≪ d}
 
+/-- Paper “continuous dcpo” on a complete lattice: every `y` is the
+directed supremum of `{x | x ≪ y}`. This is `IsContinuousLattice`; it
+does not add a separate dcpo-interpolation axiom, and `¬IsContinuousDcpo`
+does not claim failure of directed-completeness. -/
+def IsContinuousDcpo (D : Type*) [CompleteLattice D] : Prop :=
+  IsContinuousLattice D
+
 /-- Scott-continuous maps of §4.1. -/
 abbrev IsScottContinuous [Preorder D] [Preorder E] (f : D → E) : Prop :=
   ScottContinuous f
