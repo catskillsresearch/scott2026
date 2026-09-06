@@ -65,10 +65,21 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   interpVA_var interpVA_app interpVA_abs interpVA_closed
   interpVA_subst interpVA_sound interpVA_sound_beta interpClosedVA_sound
   interpVA_update_determined
+  interpVA_subst_CA interpVA_alpha interpVA_sound_beta_full
+  interpVA_sound_full interpClosedVA_sound_full theorem_26_sound_full
   theorem_26 theorem_26_pure theorem_26_var theorem_26_app
   theorem_26_abs theorem_26_closed theorem_26_subst
   theorem_26_sound theorem_26_sound_beta theorem_26_sound_closed
-  theorem_26_update_determined)
+  theorem_26_sound_closed_full
+  theorem_26_update_determined
+  setPSet setToCanonical checkVal
+  lemma_31 lemma_31_closed
+  churchTrue churchFalse churchNum churchIf
+  churchTrueN churchFalseN churchNumN churchIfN
+  churchSucc churchPred churchIsZero
+  definition_32
+  churchTrue_interp_ne_churchFalse churchNum_interp_injective
+  engelerWithNumerals proposition_33)
 
 export Scott2026.Lam (FreeFor subst_fresh freeFor_of_not_mem_fv freeFor_of_closed
   substCA substNaive substNaive_captures substNaive_captures_not_freeFor)

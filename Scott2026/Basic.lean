@@ -14,6 +14,7 @@ import Scott2026.Domain
 import Scott2026.Lambda
 import Scott2026.Interp
 import Scott2026.InterpVA
+import Scott2026.Lemma31
 import Scott2026.LambdaVA
 import Scott2026.Engeler
 import Scott2026.EngelerVA
@@ -406,15 +407,32 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- `Λ(Var)` on the Theorem 30 carrier (`CanonicalPowerIdx` of `check ω`)
 -- by the Definition 25 clauses with `engelerAppVA` / `engelerLamVA`.
 -- The meta-lambda is `DeterminedByFiniteVA` (`theorem_26_update_determined`),
--- so `theorem_30_retract` applies. Soundness is the capture-free fragment
--- `LamEqNC`. This is not `Λ(D, check Var, 𝔎)^A`, not tag 3, not an
--- internal reflexive-dcpo hypothesis, and not `SetoidF_A` membership.
+-- so `theorem_30_retract` applies. Capture-free soundness remains
+-- `interpVA_sound` / `theorem_26_sound` (`LamEqNC`). Full paper
+-- soundness on this carrier is `interpVA_sound_full` /
+-- `theorem_26_sound_full` (`LamEq`, CA-β + α, `[Infinite Var]`).
+-- This is not `Λ(D, check Var, 𝔎)^A`, not tag 3, not an internal
+-- reflexive-dcpo hypothesis, and not `SetoidF_A` membership.
 -- The missing lemma for `SetoidF_A(oid(lamB (check Var)),
 -- canonicalPowerSetoid)` (or `oid(check (pLamSet Var))`) is congruence
 -- of `interpVA` under `eqB (encodeLamB M) (encodeLamB N)`, equivalently
 -- injectivity of `encodeLamB` at every Boolean value (pairwise
 -- Boolean-unequal variable children). Definition 16 `oidRel` would need
 -- a function name with `isFunctionB = ⊤` and the same single-valuedness.
+--
+-- Lemma 31 (CSL p.11): `lemma_31` / `lemma_31_closed` are Boolean
+-- equality at `⊤` between `interpVA` of a checked valuation and the
+-- check (`setToCanonical`) of ground `interp` on
+-- `engelerReflexiveDcpo engelerPair`. Pairings match.
+--
+-- Definition 32 (CSL p.11): `definition_32` is the syntactic package
+-- (closed Church `⊥`, `⊤`, `(c_n)`, and the `if`/`succ`/`pred`/`0?`
+-- identities). Distinctness (i) is `churchTrue_interp_ne_churchFalse`.
+-- `ReflexiveDcpoWithNumerals` stays algebraic.
+--
+-- Proposition 33 (CSL p.11): `proposition_33` packages the Engeler
+-- model as a reflexive continuous lattice with Church numerals
+-- (`engelerWithNumerals`, `IsContinuousLattice (Set ℕ)`).
 
 /-- Example 21, ground: `Λ(Var)` is the least inductive set of pure terms. -/
 theorem example_21 {Var : Type*} {S : Set (Lam Var)} (h : Lam.IsInductive S) :
@@ -665,5 +683,14 @@ theorem theorem_26 {A : Type u} [CompleteBooleanAlgebra A] {Var : Type*}
     interpVA_update_determined (A := A) M ρ x,
     interpVA_sound_beta (A := A) x M N ρ hfree,
     interpVA_sound (A := A) heq ρ⟩
+
+/-- Theorem 26, closed form of full `LamEq` soundness. The open form is
+`theorem_26_sound_full` in `InterpVA`. Capture-free closed soundness
+remains `theorem_26_sound_closed`. -/
+theorem theorem_26_sound_closed_full {A : Type u} [CompleteBooleanAlgebra A]
+    {Var : Type*} [DecidableEq Var] [Infinite Var] {M N : Lam Var}
+    (h : LamEq M N) :
+    interpClosedVA (A := A) M = interpClosedVA (A := A) N :=
+  interpClosedVA_sound_full (A := A) h
 
 end Scott2026

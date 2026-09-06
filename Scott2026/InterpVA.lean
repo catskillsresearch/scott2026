@@ -799,6 +799,187 @@ theorem interpClosedVA_sound {M N : Lam Var} (h : LamEqNC M N) :
   interpVA_sound (A := A) h
     (Valuation.default (finsetToCanonical (A := A) ∅))
 
+/-!
+## Capture-avoiding substitution and full Theorem 26 soundness
+-/
+
+/-- Substitution lemma for capture-avoiding `substCA` on the Theorem 30
+carrier. Requires infinitely many names so `pickFresh` is always fresh. -/
+theorem interpVA_subst_CA [Infinite Var] (M N : Lam Var) (x : Var)
+    (ρ : Valuation Var (EngelerCarrier (A := A))) :
+    interpVA (A := A) (Lam.substCA M x N) ρ =
+      interpVA (A := A) M (ρ.update x (interpVA (A := A) N ρ)) := by
+  induction hsize : M.size using Nat.strong_induction_on generalizing M N x ρ with
+  | h k ih =>
+    match M with
+    | .var y =>
+      rw [Lam.substCA_var]
+      by_cases hyx : y = x
+      · subst hyx
+        simp [interpVA]
+      · simp [hyx, interpVA]
+    | .app M₁ M₂ =>
+      have h₁ : M₁.size < k := by
+        simp [Lam.size] at hsize; omega
+      have h₂ : M₂.size < k := by
+        simp [Lam.size] at hsize; omega
+      simp only [Lam.substCA_app, interpVA]
+      rw [ih M₁.size h₁ M₁ N x ρ rfl, ih M₂.size h₂ M₂ N x ρ rfl]
+    | .abs y M =>
+      rw [Lam.substCA_abs]
+      by_cases hyx : y = x
+      · rw [if_pos hyx]
+        subst hyx
+        simp only [interpVA]
+        congr 1
+        funext d
+        rw [Valuation.update_overwrite]
+      · rw [if_neg hyx]
+        by_cases hxM : x ∉ M.fv
+        · rw [if_pos hxM]
+          simp only [interpVA]
+          congr 1
+          funext d
+          have hcomm :=
+            Valuation.update_comm (Ne.symm hyx) ρ (interpVA (A := A) N ρ) d
+          rw [hcomm]
+          exact (interpVA_update_fresh (A := A) M (ρ.update y d) x
+            (interpVA (A := A) N ρ) hxM).symm
+        · rw [if_neg hxM]
+          by_cases hyN : y ∉ N.fv
+          · rw [if_pos hyN]
+            simp only [interpVA]
+            congr 1
+            funext d
+            have hMs : M.size < k := by
+              simp [Lam.size] at hsize; omega
+            rw [ih M.size hMs M N x (ρ.update y d) rfl]
+            have hN : interpVA (A := A) N (ρ.update y d) =
+                interpVA (A := A) N ρ :=
+              interpVA_update_fresh (A := A) N ρ y d hyN
+            rw [hN, Valuation.update_comm hyx]
+          · rw [if_neg hyN]
+            set z := Lam.pickFresh (M.vars ∪ N.fv ∪ {x, y}) y
+            have hz : z ∉ M.vars ∪ N.fv ∪ {x, y} :=
+              pickFresh_not_mem _ y
+            have hzM : z ∉ M.vars := fun h => hz (Finset.mem_union.mpr (Or.inl
+              (Finset.mem_union.mpr (Or.inl h))))
+            have hzN : z ∉ N.fv := fun h => hz (Finset.mem_union.mpr (Or.inl
+              (Finset.mem_union.mpr (Or.inr h))))
+            have hzx : z ≠ x := fun h => hz (by simp [h])
+            have hzy : z ≠ y := fun h => hz (by simp [h])
+            have hMs : M.size < k := by
+              simp [Lam.size] at hsize; omega
+            have hren : (M.substNaive y (Lam.var z)).size = M.size :=
+              Lam.size_substNaive_var M y z
+            simp only [interpVA]
+            congr 1
+            funext d
+            rw [ih M.size hMs (M.substNaive y (Lam.var z)) N x (ρ.update z d)
+              hren]
+            have hN : interpVA (A := A) N (ρ.update z d) =
+                interpVA (A := A) N ρ :=
+              interpVA_update_fresh (A := A) N ρ z d hzN
+            rw [hN, Valuation.update_comm hzx]
+            have hfree : M.FreeFor y (Lam.var z) :=
+              Lam.freeFor_of_not_mem_vars y hzM
+            have hsub := interpVA_subst (A := A) M (Lam.var z) y
+              ((ρ.update x (interpVA (A := A) N ρ)).update z d) hfree
+            have hzval : interpVA (A := A) (Lam.var z)
+                ((ρ.update x (interpVA (A := A) N ρ)).update z d) = d := by
+              simp [interpVA]
+            rw [hsub, hzval]
+            have hzMf : z ∉ M.fv := fun h => hzM (Lam.fv_subset_vars M h)
+            rw [Valuation.update_comm hzy]
+            exact interpVA_update_fresh (A := A) M
+              ((ρ.update x (interpVA (A := A) N ρ)).update y d) z d hzMf
+
+/-- α-soundness: `⟦λx. M⟧^A_ρ = ⟦λy. M[x:=y]⟧^A_ρ` when `y ∉ fv(M)`. -/
+theorem interpVA_alpha [Infinite Var] (x y : Var) (M : Lam Var)
+    (ρ : Valuation Var (EngelerCarrier (A := A))) (hy : y ∉ M.fv) :
+    interpVA (A := A) (Lam.abs x M) ρ =
+      interpVA (A := A) (Lam.abs y (Lam.substCA M x (Lam.var y))) ρ := by
+  simp only [interpVA]
+  congr 1
+  funext d
+  rw [interpVA_subst_CA (A := A) M (Lam.var y) x (ρ.update y d)]
+  simp only [interpVA]
+  by_cases hyx : y = x
+  · subst hyx
+    rw [Valuation.update_toFun_self, Valuation.update_overwrite]
+  · rw [Valuation.update_toFun_self, Valuation.update_comm hyx]
+    exact (interpVA_update_fresh (A := A) M (ρ.update x d) y d hy).symm
+
+/-- β-case for capture-avoiding substitution on the Theorem 30 carrier.
+Uses `theorem_30_retract`. No `FreeFor` hypothesis. -/
+theorem interpVA_sound_beta_full [Infinite Var] (x : Var) (M N : Lam Var)
+    (ρ : Valuation Var (EngelerCarrier (A := A))) :
+    interpVA (A := A) ((Lam.abs x M).app N) ρ =
+      interpVA (A := A) (Lam.substCA M x N) ρ := by
+  have hf : DeterminedByFiniteVA (A := A)
+      (fun d => interpVA (A := A) M (ρ.update x d)) :=
+    interpVA_update_determined (A := A) M ρ x
+  have hretract :=
+    engelerVA_retract_oid (A := A)
+      (fun d => interpVA (A := A) M (ρ.update x d)) hf
+      (interpVA (A := A) N ρ)
+  have hstrict : (canonicalPowerSetoid
+      (check (A := A) PSet.omega)).IsStrict :=
+    canonicalPowerSetoid_isStrict _
+  have happ :
+      interpVA (A := A) ((Lam.abs x M).app N) ρ =
+        engelerAppVA (A := A)
+          (engelerLamVA (A := A) fun d => interpVA (A := A) M (ρ.update x d))
+          (interpVA (A := A) N ρ) :=
+    rfl
+  have happly :
+      engelerAppVA (A := A)
+          (engelerLamVA (A := A) fun d => interpVA (A := A) M (ρ.update x d))
+          (interpVA (A := A) N ρ) =
+        interpVA (A := A) M (ρ.update x (interpVA (A := A) N ρ)) :=
+    hstrict _ _ hretract
+  exact happ.trans (happly.trans (interpVA_subst_CA (A := A) M N x ρ).symm)
+
+/-- Full soundness: `LamEq M N` implies `⟦M⟧^A_ρ = ⟦N⟧^A_ρ`.
+No `FreeFor` hypothesis. Requires `Infinite Var` so CA renaming is defined. -/
+theorem interpVA_sound_full [Infinite Var] {M N : Lam Var} (h : LamEq M N)
+    (ρ : Valuation Var (EngelerCarrier (A := A))) :
+    interpVA (A := A) M ρ = interpVA (A := A) N ρ := by
+  induction h generalizing ρ with
+  | refl M =>
+    rfl
+  | symm _ ih =>
+    exact (ih ρ).symm
+  | trans _ _ ih1 ih2 =>
+    exact (ih1 ρ).trans (ih2 ρ)
+  | app_left _ ih =>
+    simp only [interpVA]
+    rw [ih ρ]
+  | app_right _ ih =>
+    simp only [interpVA]
+    rw [ih ρ]
+  | xi x _ ih =>
+    simp only [interpVA]
+    congr 1
+    funext d
+    exact ih (ρ.update x d)
+  | beta x M N =>
+    exact interpVA_sound_beta_full (A := A) x M N ρ
+  | alpha x y M hy =>
+    exact interpVA_alpha (A := A) x y M ρ hy
+
+theorem interpClosedVA_sound_full [Infinite Var] {M N : Lam Var} (h : LamEq M N) :
+    interpClosedVA (A := A) M = interpClosedVA (A := A) N :=
+  interpVA_sound_full (A := A) h
+    (Valuation.default (finsetToCanonical (A := A) ∅))
+
+/-- Theorem 26 soundness sentence on the pure-term / Theorem-30-carrier
+fragment (not the full `SetoidF_A` statement). -/
+theorem theorem_26_sound_full [Infinite Var] {M N : Lam Var} (h : LamEq M N)
+    (ρ : Valuation Var (EngelerCarrier (A := A))) :
+    interpVA (A := A) M ρ = interpVA (A := A) N ρ :=
+  interpVA_sound_full (A := A) h ρ
+
 end
 
 end Scott2026
