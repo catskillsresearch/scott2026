@@ -11,10 +11,11 @@ import Scott2026.Theorem26
 /-!
 # Whole-paper capstone (`csl2026`)
 
-`csl2026` is the Palomar-compared theorem: a Mathlib-only existence
-statement whose proof goes through the three paper capstones. The
-conjunction `csl2026_capstones` keeps the project types in this module
-so `Challenge.lean` stays a few lines.
+`csl2026` is the Palomar-compared theorem: Theorem 43 as incomparability
+under `proposition_36_i`. Challenge defines that relation with a
+Mathlib-only λ-combinator; this module uses the paper's Engeler-oracle
+form. The conjunction `csl2026_capstones` keeps Theorem 26 and
+Corollary 34 in the proof without putting those types in Challenge.
 -/
 
 namespace Scott2026
@@ -67,15 +68,12 @@ theorem csl2026_capstones :
     fun (A : Type) _ _ => (corollary_34 (A := A)).1,
     fun _ _ 𝓜 V K hK hV η => ⟨theorem26Full 𝓜 V K hK hV η⟩⟩
 
-/-- Whole-paper Mathlib face: Theorem 43 produces two distinct subsets of
-`ℕ` (incomparability under `≤ₘ` implies inequality, since `≤ₘ` is
-reflexive). The proof instantiates `csl2026_capstones`, so it depends on
-Theorems 26 and 43 and Corollary 34, and thereby on the earlier numbered
-items those three use. -/
-theorem csl2026 : ∃ T₁ T₂ : Set ℕ, T₁ ≠ T₂ := by
-  obtain ⟨⟨T₁, T₂, h12, _h21⟩, _h34, _h26⟩ := csl2026_capstones
-  refine ⟨T₁, T₂, ?_⟩
-  intro h
-  exact h12 (h ▸ proposition_36_i_rfl T₁)
+/-- Theorem 43, Mathlib face: two subsets of `ℕ` incomparable under `≤ₘ`.
+The proof instantiates `csl2026_capstones`, so it depends on Theorems 26
+and 43 and Corollary 34, and thereby on the earlier numbered items those
+three use. -/
+theorem csl2026 : ∃ T₁ T₂ : Set ℕ,
+    ¬proposition_36_i T₁ T₂ ∧ ¬proposition_36_i T₂ T₁ :=
+  csl2026_capstones.1
 
 end Scott2026

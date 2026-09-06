@@ -11,9 +11,10 @@ project:
     SetoidF_A), Corollary 34 (the Engeler model with numerals in V^A), and
     Theorem 43 (two fair-coin subsets of ℕ that are incomparable under the
     λ-definable many-one preorder). Domain-theory background is imported from
-    a vendored copy of scott1972. The Palomar Challenge locks the Mathlib-only
-    whole-paper theorem csl2026 (two distinct subsets of ℕ), whose Solution
-    proof goes through those three capstones. Lean is written by AI agents
+    a vendored copy of scott1972. The Palomar Challenge locks Theorem 43 as
+    csl2026 (incomparable λ-definable many-one degrees) together with the
+    definition proposition_36_i. The Solution proof goes through the three
+    capstones. Lean is written by AI agents
     under the direction and review of the author. The paper's authors were
     not contacted and did not participate in or endorse this formalization.
     There is no sorry outside the deliberate holes in Challenge.lean, no
@@ -36,15 +37,18 @@ status:
     Sorry-free formalization of the CSL 2026 development in Scott2026/,
     packaged around three capstones: theorem26Full (Theorem 26),
     corollary_34 (Corollary 34), and theorem_43_paper (Theorem 43). The
-    compared inventory matches comparator.json: the Mathlib-only theorem
-    csl2026, whose proof instantiates csl2026_capstones.
+    compared inventory matches comparator.json: csl2026 (Theorem 43) and
+    proposition_36_i; the Solution proof instantiates csl2026_capstones.
   sorry_count: 1
   sorry_in_definitions: 0
   axioms: ["propext", "Classical.choice", "Quot.sound"]
   main_results:
     - declaration: "Scott2026.csl2026"
       file: "Scott2026/Paper.lean"
-      note: "Mathlib-only whole-paper face; Comparator target."
+      note: "Theorem 43: incomparable ≤ₘ degrees; Comparator target."
+    - declaration: "Scott2026.proposition_36_i"
+      file: "Scott2026/Prop36.lean"
+      note: "Proposition 36(i); Challenge uses the λ-combinator form."
     - paper: "theorem26Full"
       file: "Scott2026/Theorem26.lean"
       note: "Theorem 26: internal SetoidF_A interpretation (uses Definitions 19–25, Theorem 17)."
@@ -167,9 +171,10 @@ review:
 
 known_gaps:
   - >-
-    The compared inventory is csl2026, a Mathlib-only existence statement.
-    The project-typed capstones are packed in csl2026_capstones and are
-    not themselves Comparator-locked.
+    Challenge proposition_36_i is the λ-combinator form of Proposition 36(i);
+    the library definition is the Engeler-oracle form. Comparator treats
+    the definition as a hole (types only). Theorems 26 and Corollary 34
+    remain in csl2026_capstones and are not themselves Comparator-locked.
   - >-
     proposition_42_algebra finite-K is a Finset join; the paper’s fuzzy
     pfinB exists-quantifier over P_fin^A(check ω) is not fully internalized
@@ -193,14 +198,19 @@ limitations:
     Challenge.lean may contain deliberate sorries; Solution.lean and
     Scott2026/* must not.
   - >-
-    Challenge/Solution type comparison covers csl2026, not the project-typed
-    capstones packed in csl2026_capstones.
+    Challenge/Solution comparison covers csl2026 and proposition_36_i, not
+    the project-typed capstones packed in csl2026_capstones.
 
 alignment:
   namespace: "Scott2026"
   statements:
-    - source: "Whole-paper face of Theorems 26 and 43 and Corollary 34"
+    - source: "Theorem 43 (incomparable λ-degrees)"
       lean: "csl2026"
       module: "Scott2026.Paper"
       status: proved
-      note: "Mathlib-only Comparator target."
+      note: "Comparator target; Solution proof uses csl2026_capstones."
+    - source: "Proposition 36(i) (λ-definable many-one preorder)"
+      lean: "proposition_36_i"
+      module: "Scott2026.Prop36"
+      status: proved
+      note: "Compared definition; Challenge body is the λ-combinator form."

@@ -4,6 +4,8 @@
   "theorem_names": [
     "Scott2026.csl2026"
   ],
-  "definition_names": [],
+  "definition_names": [
+    "Scott2026.proposition_36_i"
+  ],
   "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"]
 }

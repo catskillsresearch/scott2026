@@ -31,8 +31,9 @@ Original Lean and author-written docs are Apache-2.0. The source PDF
 **Library complete; Palomar Challenge is a Mathlib-only face.** Three
 capstones sit on top of the paper: `theorem26Full` (Theorem 26),
 `corollary_34` (Corollary 34), and `theorem_43_paper` (Theorem 43). The
-Comparator locks `csl2026` (`∃ T₁ T₂ : Set ℕ, T₁ ≠ T₂`), proved from
-those three via `csl2026_capstones`. `[Nontrivial A]` makes the paper’s
+Comparator locks Theorem 43 as `csl2026` (incomparable `≤ₘ` degrees) and
+the relation `proposition_36_i`. The Solution proof goes through those
+three via `csl2026_capstones`. `[Nontrivial A]` makes the paper’s
 implicit `⊥ ≠ ⊤` convention explicit.
 
 ## Files (Palomar)

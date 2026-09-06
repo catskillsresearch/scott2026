@@ -214,6 +214,7 @@ export Scott2026.Lam (FreeFor subst_fresh freeFor_of_not_mem_fv freeFor_of_close
 # Solution to the Challenge
 
 Palomar compares this module to `Challenge.lean` using `comparator.json`.
-The compared name is `csl2026`. This file imports `Scott2026.Basic` and
-re-exports that theorem (proved from `csl2026_capstones`).
+The compared names are `csl2026` and `proposition_36_i`. This file imports
+`Scott2026.Basic` and re-exports them (`csl2026` is proved from
+`csl2026_capstones`).
 -/
