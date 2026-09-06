@@ -871,4 +871,292 @@ theorem proposition_33 :
           (churchNum n)) :=
   ⟨isContinuousLattice_set ℕ, rfl, rfl, rfl, fun _ => rfl⟩
 
+/-!
+## Lemma 35 (Engeler model)
+
+Paper Lemma 35 is stated for an arbitrary reflexive dcpo with numerals.
+`ReflexiveDcpoWithNumerals` does not store `if`/`succ`/`pred`/`0?` as
+domain elements, so the paper's `n?` argument is not available in
+general. The constructions below are for `engelerWithNumerals` on
+`𝒫(ℕ)`, using the Scott-continuous fingerprint
+`Φ(X) = X · succGraph · {0}` (with `Φ(⟦c_n⟧) = {n}`) in place of `n?`.
+-/
+
+/-- Church negation `λb. b ⊥ ⊤` on `Fin 2`. -/
+def churchNot : Lam (Fin 2) :=
+  Lam.abs 0 (((Lam.var 0).app churchFalse).app churchTrue)
+
+/-- Witness `pair(∅, pair({0}, 0))` used to separate Church Booleans. -/
+def churchBoolSepWitness (pair : Finset ℕ × ℕ → ℕ) : ℕ :=
+  pair (∅, pair ({0}, (0 : ℕ)))
+
+theorem churchFalse_interp_mem_sep (pair : Finset ℕ × ℕ → ℕ)
+    (hpair : Function.Injective pair) :
+    churchBoolSepWitness pair ∈
+      interpClosed (engelerReflexiveDcpo pair hpair) churchFalse := by
+  rw [churchFalse_interp_eq]
+  refine ⟨∅, pair ({0}, (0 : ℕ)), ?_, rfl⟩
+  exact ⟨({0} : Finset ℕ), 0, by simp, rfl⟩
+
+theorem churchTrue_interp_not_mem_sep (pair : Finset ℕ × ℕ → ℕ)
+    (hpair : Function.Injective pair) :
+    churchBoolSepWitness pair ∉
+      interpClosed (engelerReflexiveDcpo pair hpair) churchTrue := by
+  rw [churchTrue_interp_eq]
+  intro hw
+  obtain ⟨K, q, hq, heq⟩ := hw
+  have hKq : (K, q) = (∅, pair ({0}, (0 : ℕ))) := hpair heq.symm
+  cases hKq
+  obtain ⟨L, r, hr, _⟩ := hq
+  simp at hr
+
+theorem churchTrue_interp_app (pair : Finset ℕ × ℕ → ℕ)
+    (hpair : Function.Injective pair) (F X : Set ℕ) :
+    (engelerReflexiveDcpo pair hpair).app
+      ((engelerReflexiveDcpo pair hpair).app
+        (interpClosed (engelerReflexiveDcpo pair hpair) churchTrue) F) X = F := by
+  set R := engelerReflexiveDcpo pair hpair
+  have h1 : R.app (interpClosed R churchTrue) F =
+      interp R (Lam.abs 1 (Lam.var 0)) (Valuation.empty.update 0 F) := by
+    simp [interpClosed, churchTrue, interp_abs_app]; rfl
+  rw [h1, interp_abs_app]
+  have h0 : ((Valuation.empty.update (0 : Fin 2) F).update 1 X).toFun 0 = F :=
+    Valuation.update_toFun_of_ne (Valuation.empty.update (0 : Fin 2) F)
+      (x := 1) (y := 0) X Fin.zero_ne_one
+  simp [interp, h0]
+
+theorem churchNot_interp_app (pair : Finset ℕ × ℕ → ℕ)
+    (hpair : Function.Injective pair) (B : Set ℕ) :
+    (engelerReflexiveDcpo pair hpair).app
+      (interpClosed (engelerReflexiveDcpo pair hpair) churchNot) B =
+    (engelerReflexiveDcpo pair hpair).app
+      ((engelerReflexiveDcpo pair hpair).app B
+        (interpClosed (engelerReflexiveDcpo pair hpair) churchFalse))
+      (interpClosed (engelerReflexiveDcpo pair hpair) churchTrue) := by
+  set R := engelerReflexiveDcpo pair hpair
+  have h1 : R.app (interpClosed R churchNot) B =
+      interp R (((Lam.var 0).app churchFalse).app churchTrue)
+        (Valuation.empty.update 0 B) := by
+    simp [interpClosed, churchNot, interp_abs_app]; rfl
+  rw [h1]
+  change R.app (R.app (interp R (Lam.var 0) (Valuation.empty.update 0 B))
+      (interp R churchFalse (Valuation.empty.update 0 B)))
+      (interp R churchTrue (Valuation.empty.update 0 B)) = _
+  have hB : interp R (Lam.var 0) (Valuation.empty.update 0 B) = B := by
+    simp [interp, Valuation.update]
+  rw [hB, interp_closed_of_fv_empty R churchFalse _ churchFalse_fv,
+    interp_closed_of_fv_empty R churchTrue _ churchTrue_fv]
+
+theorem churchNot_interp_true (pair : Finset ℕ × ℕ → ℕ)
+    (hpair : Function.Injective pair) :
+    (engelerReflexiveDcpo pair hpair).app
+      (interpClosed (engelerReflexiveDcpo pair hpair) churchNot)
+      (interpClosed (engelerReflexiveDcpo pair hpair) churchTrue) =
+      interpClosed (engelerReflexiveDcpo pair hpair) churchFalse := by
+  rw [churchNot_interp_app]
+  exact churchTrue_interp_app pair hpair _ _
+
+theorem churchNot_interp_false (pair : Finset ℕ × ℕ → ℕ)
+    (hpair : Function.Injective pair) :
+    (engelerReflexiveDcpo pair hpair).app
+      (interpClosed (engelerReflexiveDcpo pair hpair) churchNot)
+      (interpClosed (engelerReflexiveDcpo pair hpair) churchFalse) =
+      interpClosed (engelerReflexiveDcpo pair hpair) churchTrue := by
+  rw [churchNot_interp_app]
+  exact churchNum_interp_zero pair hpair _ _
+
+/-- Fingerprint `Φ(X) = X · succGraph · {0}`. Scott-continuous, and
+`Φ(⟦c_n⟧) = {n}` by `churchNum_iter_interp`. -/
+noncomputable def numeralFingerprint (X : Set ℕ) : Set ℕ :=
+  engelerWithNumerals.app
+    (engelerWithNumerals.app X (numeralSuccGraph engelerPair)) ({0} : Set ℕ)
+
+theorem numeralFingerprint_numeral (n : ℕ) :
+    numeralFingerprint (engelerWithNumerals.numeral n) = ({n} : Set ℕ) := by
+  simpa [numeralFingerprint, engelerWithNumerals, ReflexiveDcpo.app] using
+    churchNum_iter_interp engelerPair engelerPair_injective n
+
+theorem numeralFingerprint_scottContinuous :
+    IsScottContinuous numeralFingerprint := by
+  have hf : IsScottContinuous
+      (fun X : Set ℕ =>
+        engelerWithNumerals.app X (numeralSuccGraph engelerPair)) :=
+    ReflexiveDcpo.app_comp_scott (R := engelerWithNumerals.toReflexiveDcpo)
+      ScottContinuous.id (ScottContinuous.const (numeralSuccGraph engelerPair))
+  exact ReflexiveDcpo.app_comp_scott (R := engelerWithNumerals.toReflexiveDcpo)
+    hf (ScottContinuous.const ({0} : Set ℕ))
+
+/-- Pointwise union of Boolean values of `χ_S` along a set of numerals. -/
+noncomputable def chiBundle (S : Set ℕ) (Y : Set ℕ) : Set ℕ :=
+  ⋃₀ (chiNum engelerWithNumerals S '' Y)
+
+theorem chiBundle_sUnion (S : Set ℕ) (𝒟 : Set (Set ℕ)) :
+    chiBundle S (⋃₀ 𝒟) = ⋃₀ (chiBundle S '' 𝒟) := by
+  ext x
+  constructor
+  · intro hx
+    obtain ⟨t, ht, hxt⟩ := mem_sUnion.mp hx
+    obtain ⟨n, hn, rfl⟩ := (mem_image _ _ _).mp ht
+    obtain ⟨Y, hY, hnY⟩ := mem_sUnion.mp hn
+    refine mem_sUnion.mpr ⟨chiBundle S Y, mem_image_of_mem _ hY, ?_⟩
+    exact mem_sUnion.mpr ⟨chiNum engelerWithNumerals S n, mem_image_of_mem _ hnY, hxt⟩
+  · intro hx
+    obtain ⟨t, ht, hxt⟩ := mem_sUnion.mp hx
+    obtain ⟨Y, hY, rfl⟩ := (mem_image _ _ _).mp ht
+    obtain ⟨u, hu, hxu⟩ := mem_sUnion.mp hxt
+    obtain ⟨n, hn, rfl⟩ := (mem_image _ _ _).mp hu
+    refine mem_sUnion.mpr ⟨chiNum engelerWithNumerals S n, ?_, hxu⟩
+    exact mem_image_of_mem _ (mem_sUnion.mpr ⟨Y, hY, hn⟩)
+
+theorem chiBundle_scottContinuous (S : Set ℕ) :
+    IsScottContinuous (chiBundle S) := by
+  intro 𝒟 _hne _hdir X hlub
+  have hX : X = ⋃₀ 𝒟 := by
+    rw [← sSup_eq_sUnion, hlub.sSup_eq]
+  have hunion : ⋃₀ (chiBundle S '' 𝒟) = chiBundle S X := by
+    rw [hX, chiBundle_sUnion]
+  simpa [sSup_eq_sUnion, hunion] using isLUB_sSup (chiBundle S '' 𝒟)
+
+theorem chiBundle_singleton (S : Set ℕ) (n : ℕ) :
+    chiBundle S ({n} : Set ℕ) = chiNum engelerWithNumerals S n := by
+  simp [chiBundle, image_singleton, sUnion_singleton]
+
+/-- Scott-continuous extension `ḡ` of `χ_S` off the numerals:
+`ḡ(X) = ⋃_{n ∈ Φ(X)} χ_S(n)`. -/
+noncomputable def gbar (S : Set ℕ) (X : Set ℕ) : Set ℕ :=
+  chiBundle S (numeralFingerprint X)
+
+theorem gbar_numeral (S : Set ℕ) (n : ℕ) :
+    gbar S (engelerWithNumerals.numeral n) = chiNum engelerWithNumerals S n := by
+  simp [gbar, numeralFingerprint_numeral, chiBundle_singleton]
+
+theorem gbar_scottContinuous (S : Set ℕ) :
+    IsScottContinuous (gbar S) := by
+  change IsScottContinuous (chiBundle S ∘ numeralFingerprint)
+  exact numeralFingerprint_scottContinuous.comp (chiBundle_scottContinuous S)
+
+/-- Scott-open containing `⟦⊥⟧` but not `⟦⊤⟧`. -/
+def lemma_35_boolOpenBot : Set (Set ℕ) :=
+  {X | churchBoolSepWitness engelerPair ∈ X}
+
+theorem lemma_35_boolOpenBot_scottOpen :
+    ScottOpen lemma_35_boolOpenBot :=
+  scottOpen_mem (churchBoolSepWitness engelerPair)
+
+theorem lemma_35_boolOpenBot_spec :
+    engelerWithNumerals.boolBot ∈ lemma_35_boolOpenBot ∧
+    engelerWithNumerals.boolTop ∉ lemma_35_boolOpenBot := by
+  constructor
+  · simpa [lemma_35_boolOpenBot, engelerWithNumerals] using
+      churchFalse_interp_mem_sep engelerPair engelerPair_injective
+  · simpa [lemma_35_boolOpenBot, engelerWithNumerals] using
+      churchTrue_interp_not_mem_sep engelerPair engelerPair_injective
+
+noncomputable def churchNotGraph : Set ℕ :=
+  interpClosed (engelerReflexiveDcpo engelerPair engelerPair_injective) churchNot
+
+theorem churchNotGraph_app_boolTop :
+    engelerWithNumerals.funMap churchNotGraph engelerWithNumerals.boolTop =
+      engelerWithNumerals.boolBot := by
+  simpa [churchNotGraph, engelerWithNumerals, ReflexiveDcpo.app] using
+    churchNot_interp_true engelerPair engelerPair_injective
+
+theorem churchNotGraph_app_boolBot :
+    engelerWithNumerals.funMap churchNotGraph engelerWithNumerals.boolBot =
+      engelerWithNumerals.boolTop := by
+  simpa [churchNotGraph, engelerWithNumerals, ReflexiveDcpo.app] using
+    churchNot_interp_false engelerPair engelerPair_injective
+
+/-- Scott-open containing `⟦⊤⟧` but not `⟦⊥⟧`, as the preimage of
+`lemma_35_boolOpenBot` under `fun(⟦¬⟧)`. -/
+noncomputable def lemma_35_boolOpenTop : Set (Set ℕ) :=
+  engelerWithNumerals.funMap churchNotGraph ⁻¹' lemma_35_boolOpenBot
+
+theorem lemma_35_boolOpenTop_scottOpen :
+    ScottOpen lemma_35_boolOpenTop :=
+  scottOpen_preimage (engelerWithNumerals.fun_scott_pt churchNotGraph)
+    lemma_35_boolOpenBot_scottOpen
+
+theorem lemma_35_boolOpenTop_spec :
+    engelerWithNumerals.boolTop ∈ lemma_35_boolOpenTop ∧
+    engelerWithNumerals.boolBot ∉ lemma_35_boolOpenTop := by
+  constructor
+  · change churchBoolSepWitness engelerPair ∈
+      engelerWithNumerals.funMap churchNotGraph engelerWithNumerals.boolTop
+    rw [show engelerWithNumerals.funMap churchNotGraph
+          engelerWithNumerals.boolTop = engelerWithNumerals.boolBot from
+        churchNotGraph_app_boolTop]
+    exact lemma_35_boolOpenBot_spec.1
+  · intro hmem
+    have h : churchBoolSepWitness engelerPair ∈ engelerWithNumerals.boolTop := by
+      change churchBoolSepWitness engelerPair ∈
+        engelerWithNumerals.funMap churchNotGraph engelerWithNumerals.boolBot at hmem
+      rwa [show engelerWithNumerals.funMap churchNotGraph
+            engelerWithNumerals.boolBot = engelerWithNumerals.boolTop from
+          churchNotGraph_app_boolBot] at hmem
+    exact lemma_35_boolOpenBot_spec.2 h
+
+/-- Scott-open `U_m = {X | m ∈ Φ(X)}` containing `⟦c_m⟧` and no other numeral. -/
+def lemma_35_numeralOpen (m : ℕ) : Set (Set ℕ) :=
+  numeralFingerprint ⁻¹' {Y : Set ℕ | m ∈ Y}
+
+theorem lemma_35_numeralOpen_scottOpen (m : ℕ) :
+    ScottOpen (lemma_35_numeralOpen m) :=
+  scottOpen_preimage numeralFingerprint_scottContinuous (scottOpen_mem m)
+
+theorem lemma_35_numeralOpen_spec (m : ℕ) :
+    engelerWithNumerals.numeral m ∈ lemma_35_numeralOpen m ∧
+    ∀ n, n ≠ m → engelerWithNumerals.numeral n ∉ lemma_35_numeralOpen m := by
+  constructor
+  · change m ∈ numeralFingerprint (engelerWithNumerals.numeral m)
+    rw [numeralFingerprint_numeral]
+    exact mem_singleton m
+  · intro n hne hmem
+    change m ∈ numeralFingerprint (engelerWithNumerals.numeral n) at hmem
+    rw [numeralFingerprint_numeral] at hmem
+    exact hne (mem_singleton_iff.mp hmem).symm
+
+/-- Lemma 35(i), Engeler model only: `{⟦⊥⟧, ⟦⊤⟧}` and `{⟦c_n⟧}` are
+discrete in the Scott topology of `𝒫(ℕ)`, and numerals are pairwise
+distinct. -/
+theorem lemma_35_i :
+    (∃ U V : Set (Set ℕ), ScottOpen U ∧ ScottOpen V ∧
+      engelerWithNumerals.boolTop ∈ U ∧ engelerWithNumerals.boolBot ∉ U ∧
+      engelerWithNumerals.boolBot ∈ V ∧ engelerWithNumerals.boolTop ∉ V) ∧
+    (∀ m : ℕ, ∃ W : Set (Set ℕ), ScottOpen W ∧
+      engelerWithNumerals.numeral m ∈ W ∧
+      ∀ n, n ≠ m → engelerWithNumerals.numeral n ∉ W) ∧
+    Function.Injective engelerWithNumerals.numeral :=
+  ⟨⟨lemma_35_boolOpenTop, lemma_35_boolOpenBot,
+      lemma_35_boolOpenTop_scottOpen, lemma_35_boolOpenBot_scottOpen,
+      lemma_35_boolOpenTop_spec.1, lemma_35_boolOpenTop_spec.2,
+      lemma_35_boolOpenBot_spec.1, lemma_35_boolOpenBot_spec.2⟩,
+    fun m => ⟨lemma_35_numeralOpen m, lemma_35_numeralOpen_scottOpen m,
+      (lemma_35_numeralOpen_spec m).1, (lemma_35_numeralOpen_spec m).2⟩,
+    engelerWithNumerals.numeral_inj⟩
+
+/-- Lemma 35(ii) on the Engeler model, without a pre-given extension.
+`d_g = lam (gbar S)` and the retract yield the oracle. -/
+theorem lemma_35_ii (S : Set ℕ) :
+    ∃ d : Set ℕ, ∀ n,
+      engelerWithNumerals.app d (engelerWithNumerals.numeral n) =
+        chiNum engelerWithNumerals S n :=
+  ⟨engelerWithNumerals.lam (gbar S),
+    fun n => lemma_35_ii_of_extension engelerWithNumerals S (gbar S)
+      (gbar_scottContinuous S) (gbar_numeral S) n⟩
+
+/-- Lemma 35 on `engelerWithNumerals` (Engeler-only; see `lemma_35_i`). -/
+theorem lemma_35 :
+    (∃ U V : Set (Set ℕ), ScottOpen U ∧ ScottOpen V ∧
+      engelerWithNumerals.boolTop ∈ U ∧ engelerWithNumerals.boolBot ∉ U ∧
+      engelerWithNumerals.boolBot ∈ V ∧ engelerWithNumerals.boolTop ∉ V) ∧
+    (∀ m : ℕ, ∃ W : Set (Set ℕ), ScottOpen W ∧
+      engelerWithNumerals.numeral m ∈ W ∧
+      ∀ n, n ≠ m → engelerWithNumerals.numeral n ∉ W) ∧
+    Function.Injective engelerWithNumerals.numeral ∧
+    ∀ S : Set ℕ, ∃ d : Set ℕ, ∀ n,
+      engelerWithNumerals.app d (engelerWithNumerals.numeral n) =
+        chiNum engelerWithNumerals S n :=
+  ⟨lemma_35_i.1, lemma_35_i.2.1, lemma_35_i.2.2, lemma_35_ii⟩
+
 end Scott2026

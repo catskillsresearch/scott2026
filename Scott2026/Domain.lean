@@ -139,4 +139,68 @@ theorem isContinuousLattice_set (X : Type*) : IsContinuousLattice (Set X) := by
   exact ⟨finite_subsets_directed T,
     ((sSup_eq_sUnion _).trans (sUnion_finite_subsets T)).symm⟩
 
+/-!
+## Scott-open sets (Lemma 35(i))
+
+Wrappers around Scott 1972 `ScottOpen` used to separate Booleans and
+numerals in the Scott topology of a complete lattice (and of `𝒫(X)`).
+-/
+
+/-- Scott-open sets of a complete lattice (Scott 1972 induced topology). -/
+abbrev ScottOpen {D : Type*} [CompleteLattice D] (U : Set D) : Prop :=
+  Scott1972.ContinuousLattice.ScottOpen U
+
+/-- The complement of a principal down-set is Scott-open. -/
+theorem scottOpen_not_le {D : Type*} [CompleteLattice D] (L : D) :
+    ScottOpen {z : D | ¬ z ≤ L} := by
+  refine ⟨fun a b hab ha hb => ha (le_trans hab hb), fun S _hSne _hSdir hmem => ?_⟩
+  by_contra hcon
+  refine hmem (sSup_le fun s hs => ?_)
+  by_contra hsL
+  exact hcon ⟨s, hs, hsL⟩
+
+/-- Membership sets `{s | a ∈ s}` are Scott-open in `𝒫(X)`. -/
+theorem scottOpen_mem {X : Type*} (a : X) :
+    ScottOpen {s : Set X | a ∈ s} := by
+  refine ⟨?upper, ?inacc⟩
+  · intro s t hst hs
+    have hsub : s ⊆ t := hst
+    exact hsub hs
+  · intro 𝒟 _hne _hdir hmem
+    have : a ∈ ⋃₀ 𝒟 := by
+      simpa [sSup_eq_sUnion] using hmem
+    obtain ⟨s, hs𝒟, has⟩ := mem_sUnion.mp this
+    exact ⟨s, hs𝒟, has⟩
+
+/-- Scott topologies of complete lattices are T₀: unequal points are
+separated by a Scott-open. -/
+theorem exists_scottOpen_separates {D : Type*} [CompleteLattice D]
+    {x y : D} (h : x ≠ y) :
+    ∃ U : Set D, ScottOpen U ∧ ((x ∈ U ∧ y ∉ U) ∨ (y ∈ U ∧ x ∉ U)) := by
+  by_cases hxy : x ≤ y
+  · have hyx : ¬ y ≤ x := fun hyx => h (le_antisymm hxy hyx)
+    refine ⟨{z | ¬ z ≤ x}, scottOpen_not_le x, Or.inr ⟨hyx, ?_⟩⟩
+    exact fun hx => hx le_rfl
+  · refine ⟨{z | ¬ z ≤ y}, scottOpen_not_le y, Or.inl ⟨hxy, ?_⟩⟩
+    exact fun hy => hy le_rfl
+
+/-- Preimages of Scott-open sets under Scott-continuous maps are Scott-open. -/
+theorem scottOpen_preimage {D E : Type*} [CompleteLattice D] [CompleteLattice E]
+    {f : D → E} (hf : IsScottContinuous f) {U : Set E} (hU : ScottOpen U) :
+    ScottOpen (f ⁻¹' U) := by
+  have hmono : Monotone f := hf.monotone
+  refine ⟨fun a b hab ha => hU.1 (hmono hab) ha, fun S hS hSdir hmem => ?_⟩
+  have hfS : IsLUB (f '' S) (f (sSup S)) := hf hS hSdir (isLUB_sSup S)
+  have hsupU : sSup (f '' S) ∈ U := by
+    rwa [← hfS.sSup_eq]
+  have hdirf : DirectedOn (· ≤ ·) (f '' S) := by
+    intro y hy z hz
+    obtain ⟨s, hs, rfl⟩ := (mem_image _ _ _).mp hy
+    obtain ⟨t, ht, rfl⟩ := (mem_image _ _ _).mp hz
+    obtain ⟨u, hu, hsu, htu⟩ := hSdir s hs t ht
+    exact ⟨f u, mem_image_of_mem f hu, hmono hsu, hmono htu⟩
+  obtain ⟨y, hyS, hyU⟩ := hU.2 (hS.image f) hdirf hsupU
+  obtain ⟨a, haS, rfl⟩ := (mem_image _ _ _).mp hyS
+  exact ⟨a, haS, hyU⟩
+
 end Scott2026

@@ -45,6 +45,37 @@ abbrev engelerDcpo : ReflexiveDcpo (Set ℕ) :=
 def setPSet (S : Set ℕ) : PSet.{u} :=
   PSet.mk (ULift.{u} {n : ℕ // n ∈ S}) (fun n => PSet.ofNat n.down.val)
 
+theorem ofNat_mem_setPSet {S : Set ℕ} {n : ℕ} :
+    PSet.ofNat.{u} n ∈ setPSet S ↔ n ∈ S := by
+  constructor
+  · intro hmem
+    obtain ⟨⟨m, hm⟩, hmn⟩ := hmem
+    change PSet.Equiv (PSet.ofNat.{u} n) (PSet.ofNat.{u} m) at hmn
+    exact ofNat_equiv_iff.mp hmn ▸ hm
+  · intro hn
+    exact ⟨⟨n, hn⟩, PSet.Equiv.rfl⟩
+
+/-- Children of `setPSet` are von Neumann numerals, so inequivalent
+ground sets of `ℕ` remain inequivalent as pre-sets. -/
+theorem setPSet_equiv_iff {S T : Set ℕ} :
+    PSet.Equiv (setPSet S) (setPSet T) ↔ S = T := by
+  constructor
+  · intro h
+    ext n
+    constructor
+    · intro hn
+      exact ofNat_mem_setPSet.mp
+        ((PSet.Mem.congr_right h).mp (ofNat_mem_setPSet.mpr hn))
+    · intro hn
+      exact ofNat_mem_setPSet.mp
+        ((PSet.Mem.congr_right h.symm).mp (ofNat_mem_setPSet.mpr hn))
+  · rintro rfl
+    exact PSet.Equiv.rfl
+
+theorem setPSet_not_equiv_of_ne {S T : Set ℕ} (hne : S ≠ T) :
+    ¬ PSet.Equiv (setPSet S) (setPSet T) :=
+  mt setPSet_equiv_iff.mp hne
+
 theorem subsetB_setPSet (S : Set ℕ) (X : AName.{u} A) :
     subsetB (check (A := A) (setPSet S)) X =
       ⨅ n : {n : ℕ // n ∈ S}, memB (check (PSet.ofNat n.1)) X := by
