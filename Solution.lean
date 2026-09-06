@@ -37,6 +37,10 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   isFiniteB_of_subset_singleton
   wayBelowSubsetB_le_finite_subset wayBelowSubsetB_of_finite_subset
   wayBelowSubsetB_eq_finite_subset
+  existsMemB sUnionB memB_sUnionB existsMemB_le_memB_unionB
+  isSupSubsetB_sUnionB isCompleteLatticeSubsetB_powerB
+  directedDownB_powerB joinsDownB_powerB
+  isContinuousAtSubsetB_powerB isContinuousLatticeSubsetB_powerB
   regularity_semantic collectB collectB_spec
   hilbertK_sound hilbertS_sound hilbertDNE_sound
   allImp_sound allVac_sound allInst_sound eqRefl_sound eqLeibniz_sound

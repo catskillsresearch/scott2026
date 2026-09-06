@@ -434,9 +434,8 @@ theorem oid_funsB_full (X Y : AName.{u} A) (Φ : AName.{u} A → A)
 /-!
 ## Proposition 28: `P^A(X)` as an `A`-poset; canonical equality on `check Y`
 
-The continuous-lattice-with-base clause is not stated here: the internal
-language is `Scott2026.InternalDomain`, and
-`isContinuousLatticeSubsetB (powerB X) = ⊤` is still open.
+The continuous-lattice clause is `isContinuousLatticeSubsetB_powerB` in
+`Scott2026.InternalDomain`. The base clause is not stated here.
 -/
 
 /-- Boolean inclusion is reflexive. -/

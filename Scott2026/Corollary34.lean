@@ -16,8 +16,10 @@ whole statement interpreted in `V^A`.
 
 The internal `≪` / continuous-lattice language (subset order) lives in
 `InternalDomain.lean`. The Lean name remains `corollary_34_check`, not
-`corollary_34`: the paper type still needs `isContinuousLatticeSubsetB
-(powerB (check ω)) = ⊤`. Internal `≪ ↔` finite `⊆` is
+`corollary_34`: the paper type is the single internal statement that
+`P^A(check E)` is a reflexive continuous lattice with numerals. Numerals
+are here; the continuous-lattice half is `isContinuousLatticeSubsetB_powerB`;
+the reflexive dcpo is `theorem_30`. Internal `≪ ↔` finite `⊆` is
 `wayBelowSubsetB_eq_finite_subset`.
 
 Proof sketch (vision ll.786–788):
@@ -399,7 +401,8 @@ theorem definition_32_interpClosedVA :
 /-- Corollary 34, check/VA fragment. Not named `corollary_34`: that paper
 name is the internal statement “`P^A(check E)` is a reflexive continuous
 lattice with numerals”. The numerals half is here; the continuous-lattice
-clause needs `isContinuousLatticeSubsetB (powerB (check ω)) = ⊤`. -/
+half is `isContinuousLatticeSubsetB_powerB`; the reflexive dcpo is
+`theorem_30`. -/
 theorem corollary_34_check :
     (interpClosedVA (A := A) churchTrue =
       setToCanonical (interpClosed

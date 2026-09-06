@@ -15,13 +15,16 @@ the `𝔏_Set(V^A)` formulas (subset order) and matching semantic Boolean values
 
 `corollary_34` remains unnamed: the paper type is the internal statement that
 `P^A(check E)` is a reflexive continuous lattice with numerals. The numerals
-half is `corollary_34_check`. The continuous-lattice half needs
-`isContinuousLatticeSubsetB (powerB X) = ⊤`, which uses the internal
-Proposition 27 equivalence. This file proves the language, `≪ → ⊆`,
-directedness of `P_fin^A`, `T ⊆ ⋃ P_fin^A(T)`, `isFiniteB_of_subset`, and
+half is `corollary_34_check`. The continuous-lattice half is
+`isContinuousLatticeSubsetB_powerB`. This file proves the language, `≪ → ⊆`,
+directedness of `P_fin^A`, `T ⊆ ⋃ P_fin^A(T)`, `isFiniteB_of_subset`,
 both directions of `≪ ↔` finite `⊆` under weaker names
-(`wayBelowSubsetB_le_finite_subset`, `wayBelowSubsetB_of_finite_subset`).
-Not `proposition_27` (that name is the ground `Set X` statement).
+(`wayBelowSubsetB_le_finite_subset`, `wayBelowSubsetB_of_finite_subset`),
+the ⊆-sup of a family in `P^A(X)` via the tight union `sUnionB`
+(`isCompleteLatticeSubsetB_powerB`), and directed-down / joins-down at
+each `d ∈ P^A(X)`. Not `proposition_27` (that name is the ground `Set X`
+statement). Fat `unionB` remains the one-sided ZFC witness
+(`memB_unionB_of_mem` only).
 -/
 
 universe u
@@ -1134,6 +1137,261 @@ theorem wayBelowSubsetB_eq_finite_subset (S T : AName.{u} A) :
     wayBelowSubsetB S T = isFiniteB S ⊓ subsetB S T :=
   le_antisymm (wayBelowSubsetB_le_finite_subset S T)
     (wayBelowSubsetB_of_finite_subset S T)
+
+/-!
+## Tight union and ⊆-sup in `P^A(X)`
+
+Fat `unionB` sets every child’s membership degree to `⊤`, so it has only
+the one-sided law `memB_unionB_of_mem`. The tight union `sUnionB` (Jech
+mix of the children by their own values) satisfies
+`‖v ∈ ⋃ S‖ = ⨆ u, ‖u ∈ S‖ ⊓ ‖v ∈ u‖`, and is the ⊆-supremum of `S`.
+When `S ⊆ P^A(X)`, that sup lies in `P^A(X)`.
+-/
+
+/-- Semantic union membership: `∃ u (u ∈ X ∧ v ∈ u)`. -/
+noncomputable def existsMemB (v X : AName.{u} A) : A :=
+  ⨆ u : AName.{u} A, memB u X ⊓ memB v u
+
+/-- Tight union name: domain is the disjoint union of the children’s
+domains, with Boolean values `X(i) ⊓ X.child(i)(j)`. This is `mix` of
+the children; it is not fat `unionB`. -/
+noncomputable def sUnionB (X : AName.{u} A) : AName.{u} A :=
+  mix X.val X.child
+
+theorem existsMemB_eq_iSup_child (X v : AName.{u} A) :
+    existsMemB v X = ⨆ i : X.idx, X.val i ⊓ memB v (X.child i) := by
+  unfold existsMemB
+  refine le_antisymm ?le ?ge
+  · refine iSup_le fun u => ?_
+    rw [memB_eq (x := u) (y := X), iSup_inf_eq]
+    refine iSup_le fun i => ?_
+    have h : eqB u (X.child i) ⊓ memB v u ≤ memB v (X.child i) := by
+      rw [inf_comm]; exact memB_eqB_right u v (X.child i)
+    refine le_iSup_of_le i ?_
+    exact le_inf (inf_le_of_left_le inf_le_right)
+      (h.trans' (le_inf (inf_le_of_left_le inf_le_left) inf_le_right))
+  · refine iSup_le fun i => ?_
+    refine le_iSup_of_le (X.child i) ?_
+    exact inf_le_inf_right _ (val_le_memB X i)
+
+theorem existsMemB_le_memB_unionB (X v : AName.{u} A) :
+    existsMemB v X ≤ memB v (unionB X) := by
+  unfold existsMemB
+  refine iSup_le fun u => memB_unionB_of_mem X u v
+
+theorem memB_sUnionB (v X : AName.{u} A) :
+    memB v (sUnionB X) = existsMemB v X := by
+  unfold sUnionB
+  rw [memB_eq, existsMemB_eq_iSup_child]
+  refine le_antisymm ?le ?ge
+  · refine iSup_le fun p => ?_
+    rcases p with ⟨i, j⟩
+    refine le_iSup_of_le i ?_
+    have hmem : eqB v ((X.child i).child j) ⊓ (X.child i).val j ≤
+        memB v (X.child i) := by
+      rw [memB_eq]
+      exact le_iSup_of_le j le_rfl
+    refine le_inf (inf_le_of_right_le inf_le_left) ?_
+    exact hmem.trans' (le_inf inf_le_left (inf_le_of_right_le inf_le_right))
+  · refine iSup_le fun i => ?_
+    rw [memB_eq (x := v) (y := X.child i), inf_iSup_eq]
+    refine iSup_le fun j => ?_
+    refine le_iSup_of_le (⟨i, j⟩ : Σ k : X.idx, (X.child k).idx) ?_
+    refine le_inf (inf_le_of_right_le inf_le_left) ?_
+    exact le_inf inf_le_left (inf_le_of_right_le inf_le_right)
+
+theorem subsetB_sUnionB_eq_subsetUnionB (e S : AName.{u} A) :
+    subsetB e (sUnionB S) = subsetUnionB e S := by
+  rw [subsetB_eq_iInf]
+  unfold subsetUnionB
+  refine iInf_congr fun x => ?_
+  rw [memB_sUnionB]
+  rfl
+
+theorem isUpperBoundSubsetB_apply (x S y : AName.{u} A) :
+    isUpperBoundSubsetB x S ⊓ memB y S ≤ subsetB y x :=
+  le_himp_iff.mp (iInf_le (fun y' : AName.{u} A =>
+    memB y' S ⇨ subsetB y' x) y)
+
+theorem isUpperBoundSubsetB_sUnionB (S : AName.{u} A) :
+    isUpperBoundSubsetB (sUnionB S) S = ⊤ := by
+  unfold isUpperBoundSubsetB
+  refine iInf_eq_top.mpr fun u => himp_eq_top_iff.mpr ?_
+  rw [subsetB_eq_iInf]
+  refine le_iInf fun v => ?_
+  rw [le_himp_iff, memB_sUnionB]
+  exact le_iSup_of_le u le_rfl
+
+theorem subsetB_sUnionB_of_upperBound (S Y : AName.{u} A) :
+    isUpperBoundSubsetB Y S ≤ subsetB (sUnionB S) Y := by
+  rw [subsetB_eq_iInf]
+  refine le_iInf fun v => ?_
+  rw [le_himp_iff, memB_sUnionB]
+  unfold existsMemB
+  rw [inf_iSup_eq]
+  refine iSup_le fun u => ?_
+  have hsub : isUpperBoundSubsetB Y S ⊓ memB u S ≤ subsetB u Y :=
+    isUpperBoundSubsetB_apply Y S u
+  have hmem : memB v u ⊓ subsetB u Y ≤ memB v Y :=
+    memB_of_subsetB v u Y
+  refine hmem.trans' (le_inf ?_ ?_)
+  · exact inf_le_of_right_le inf_le_right
+  · exact hsub.trans' (le_inf inf_le_left (inf_le_of_right_le inf_le_left))
+
+/-- Tight union is the ⊆-supremum of its members. Fat `unionB` is not
+claimed to be least: it can add extra membership. -/
+theorem isSupSubsetB_sUnionB (S : AName.{u} A) :
+    isSupSubsetB (sUnionB S) S = ⊤ := by
+  unfold isSupSubsetB
+  rw [isUpperBoundSubsetB_sUnionB, top_inf_eq]
+  refine iInf_eq_top.mpr fun Y => himp_eq_top_iff.mpr ?_
+  exact subsetB_sUnionB_of_upperBound S Y
+
+theorem subsetB_sUnionB_of_mem_powerB (S X : AName.{u} A) :
+    subsetB S (powerB X) ≤ subsetB (sUnionB S) X := by
+  rw [subsetB_eq_iInf (sUnionB S) X]
+  refine le_iInf fun v => ?_
+  rw [le_himp_iff, memB_sUnionB]
+  unfold existsMemB
+  rw [inf_iSup_eq]
+  refine iSup_le fun u => ?_
+  refine (memB_of_subsetB v u X).trans' (le_inf ?vu ?sub)
+  · exact inf_le_of_right_le inf_le_right
+  · have hpow : memB u S ⊓ subsetB S (powerB X) ≤ subsetB u X := by
+      rw [← memB_powerB u X]
+      exact memB_of_subsetB u S (powerB X)
+    exact hpow.trans' (le_inf (inf_le_of_right_le inf_le_left) inf_le_left)
+
+theorem memB_sUnionB_powerB (S X : AName.{u} A) :
+    subsetB S (powerB X) ≤ memB (sUnionB S) (powerB X) := by
+  rw [memB_powerB]
+  exact subsetB_sUnionB_of_mem_powerB S X
+
+/-- `P^A(X)` is a complete lattice under `⊆`: the ⊆-sup of `S ⊆ P^A(X)`
+is the tight union `sUnionB S`, which lies in `P^A(X)`. -/
+theorem isCompleteLatticeSubsetB_powerB (X : AName.{u} A) :
+    isCompleteLatticeSubsetB (powerB X) = ⊤ := by
+  unfold isCompleteLatticeSubsetB
+  refine iInf_eq_top.mpr fun S => himp_eq_top_iff.mpr ?_
+  refine le_iSup_of_le (sUnionB S) ?_
+  exact le_inf (memB_sUnionB_powerB S X)
+    (le_top.trans (isSupSubsetB_sUnionB S).ge)
+
+/-!
+## Continuity of `P^A(X)` at each `d`
+
+`e ≪ d` is finite `⊆` (`wayBelowSubsetB_eq_finite_subset`), so
+`{e ∈ P^A(X) | e ≪ d}` agrees with `P_fin^A(d)` once `d ⊆ X`.
+Directedness is binary union; joins-down uses `T ⊆ ⋃ P_fin^A(T)` and
+that every finite subset of `T` is `⊆ T`.
+-/
+
+theorem subsetB_check_empty (T : AName.{u} A) :
+    subsetB (check (A := A) (∅ : PSet.{u})) T = ⊤ := by
+  rw [subsetB_eq_iInf]
+  refine iInf_eq_top.mpr fun z => himp_eq_top_iff.mpr ?_
+  rw [memB_check_empty]
+  exact bot_le
+
+theorem inWayBelowDownB_powerB (e d X : AName.{u} A) :
+    inWayBelowDownB e d (powerB X) =
+      memB e (powerB X) ⊓ isFiniteB e ⊓ subsetB e d := by
+  unfold inWayBelowDownB
+  rw [wayBelowSubsetB_eq_finite_subset]
+  ac_rfl
+
+theorem inWayBelowDownB_le_memB_pfinB (e d X : AName.{u} A) :
+    inWayBelowDownB e d (powerB X) ≤ memB e (pfinB d) := by
+  rw [inWayBelowDownB_powerB, memB_pfinB]
+  exact le_inf inf_le_right (inf_le_of_left_le inf_le_right)
+
+theorem memB_pfinB_le_inWayBelowDownB (e d X : AName.{u} A) :
+    memB e (pfinB d) ⊓ subsetB d X ≤ inWayBelowDownB e d (powerB X) := by
+  rw [inWayBelowDownB_powerB, memB_pfinB, memB_powerB]
+  refine le_inf (le_inf ?subX ?fin) ?subd
+  · exact (subsetB_trans e d X).trans'
+      (le_inf (inf_le_of_left_le inf_le_left) inf_le_right)
+  · exact inf_le_of_left_le inf_le_right
+  · exact inf_le_of_left_le inf_le_left
+
+theorem nonempty_inWayBelowDownB_powerB (d X : AName.{u} A) :
+    (⨆ e : AName.{u} A, inWayBelowDownB e d (powerB X)) = ⊤ := by
+  refine top_unique (le_iSup_of_le (check (A := A) (∅ : PSet.{u})) ?_)
+  rw [inWayBelowDownB_powerB, memB_powerB, isFiniteB_empty,
+    subsetB_check_empty, subsetB_check_empty, inf_top_eq, inf_top_eq]
+
+theorem directedDownB_powerB (d X : AName.{u} A) :
+    directedDownB d (powerB X) = ⊤ := by
+  unfold directedDownB
+  rw [nonempty_inWayBelowDownB_powerB, top_inf_eq]
+  refine iInf_eq_top.mpr fun e1 => iInf_eq_top.mpr fun e2 => ?_
+  rw [himp_eq_top_iff]
+  refine le_iSup_of_le (union2B e1 e2) ?_
+  have hle1 : subsetB e1 (union2B e1 e2) = ⊤ := subsetB_union2B_left e1 e2
+  have hle2 : subsetB e2 (union2B e1 e2) = ⊤ := subsetB_union2B_right e1 e2
+  refine le_inf (le_inf ?in3 (le_top.trans hle1.ge)) (le_top.trans hle2.ge)
+  rw [inWayBelowDownB_powerB e1 d X, inWayBelowDownB_powerB e2 d X,
+    inWayBelowDownB_powerB (union2B e1 e2) d X, memB_powerB, memB_powerB,
+    memB_powerB, subsetB_union2B, subsetB_union2B]
+  refine le_inf (le_inf ?subX ?fin) ?subd
+  · exact le_inf
+      (inf_le_of_left_le (inf_le_of_left_le inf_le_left))
+      (inf_le_of_right_le (inf_le_of_left_le inf_le_left))
+  · exact (isFiniteB_union2B e1 e2).trans'
+      (le_inf (inf_le_of_left_le (inf_le_of_left_le inf_le_right))
+        (inf_le_of_right_le (inf_le_of_left_le inf_le_right)))
+  · exact le_inf (inf_le_of_left_le inf_le_right)
+      (inf_le_of_right_le inf_le_right)
+
+theorem isUpperBoundSubsetB_pfinB (T : AName.{u} A) :
+    isUpperBoundSubsetB T (pfinB T) = ⊤ := by
+  unfold isUpperBoundSubsetB
+  refine iInf_eq_top.mpr fun U => himp_eq_top_iff.mpr ?_
+  rw [memB_pfinB]
+  exact inf_le_left
+
+theorem subsetB_sUnionB_pfinB (T : AName.{u} A) :
+    subsetB (sUnionB (pfinB T)) T = ⊤ :=
+  top_unique ((isUpperBoundSubsetB_pfinB T).ge.trans
+    (subsetB_sUnionB_of_upperBound (pfinB T) T))
+
+theorem joinsDownB_powerB (d X : AName.{u} A) :
+    memB d (powerB X) ≤ joinsDownB d (powerB X) := by
+  unfold joinsDownB
+  refine le_iInf fun x => le_inf ?fwd ?bwd
+  · rw [le_himp_iff]
+    refine le_iSup_of_le (singletonB x) ?_
+    rw [memB_powerB d X, inWayBelowDownB_powerB (singletonB x) d X,
+      memB_powerB (singletonB x) X, subsetB_singletonB x X,
+      isFiniteB_singleton x, inf_top_eq, subsetB_singletonB x d,
+      memB_singletonB x x, eqB_self, inf_top_eq]
+    refine le_inf ?memX inf_le_right
+    exact (memB_of_subsetB x d X).trans' (le_inf inf_le_right inf_le_left)
+  · rw [le_himp_iff]
+    refine inf_le_of_right_le ?_
+    refine iSup_le fun e => ?_
+    have hsub : inWayBelowDownB e d (powerB X) ≤ subsetB e d := by
+      rw [inWayBelowDownB_powerB]
+      exact inf_le_right
+    exact (memB_of_subsetB x e d).trans' (le_inf inf_le_right
+      (hsub.trans' inf_le_left))
+
+theorem isContinuousAtSubsetB_powerB (d X : AName.{u} A) :
+    memB d (powerB X) ≤ isContinuousAtSubsetB d (powerB X) := by
+  unfold isContinuousAtSubsetB
+  exact le_inf (le_top.trans (directedDownB_powerB d X).ge)
+    (joinsDownB_powerB d X)
+
+/-- `P^A(X)` is an internal continuous lattice under `⊆`. Not
+`proposition_27` / `proposition_28` (those names are the ground `Set X`
+statements) and not `corollary_34` (that paper type still needs numerals
+as one internal statement; numerals remain `corollary_34_check`). -/
+theorem isContinuousLatticeSubsetB_powerB (X : AName.{u} A) :
+    isContinuousLatticeSubsetB (powerB X) = ⊤ := by
+  unfold isContinuousLatticeSubsetB
+  rw [isCompleteLatticeSubsetB_powerB, top_inf_eq]
+  refine iInf_eq_top.mpr fun d => himp_eq_top_iff.mpr ?_
+  exact isContinuousAtSubsetB_powerB d X
 
 end
 

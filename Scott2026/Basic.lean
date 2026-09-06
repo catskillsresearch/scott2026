@@ -365,11 +365,13 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- `proposition_28_va_canonical_total` / `proposition_28_va_canonical_complete`
 -- / `definition_11_canonicalPowerB`. Raw index-level `IsStrict` is false
 -- (`oid_powerB_not_strict`); there is no `proposition_28_va_strict`.
--- The continuous-lattice-with-base clause is not stated: the internal
--- language is now `isContinuousLatticeSubsetF` / `isBaseSubsetB`, and
--- internal `≪ ↔` finite `⊆` is `wayBelowSubsetB_eq_finite_subset`
--- (not `proposition_27`). `isContinuousLatticeSubsetB (powerB X) = ⊤`
--- is the remaining lemma.
+-- The continuous-lattice clause is `isContinuousLatticeSubsetB_powerB`
+-- (`isContinuousLatticeSubsetB (powerB X) = ⊤`), via tight union
+-- `sUnionB` (fat `unionB` stays one-sided) and internal `≪ ↔` finite
+-- `⊆` (`wayBelowSubsetB_eq_finite_subset`, not `proposition_27`).
+-- The base clause `isBaseSubsetB (pfinB X) (powerB X) = ⊤` is not
+-- stated. The internal language is `isContinuousLatticeSubsetF` /
+-- `isBaseSubsetB`.
 --
 -- Theorem 30 (CSL p.7): `(P^A(check E), ‖⊆‖, ·, lam)` is an `A`-valued
 -- reflexive dcpo on the canonical carrier (`theorem_30` / `theorem_30_model`
@@ -452,9 +454,10 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- continuous-lattice language (subset order) is in `InternalDomain.lean`
 -- (`wayBelowSubsetF`, `isContinuousLatticeSubsetF`, matching `*B`
 -- Boolean values). `corollary_34` is still unnamed: numerals are
--- `corollary_34_check`; the continuous-lattice clause needs
--- `isContinuousLatticeSubsetB (powerB X) = ⊤`. Internal Proposition 27
--- is `wayBelowSubsetB_eq_finite_subset` (`≪ ↔` finite `⊆`, via
+-- `corollary_34_check`; the continuous-lattice half is
+-- `isContinuousLatticeSubsetB_powerB`; the reflexive dcpo is
+-- `theorem_30`. Internal Proposition 27 is
+-- `wayBelowSubsetB_eq_finite_subset` (`≪ ↔` finite `⊆`, via
 -- `isFiniteB_of_subset`); not named `proposition_27`.
 -- `eqB_interpClosedVA_churchNum_subsingleton` records that numeral
 -- injectivity needs `[Nontrivial A]`.
