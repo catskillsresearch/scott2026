@@ -383,6 +383,40 @@ theorem lemma_12_converse {f : X → Y}
   let _ := hf
   (internallyMonotone_iff_aMonotone (P := P) (Q := Q)).mp hmono
 
+/-- Strict isomorphism of `A`-posets: a bijection strictly preserving `≤`. -/
+structure StrictIso (P : APoset (A := A) X) (Q : APoset (A := A) Y) where
+  toFun : X → Y
+  invFun : Y → X
+  left_inv : ∀ x, invFun (toFun x) = x
+  right_inv : ∀ y, toFun (invFun y) = y
+  preserve_le : ∀ x₁ x₂, Q.le (toFun x₁) (toFun x₂) = P.le x₁ x₂
+
+namespace StrictIso
+
+variable {P : APoset (A := A) X} {Q : APoset (A := A) Y}
+
+theorem preserve_eq (f : StrictIso P Q) (x₁ x₂ : X) :
+    Q.eq (f.toFun x₁) (f.toFun x₂) = P.eq x₁ x₂ := by
+  unfold APoset.eq
+  rw [f.preserve_le x₁ x₂, f.preserve_le x₂ x₁]
+
+/-- The underlying setoid isomorphism (Definition 5). -/
+def toSetoidIso (f : StrictIso P Q) :
+    ASetoid.StrictIso P.toASetoid Q.toASetoid where
+  toFun := f.toFun
+  invFun := f.invFun
+  left_inv := f.left_inv
+  right_inv := f.right_inv
+  preserve_eq := f.preserve_eq
+
+theorem injective (f : StrictIso P Q) : Function.Injective f.toFun :=
+  Function.LeftInverse.injective f.left_inv
+
+theorem surjective (f : StrictIso P Q) : Function.Surjective f.toFun :=
+  Function.RightInverse.surjective f.right_inv
+
+end StrictIso
+
 end APoset
 
 /-- Definition 5 (paper name): strict isomorphisms transport totality, strictness,

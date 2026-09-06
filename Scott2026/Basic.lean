@@ -21,6 +21,7 @@ import Scott2026.LambdaVA
 import Scott2026.Engeler
 import Scott2026.EngelerVA
 import Scott2026.Random
+import Scott2026.Coin
 import Scott2026.VA
 
 universe u v
@@ -457,6 +458,18 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- (`MapsNumerals`). `ManyOneLe` stays algebraic (any `f : ℕ → ℕ`).
 -- `exists_nat_fun_not_lambda_definable` is why
 -- `ManyOneLe → proposition_36_i` is not claimed.
+--
+-- §5 Random Variables (CSL p.13–15): `definition_37`, `lemma_38`,
+-- `G_X`, `proposition_39`, `proposition_40`, `lemma_41` /
+-- `lemma_41_const` are paper-named. `AssociatedAlgebra` is `A(X)=Σ/𝒩`.
+-- `proposition_42` is withheld: only `proposition_42_finite` (finite
+-- `A`-preimage) and `proposition_42_finite_image` (`im f` finite) are
+-- proved. The infinite-image distributive expansion (tex ~1161–1174)
+-- blocked the full Boolean-value-0 statement. `theorem_43` is withheld
+-- for that reason and because the paper's internal Corollary 34 /
+-- Theorem 1 appeal is unavailable (`corollary_34_check` only).
+-- `proposition_44` is withheld: `L0` has no external `CompleteLattice`
+-- instance yet (`IsAtomic` is recorded).
 
 /-- Example 21, ground: `Λ(Var)` is the least inductive set of pure terms. -/
 theorem example_21 {Var : Type*} {S : Set (Lam Var)} (h : Lam.IsInductive S) :
