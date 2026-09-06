@@ -23,6 +23,7 @@ import Scott2026.EngelerVA
 import Scott2026.Random
 import Scott2026.Coin
 import Scott2026.VA
+import Scott2026.ExtensionalVA
 import Scott2026.InternalDomain
 
 universe u v

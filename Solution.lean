@@ -61,6 +61,13 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   memB_funsB isHom_id isHom_comp
   definition_4 definition_5 definition_6 definition_7 definition_8
   definition_9 definition_10 definition_13 definition_13_iso
+  AName.domSetoid AName.Dom AName.domMk AName.domOut AName.domChild
+  AName.domVal AName.domMk_eq_iff AName.eqB_child_domChild
+  AName.domVal_domMk AName.checkDomMk AName.checkDomEquiv
+  psetElemSetoid PSetElem ExtensionalPowerIdx extensionalPowerName
+  AName.exists_eq_check_domChild AName.eqB_check_domChild
+  memB_domChild_extensionalPowerName_check extensionalPowerSetoid
+  extensionalPowerSetoid_check_isStrict
   definition_14 definition_15 definition_16
   definition_16_id definition_16_comp
   oid oid_eq oid_eps ePred ePred_val ePredPowerB
