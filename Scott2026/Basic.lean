@@ -21,6 +21,7 @@ import Scott2026.Lemma31
 import Scott2026.Corollary34
 import Scott2026.Prop36
 import Scott2026.LambdaVA
+import Scott2026.LambdaConstVA
 import Scott2026.Engeler
 import Scott2026.EngelerVA
 import Scott2026.Random
@@ -29,6 +30,7 @@ import Scott2026.VA
 import Scott2026.ExtensionalVA
 import Scott2026.InternalDomain
 import Scott2026.Proposition28
+import Scott2026.ReflexiveVA
 
 universe u v
 
@@ -405,7 +407,9 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 --
 -- Example 21 at `V^A` and Proposition 22 (CSL p.8–9): pure λ-terms are
 -- encoded by tags `(0,x)`, `(1,(x,M))`, `(2,(M,N))` (`pLamVar` /
--- `pLamAbs` / `pLamApp`, no constant tag 3). `lamInductiveB` is the
+-- `pLamAbs` / `pLamApp`). Full Definition 20 syntax, including tag
+-- `(3,d)`, is `LamDK` / `lamDKB`; recursively propagated coefficients
+-- support arbitrary Boolean-valued `K ⊆ D`. `lamInductiveB` is the
 -- Boolean `Λ(V)`-inductive clause; `lamB (check Var)` is
 -- `Λ(check Var)^A`. Inductiveness and leastness are `example_21_va` /
 -- `proposition_22` / `proposition_22_least` (the `check_omega_least`

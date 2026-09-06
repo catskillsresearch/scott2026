@@ -53,6 +53,37 @@ def IsContinuousLattice (D : Type*) [CompleteLattice D] : Prop :=
 abbrev IsScottContinuous [Preorder D] [Preorder E] (f : D → E) : Prop :=
   ScottContinuous f
 
+/-- A dcpo in the paper's exact sense: every nonempty directed subset has a
+least upper bound. -/
+structure IsDcpo (D : Type*) [PartialOrder D] : Prop where
+  directed_lub :
+    ∀ S : Set D, S.Nonempty → DirectedOn (· ≤ ·) S →
+      ∃ d : D, IsLUB S d
+
+/-- The dcpo of Scott-continuous maps, ordered pointwise. -/
+abbrev ScottMap (D E : Type*) [Preorder D] [Preorder E] :=
+  {f : D → E // ScottContinuous f}
+
+/-- Definition 19 at its paper type. This does not specialize the underlying
+dcpo to a complete lattice and the function-space carrier contains exactly
+the Scott-continuous maps. -/
+structure ReflexiveDcpo19 (D : Type*) [PartialOrder D] [OrderBot D] where
+  dcpo : IsDcpo D
+  funMap : D → ScottMap D D
+  lam : ScottMap D D → D
+  fun_scott : ScottContinuous funMap
+  lam_scott : ScottContinuous lam
+  retract : ∀ f : ScottMap D D, funMap (lam f) = f
+
+/-- Definition 19's extensionality clause. -/
+def ReflexiveDcpo19.IsExtensional {D : Type*} [PartialOrder D] [OrderBot D]
+    (R : ReflexiveDcpo19 D) : Prop :=
+  ∀ d : D, R.lam (R.funMap d) = d
+
+/-- Paper-facing name for Definition 19. -/
+abbrev definition_19 (D : Type*) [PartialOrder D] [OrderBot D] :=
+  ReflexiveDcpo19 D
+
 /-- Definition 19: a reflexive dcpo, specialized to complete lattices. -/
 structure ReflexiveDcpo (D : Type*) [CompleteLattice D] where
   funMap : D → (D → D)

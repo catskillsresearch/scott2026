@@ -60,6 +60,11 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   isFunctionB funsB homB idB compB
   isFunctionB_id isFunctionB_comp compB_congr memB_idB_funsB
   memB_funsB isHom_id isHom_comp
+  IsDcpo ScottMap ReflexiveDcpo19 ReflexiveDcpo19.IsExtensional definition_19
+  relB isUpperBoundRelB isSupRelB isDirectedRelB isPartialOrderB
+  isDcpoWithBottomB mapsToSupB isScottContinuousB
+  isContinuousMapSpaceB pointwiseLeB isPointwiseOrderB
+  isReflexiveDcpoB isExtensionalReflexiveDcpoB definition_19_va
   definition_4 definition_5 definition_6 definition_7 definition_8
   definition_9 definition_10 definition_13 definition_13_iso
   SetoidRObj SetoidFObj
@@ -92,6 +97,13 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   isBaseSubsetB_checkExt_pfin_powerB
   proposition_28_continuous_value proposition_28_base_value
   Proposition28Statement proposition_28
+  LamDK pLamConst encodeLamDK pLamDKSet lamConstB encodeLamDKB
+  lamDKVal lamDKB lamDKInductiveB eqB_lamConstB memB_lamDKB
+  lamDKVal_le_memB lamDKInductiveB_const lamDKInductiveB_var
+  lamDKInductiveB_abs lamDKInductiveB_app lamDKInductiveB_lamDKB
+  iSup_memB_inf_eqB_le lamDKInductiveB_pure_part
+  lamDKInductiveB_const_le lamDKVal_le_memB_of_inductive lamDKB_least
+  lamDKVal_check check_encodeLamDK lamDKB_check_eq
   psetElemSetoid PSetElem ExtensionalPowerIdx extensionalPowerName
   AName.exists_eq_check_domChild AName.eqB_check_domChild
   memB_domChild_extensionalPowerName_check extensionalPowerSetoid
