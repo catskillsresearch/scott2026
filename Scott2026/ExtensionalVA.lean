@@ -176,6 +176,52 @@ noncomputable def checkExt (X : PSet.{u}) : AName.{u} A :=
     (fun i => check (A := A) (X.Func (Quotient.out i)))
     (fun _ => ⊤)
 
+/-- Quotienting the keys of a checked name does not change membership. -/
+theorem memB_checkExt (z : AName.{u} A) (X : PSet.{u}) [Nontrivial A] :
+    memB z (checkExt (A := A) X) = memB z (check (A := A) X) := by
+  cases X with
+  | mk α f =>
+    rw [checkExt, check_mk, memB_mk, memB_mk]
+    apply le_antisymm
+    · refine iSup_le fun q => ?_
+      exact le_iSup_of_le (Quotient.out q) le_rfl
+    · refine iSup_le fun i => ?_
+      let q : PSetElem (PSet.mk α f) :=
+        Quotient.mk (psetElemSetoid (PSet.mk α f)) i
+      refine le_iSup_of_le q ?_
+      rw [inf_top_eq, inf_top_eq]
+      have hout : PSet.Equiv (f (Quotient.out q)) (f i) := by
+        exact Quotient.exact (Quotient.out_eq q)
+      have heq :
+          eqB (check (A := A) (f i))
+            (check (A := A) (f (Quotient.out q))) = ⊤ :=
+        (check_atomic (A := A) _ _).1.mpr hout.symm
+      exact (eqB_trans z (check (A := A) (f i))
+        (check (A := A) (f (Quotient.out q)))).trans'
+          (le_inf le_rfl (le_top.trans heq.ge))
+
+/-- The extensional checked presentation denotes the ordinary checked name. -/
+theorem eqB_check_checkExt (X : PSet.{u}) [Nontrivial A] :
+    eqB (check (A := A) X) (checkExt (A := A) X) = ⊤ := by
+  rw [eqB_eq_iInf]
+  refine iInf_eq_top.mpr fun z => inf_eq_top_iff.mpr ⟨?_, ?_⟩
+  · rw [memB_checkExt, himp_self]
+  · rw [memB_checkExt, himp_self]
+
+/-- Extensional equality of parameters is preserved by `powerB`. -/
+theorem eqB_powerB_congr {X Y : AName.{u} A} (h : eqB X Y = ⊤) :
+    eqB (powerB X) (powerB Y) = ⊤ := by
+  rw [eqB_eq_iInf]
+  refine iInf_eq_top.mpr fun z => ?_
+  have hs : subsetB z X = subsetB z Y := by
+    rw [subsetB_eq_iInf, subsetB_eq_iInf]
+    exact iInf_congr fun u =>
+      congrArg (fun t => memB u z ⇨ t) (eqB_top_memB_right (z := u) h)
+  apply inf_eq_top_iff.mpr
+  constructor
+  · rw [memB_powerB, memB_powerB, hs, himp_self]
+  · rw [memB_powerB, memB_powerB, hs, himp_self]
+
 /-- Distinct keys of `checkExt X` have Boolean equality `⊥`. -/
 theorem eqB_checkExt_child (X : PSet.{u}) [Nontrivial A]
     (i j : (checkExt (A := A) X).idx) :

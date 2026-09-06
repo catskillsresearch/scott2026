@@ -119,13 +119,13 @@ noncomputable def isContinuousLatticeSubsetB (D : AName.{u} A) : A :=
 noncomputable def isBaseSubsetB (B D : AName.{u} A) : A :=
   subsetB B D ⊓
     ⨅ d : AName.{u} A, memB d D ⇨
-      (⨆ e : AName.{u} A, memB e B ⊓ wayBelowSubsetB e d) ⊓
+      ((⨆ e : AName.{u} A, memB e B ⊓ wayBelowSubsetB e d) ⊓
         ⨅ e1 : AName.{u} A, ⨅ e2 : AName.{u} A,
           memB e1 B ⊓ wayBelowSubsetB e1 d ⊓
             (memB e2 B ⊓ wayBelowSubsetB e2 d) ⇨
             ⨆ e3 : AName.{u} A,
               memB e3 B ⊓ wayBelowSubsetB e3 d ⊓
-                subsetB e1 e3 ⊓ subsetB e2 e3 ⊓
+                subsetB e1 e3 ⊓ subsetB e2 e3) ⊓
         ⨅ x : AName.{u} A,
           (memB x d ⇨
             ⨆ e : AName.{u} A, memB e B ⊓ wayBelowSubsetB e d ⊓ memB x e) ⊓
@@ -203,6 +203,12 @@ def isContinuousAtSubsetF {n} (d D : Fin n) : SetFormula n :=
 def isContinuousLatticeSubsetF {n} (D : Fin n) : SetFormula n :=
   SetFormula.and (isCompleteLatticeSubsetF D)
     (.all (implies (.mem 0 D.succ) (isContinuousAtSubsetF 0 D.succ)))
+
+/-- `B` is a base for `D`: for each `d ∈ D`, the elements of `B` way-below
+`d` are directed and join to `d`. -/
+def isBaseSubsetF {n} (B D : Fin n) : SetFormula n :=
+  SetFormula.and (subsetF B D)
+    (.all (implies (.mem 0 D.succ) (isContinuousAtSubsetF 0 B.succ)))
 
 /-- `≪` implies `⊆`, as a closed `𝔏_Set` sentence. -/
 def wayBelow_le_formula : SetFormula 0 :=
@@ -351,6 +357,104 @@ theorem bval_inWayBelowDownF {n} (e d D : Fin n) (ρ : Fin n → AName.{u} A) :
     bval (inWayBelowDownF e d D) ρ = inWayBelowDownB (ρ e) (ρ d) (ρ D) := by
   unfold inWayBelowDownF inWayBelowDownB
   simp [bval_and, bval_mem, bval_wayBelowSubsetF]
+
+theorem bval_directedDownF {n} (d D : Fin n) (ρ : Fin n → AName.{u} A) :
+    bval (directedDownF d D) ρ = directedDownB (ρ d) (ρ D) := by
+  unfold directedDownF directedDownB
+  rw [bval_and, bval_ex]
+  refine congrArg₂ (· ⊓ ·) ?_ ?_
+  · refine iSup_congr fun e => ?_
+    simp [bval_inWayBelowDownF, consName_zero, consName_succ]
+  · rw [bval_all]
+    refine iInf_congr fun e1 => ?_
+    rw [bval_all]
+    refine iInf_congr fun e2 => ?_
+    have hd : consName e2 (consName e1 ρ) d.succ.succ = ρ d := by
+      rw [consName_succ, consName_succ]
+    have hD : consName e2 (consName e1 ρ) D.succ.succ = ρ D := by
+      rw [consName_succ, consName_succ]
+    have he1 : consName e2 (consName e1 ρ) (1 : Fin (n + 2)) = e1 :=
+      consName_one e2 e1 ρ
+    have he2 : consName e2 (consName e1 ρ) 0 = e2 := consName_zero _ _
+    simp only [bval_implies, bval_and, bval_inWayBelowDownF, hd, hD, he1, he2]
+    refine congrArg (fun t =>
+      inWayBelowDownB e1 (ρ d) (ρ D) ⊓ inWayBelowDownB e2 (ρ d) (ρ D) ⇨ t) ?_
+    rw [bval_ex]
+    refine iSup_congr fun e3 => ?_
+    have he3 : consName e3 (consName e2 (consName e1 ρ)) 0 = e3 :=
+      consName_zero _ _
+    have he2' : consName e3 (consName e2 (consName e1 ρ))
+        (1 : Fin (n + 3)) = e2 := by
+      rw [consName_one]
+    have he1' : consName e3 (consName e2 (consName e1 ρ))
+        (2 : Fin (n + 3)) = e1 :=
+      consName_two e3 e2 e1 ρ
+    have hd' : consName e3 (consName e2 (consName e1 ρ))
+        d.succ.succ.succ = ρ d := by
+      rw [consName_succ, consName_succ, consName_succ]
+    have hD' : consName e3 (consName e2 (consName e1 ρ))
+        D.succ.succ.succ = ρ D := by
+      rw [consName_succ, consName_succ, consName_succ]
+    simp [bval_and, bval_inWayBelowDownF, bval_subsetF,
+      he3, he2', he1', hd', hD']
+    ac_rfl
+
+theorem bval_joinsDownF {n} (d D : Fin n) (ρ : Fin n → AName.{u} A) :
+    bval (joinsDownF d D) ρ = joinsDownB (ρ d) (ρ D) := by
+  unfold joinsDownF joinsDownB
+  rw [bval_all]
+  refine iInf_congr fun x => ?_
+  have hx : consName x ρ 0 = x := consName_zero _ _
+  have hd : consName x ρ d.succ = ρ d := consName_succ x ρ d
+  rw [bval_iff, bval_mem, hx, hd]
+  refine congrArg₂ (· ⊓ ·) (congrArg (fun t => memB x (ρ d) ⇨ t) ?_)
+    (congrArg (fun t => t ⇨ memB x (ρ d)) ?_)
+  all_goals
+    rw [bval_ex]
+    refine iSup_congr fun e => ?_
+    have he : consName e (consName x ρ) 0 = e := consName_zero _ _
+    have hx' : consName e (consName x ρ) (1 : Fin (n + 2)) = x :=
+      consName_one e x ρ
+    have hd' : consName e (consName x ρ) d.succ.succ = ρ d := by
+      rw [consName_succ, consName_succ]
+    have hD' : consName e (consName x ρ) D.succ.succ = ρ D := by
+      rw [consName_succ, consName_succ]
+    simp [bval_and, bval_inWayBelowDownF, bval_mem, he, hx', hd', hD']
+
+theorem bval_isContinuousAtSubsetF {n} (d D : Fin n)
+    (ρ : Fin n → AName.{u} A) :
+    bval (isContinuousAtSubsetF d D) ρ =
+      isContinuousAtSubsetB (ρ d) (ρ D) := by
+  unfold isContinuousAtSubsetF isContinuousAtSubsetB
+  rw [bval_and, bval_directedDownF, bval_joinsDownF]
+
+theorem bval_isContinuousLatticeSubsetF {n} (D : Fin n)
+    (ρ : Fin n → AName.{u} A) :
+    bval (isContinuousLatticeSubsetF D) ρ =
+      isContinuousLatticeSubsetB (ρ D) := by
+  unfold isContinuousLatticeSubsetF isContinuousLatticeSubsetB
+  rw [bval_and, bval_isCompleteLatticeSubsetF, bval_all]
+  refine congrArg (fun t => isCompleteLatticeSubsetB (ρ D) ⊓ t) ?_
+  refine iInf_congr fun d => ?_
+  simp [bval_implies, bval_mem, bval_isContinuousAtSubsetF,
+    consName_zero, consName_succ]
+
+theorem isBaseSubsetB_eq (B D : AName.{u} A) :
+    isBaseSubsetB B D =
+      subsetB B D ⊓
+        ⨅ d : AName.{u} A,
+          memB d D ⇨ isContinuousAtSubsetB d B := by
+  rfl
+
+theorem bval_isBaseSubsetF {n} (B D : Fin n)
+    (ρ : Fin n → AName.{u} A) :
+    bval (isBaseSubsetF B D) ρ = isBaseSubsetB (ρ B) (ρ D) := by
+  unfold isBaseSubsetF
+  rw [bval_and, bval_subsetF, bval_all, isBaseSubsetB_eq]
+  refine congrArg (fun t => subsetB (ρ B) (ρ D) ⊓ t) ?_
+  refine iInf_congr fun d => ?_
+  simp [bval_implies, bval_mem, bval_isContinuousAtSubsetF,
+    consName_zero, consName_succ]
 
 /-!
 ## First content lemmas: `≪` implies `⊆`
@@ -1489,57 +1593,7 @@ theorem isBaseSubsetB_pfinB_powerB (X : AName.{u} A) :
   refine iInf_eq_top.mpr fun d => himp_eq_top_iff.mpr ?_
   have hdir := (directedDownB_pfinB_inter d X).ge
   have hjoin := joinsDownB_pfinB_inter d X
-  refine le_inf ((le_top (a := memB d (powerB X))).trans
-    (hdir.trans inf_le_left)) ?_
-  refine le_iInf fun e1 => le_iInf fun e2 => ?_
-  rw [le_himp_iff]
-  set P :=
-    memB e1 (pfinB X) ⊓ wayBelowSubsetB e1 d ⊓
-      (memB e2 (pfinB X) ⊓ wayBelowSubsetB e2 d)
-  set Q :=
-    ⨆ e3 : AName.{u} A,
-      memB e3 (pfinB X) ⊓ wayBelowSubsetB e3 d ⊓
-        subsetB e1 e3 ⊓ subsetB e2 e3
-  set J :=
-    ⨅ x : AName.{u} A,
-      (memB x d ⇨
-        ⨆ e : AName.{u} A,
-          memB e (pfinB X) ⊓ wayBelowSubsetB e d ⊓ memB x e) ⊓
-        ((⨆ e : AName.{u} A,
-            memB e (pfinB X) ⊓ wayBelowSubsetB e d ⊓ memB x e) ⇨
-          memB x d)
-  have hQ : P ≤ Q := by
-    have hinst :=
-      iInf_le (fun e1' : AName.{u} A =>
-        ⨅ e2' : AName.{u} A,
-          memB e1' (pfinB X) ⊓ wayBelowSubsetB e1' d ⊓
-            (memB e2' (pfinB X) ⊓ wayBelowSubsetB e2' d) ⇨
-            ⨆ e3 : AName.{u} A,
-              memB e3 (pfinB X) ⊓ wayBelowSubsetB e3 d ⊓
-                subsetB e1' e3 ⊓ subsetB e2' e3) e1
-    have hinst2 :=
-      (iInf_le (fun e2' : AName.{u} A =>
-        memB e1 (pfinB X) ⊓ wayBelowSubsetB e1 d ⊓
-          (memB e2' (pfinB X) ⊓ wayBelowSubsetB e2' d) ⇨
-          ⨆ e3 : AName.{u} A,
-            memB e3 (pfinB X) ⊓ wayBelowSubsetB e3 d ⊓
-              subsetB e1 e3 ⊓ subsetB e2' e3) e2).trans' hinst
-    have htop : (P ⇨ Q) = ⊤ :=
-      top_unique (hinst2.trans' (hdir.trans inf_le_right))
-    exact himp_eq_top_iff.mp htop
-  have hboth : memB d (powerB X) ⊓ P ≤ Q ⊓ J :=
-    le_inf (inf_le_of_right_le hQ) (inf_le_of_left_le hjoin)
-  refine hboth.trans ?_
-  have hdistrib :
-      Q ⊓ J = ⨆ e3 : AName.{u} A,
-        memB e3 (pfinB X) ⊓ wayBelowSubsetB e3 d ⊓
-          subsetB e1 e3 ⊓ subsetB e2 e3 ⊓ J := by
-    rw [inf_comm (a := Q) (b := J), inf_iSup_eq]
-    exact iSup_congr fun e3 =>
-      inf_comm (a := J)
-        (b := memB e3 (pfinB X) ⊓ wayBelowSubsetB e3 d ⊓
-          subsetB e1 e3 ⊓ subsetB e2 e3)
-  exact hdistrib.le
+  exact le_inf (le_top.trans hdir) hjoin
 
 /-- Congruence of `isBaseSubsetB` in the base: `‖B = B'‖ = 1` implies
 the Boolean values agree. -/

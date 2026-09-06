@@ -8,6 +8,7 @@ import Mathlib.Order.CompleteLattice.Basic
 import Mathlib.Order.ScottContinuity
 import Mathlib.Data.Set.Finite.Basic
 import Mathlib.Data.Set.Lattice
+import Mathlib.Data.Set.Countable
 import Scott1972.ContinuousLattice.WayBelow
 
 /-!
@@ -138,6 +139,42 @@ theorem isContinuousLattice_set (X : Type*) : IsContinuousLattice (Set X) := by
   rw [wayBelow_set_eq]
   exact ⟨finite_subsets_directed T,
     ((sSup_eq_sUnion _).trans (sUnion_finite_subsets T)).symm⟩
+
+/-- If `X` is countable, its finite subsets form a countable family. -/
+theorem finite_subsets_countable {X : Type*} [Countable X] :
+    Set.Countable {S : Set X | S.Finite} := by
+  classical
+  have hrange :
+      {S : Set X | S.Finite} =
+        Set.range (fun s : Finset X => (s : Set X)) := by
+    ext S
+    constructor
+    · intro hS
+      exact ⟨hS.toFinset, hS.coe_toFinset⟩
+    · rintro ⟨s, rfl⟩
+      exact s.finite_toSet
+  rw [hrange]
+  exact Set.countable_range _
+
+/-- All clauses of Proposition 27. The ambient `CompleteLattice (Set X)`
+instance supplies the complete-lattice (hence dcpo) clause. -/
+def Proposition27Statement (X : Type*) : Prop :=
+  IsContinuousLattice (Set X) ∧
+    (∀ S T : Set X, WayBelow (D := Set X) S T ↔ S.Finite ∧ S ⊆ T) ∧
+    (∀ T : Set X,
+      DirectedOn (· ⊆ ·) {S : Set X | S.Finite ∧ S ⊆ T} ∧
+        T = sSup {S : Set X | S.Finite ∧ S ⊆ T}) ∧
+    (Countable X → Set.Countable {S : Set X | S.Finite})
+
+/-- Proposition 27 with its lattice, way-below, finite-base, and countable-base
+clauses packaged together. -/
+theorem proposition27_full (X : Type*) : Proposition27Statement X := by
+  refine ⟨isContinuousLattice_set X, fun _ _ => prop27_wayBelow_iff,
+    fun T => ⟨finite_subsets_directed T, ?_⟩, ?_⟩
+  · exact ((sSup_eq_sUnion _).trans (sUnion_finite_subsets T)).symm
+  · intro hX
+    letI : Countable X := hX
+    exact finite_subsets_countable
 
 /-!
 ## Scott-open sets (Lemma 35(i))

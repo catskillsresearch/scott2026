@@ -6,7 +6,8 @@ Authors: Lars Warren Ericson.
 import Scott2026.Basic
 
 export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
-  proposition_27 proposition_27_continuous
+  Proposition27Statement proposition_27 proposition_27_wayBelow
+  proposition_27_continuous finite_subsets_countable
   proposition_28_total proposition_28_strict proposition_29 proposition_29_full
   theorem_17_mix
   theorem_17_complete lemma_41_const jech_lemma_14_15 jech_lemma_14_16
@@ -82,7 +83,15 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   AName.domVal_domMk AName.checkDomMk AName.checkDomEquiv
   AName.memB_extensionalize AName.eqB_extensionalize AName.fiberVal_check
   checkExt eqB_checkExt_child memB_child_mk_checkExt
+  memB_checkExt eqB_check_checkExt eqB_powerB_congr
   memB_child_powerB_checkExt oid_powerB_checkExt_isStrict
+  isBaseSubsetF bval_directedDownF bval_joinsDownF
+  bval_isContinuousAtSubsetF bval_isContinuousLatticeSubsetF
+  isBaseSubsetB_eq bval_isBaseSubsetF
+  eqB_pfinB_congr eqB_top_trans proposition_3_ext
+  isBaseSubsetB_checkExt_pfin_powerB
+  proposition_28_continuous_value proposition_28_base_value
+  Proposition28Statement proposition_28
   psetElemSetoid PSetElem ExtensionalPowerIdx extensionalPowerName
   AName.exists_eq_check_domChild AName.eqB_check_domChild
   memB_domChild_extensionalPowerName_check extensionalPowerSetoid

@@ -28,6 +28,7 @@ import Scott2026.Coin
 import Scott2026.VA
 import Scott2026.ExtensionalVA
 import Scott2026.InternalDomain
+import Scott2026.Proposition28
 
 universe u v
 
@@ -66,8 +67,13 @@ theorem theorem_17_mix {A : Type*} [CompleteBooleanAlgebra A] {X ι : Type*}
     mixSubset a u x = ⨆ i, a i ⊓ u i x :=
   rfl
 
-/-- Proposition 27: `S ≪ T` in `𝒫(X)` iff `S` is finite and `S ⊆ T`. -/
-theorem proposition_27 {X : Type*} {S T : Set X} :
+/-- Proposition 27, including its continuous-lattice, way-below, finite-base,
+and countable-base clauses. -/
+theorem proposition_27 (X : Type*) : Proposition27Statement X :=
+  proposition27_full X
+
+/-- Proposition 27's pointwise characterization of `≪`. -/
+theorem proposition_27_wayBelow {X : Type*} {S T : Set X} :
     WayBelow (D := Set X) S T ↔ S.Finite ∧ S ⊆ T :=
   prop27_wayBelow_iff
 
@@ -362,7 +368,9 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- `setAEquivSetoidR : Set_A ≃ SetoidR_A`. Theorem 17 / Corollary 18 at
 -- the `Oid(P^A(X))` level are `theorem_17_va_*` / `corollary_18_*`
 -- (`theorem_17_complete` / `proposition_28_total` / `proposition_28_strict`
--- remain ground-type). Proposition 28 at `V^A` is `proposition_28_va_complete`
+-- remain ground-type). The complete internal statement is
+-- `proposition_28 : Proposition28Statement X`; its component results include
+-- `proposition_28_va_complete`
 -- / `proposition_28_va_total` (thin-export Theorem 17 on the raw carrier),
 -- `proposition_28_va_canonical_eq` (canonical names on `check Y`, not raw
 -- `IsStrict`), `definition_11_powerB` / `powerBPoset`, and the fixed-point
@@ -379,11 +387,11 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- `{e ∈ P^A(X) | e ≪ d}` with `P_fin^A(d)` at `d ⊆ X`
 -- (`inWayBelowDownB_eq_memB_pfinB`) and directedness / joins of
 -- `↓d ∩ P_fin^A(X)` (`directedDownB_pfinB_inter`,
--- `joinsDownB_pfinB_inter`). Check-base transfer is
--- `isBaseSubsetB_check_pfin_powerB`, via `proposition_3` and
--- `isBaseSubsetB_eqB_congr_left`. Not named `proposition_28`.
+-- `joinsDownB_pfinB_inter`). Extensional check-base transfer and strictness
+-- are `isBaseSubsetB_checkExt_pfin_powerB` and
+-- `oid_powerB_checkExt_isStrict`, using `proposition_3_ext`.
 -- The internal language is `isContinuousLatticeSubsetF` /
--- `isBaseSubsetB`.
+-- `isBaseSubsetF`, with exact Boolean-value agreement lemmas.
 --
 -- Theorem 30 (CSL p.7): `(P^A(check E), ‖⊆‖, ·, lam)` is an `A`-valued
 -- reflexive dcpo on the canonical carrier (`theorem_30` / `theorem_30_model`
