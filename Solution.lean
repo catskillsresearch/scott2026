@@ -88,7 +88,11 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   ScottOpen lemma_35 lemma_35_i lemma_35_ii
   MapsNumerals proposition_36 proposition_36_i proposition_36_ii
   manyOneLe_of_proposition_36_i
-  exists_nat_fun_not_lambda_definable)
+  exists_nat_fun_not_lambda_definable
+  definition_37 lemma_38 G_X proposition_39 proposition_40
+  lemma_41
+  proposition_42 proposition_42_finite proposition_42_finite_image
+  theorem_43 proposition_44)
 
 export Scott2026.Lam (FreeFor subst_fresh freeFor_of_not_mem_fv freeFor_of_closed
   substCA substNaive substNaive_captures substNaive_captures_not_freeFor)

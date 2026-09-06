@@ -462,14 +462,16 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- §5 Random Variables (CSL p.13–15): `definition_37`, `lemma_38`,
 -- `G_X`, `proposition_39`, `proposition_40`, `lemma_41` /
 -- `lemma_41_const` are paper-named. `AssociatedAlgebra` is `A(X)=Σ/𝒩`.
--- `proposition_42` is withheld: only `proposition_42_finite` (finite
--- `A`-preimage) and `proposition_42_finite_image` (`im f` finite) are
--- proved. The infinite-image distributive expansion (tex ~1161–1174)
--- blocked the full Boolean-value-0 statement. `theorem_43` is withheld
--- for that reason and because the paper's internal Corollary 34 /
--- Theorem 1 appeal is unavailable (`corollary_34_check` only).
--- `proposition_44` is withheld: `L0` has no external `CompleteLattice`
--- instance yet (`IsAtomic` is recorded).
+-- `proposition_42` is the measure-theoretic Boolean-value-0 reading
+-- (`coinMeasure`; Borel coin space is not a `NegligibilitySpace`).
+-- Weaker lemmas `proposition_42_finite` / `_finite_image` /
+-- `_finite_swap` / `_infinite_image` keep weaker names.
+-- `theorem_43` is the external-oracle form (same paper type) via
+-- `chiOracle` / `lemma_35_ii` / `proposition_36`; the paper's internal
+-- Corollary 34 + Theorem 1 appeal is unavailable
+-- (`corollary_34_check` only). `proposition_44` transports
+-- `CompleteLattice` along `G_X` and records `¬IsContinuousLattice`
+-- when `¬IsAtomic`.
 
 /-- Example 21, ground: `Λ(Var)` is the least inductive set of pure terms. -/
 theorem example_21 {Var : Type*} {S : Set (Lam Var)} (h : Lam.IsInductive S) :

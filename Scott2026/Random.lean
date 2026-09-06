@@ -1011,4 +1011,452 @@ externally; the paper proves this when the associated algebra is non-atomic. -/
 def IsAtomic (A : Type*) [CompleteBooleanAlgebra A] : Prop :=
   ∀ a : A, a ≠ ⊥ → ∃ b : A, IsAtom b ∧ b ≤ a
 
+/-!
+## Complete lattice structure on `L⁰` along `G_X`, and Proposition 44
+-/
+
+/-- `G_X` as a type equivalence (Proposition 39). -/
+noncomputable def L0.equivPower (N : NegligibilitySpace X) [Countable Y] :
+    L0 N Y ≃ ASubset (AssociatedAlgebra N) Y where
+  toFun := G_X N
+  invFun := fun b => L0.mk N (G_X_inv N b)
+  left_inv := G_X_inv_left N
+  right_inv := G_X_inv_right N
+
+theorem G_X_equiv (N : NegligibilitySpace X) [Countable Y] (a : L0 N Y) :
+    G_X N a = L0.equivPower (Y := Y) N a :=
+  rfl
+
+theorem G_X_symm (N : NegligibilitySpace X) [Countable Y]
+    (b : ASubset (AssociatedAlgebra N) Y) :
+    G_X N ((L0.equivPower (Y := Y) N).symm b) = b := by
+  rw [G_X_equiv]
+  exact Equiv.apply_symm_apply _ _
+
+/-- Order on `L⁰` transported along `G_X`. -/
+noncomputable instance instPartialOrderL0
+    {X Y : Type*} [MeasurableSpace X] (N : NegligibilitySpace X) [Countable Y] :
+    PartialOrder (L0 N Y) where
+  le a b := G_X N a ≤ G_X N b
+  le_refl _ := le_rfl
+  le_trans _ _ _ := le_trans
+  le_antisymm a b hab hba :=
+    (L0.equivPower (Y := Y) N).injective (le_antisymm hab hba)
+
+noncomputable instance instSupSetL0
+    {X Y : Type*} [MeasurableSpace X] (N : NegligibilitySpace X) [Countable Y] :
+    SupSet (L0 N Y) where
+  sSup S := (L0.equivPower (Y := Y) N).symm (sSup (G_X N '' S))
+
+/-- External complete lattice on `L⁰`, transported along `G_X`. -/
+noncomputable instance instCompleteLatticeL0
+    {X Y : Type*} [MeasurableSpace X] (N : NegligibilitySpace X) [Countable Y] :
+    CompleteLattice (L0 N Y) :=
+  completeLatticeOfSup (L0 N Y) fun S => by
+    constructor
+    · intro a ha
+      change G_X N a ≤ G_X N ((L0.equivPower (Y := Y) N).symm (sSup (G_X N '' S)))
+      rw [G_X_symm]
+      exact le_sSup (mem_image_of_mem (G_X N) ha)
+    · intro b hb
+      change G_X N ((L0.equivPower (Y := Y) N).symm (sSup (G_X N '' S))) ≤ G_X N b
+      rw [G_X_symm]
+      exact sSup_le fun x hx => by
+        obtain ⟨a, ha, rfl⟩ := (mem_image _ _ _).1 hx
+        exact hb ha
+
+theorem L0.le_iff_G_X (N : NegligibilitySpace X) [Countable Y] (a b : L0 N Y) :
+    a ≤ b ↔ G_X N a ≤ G_X N b :=
+  Iff.rfl
+
+theorem L0.le_iff_pointwise (N : NegligibilitySpace X) [Countable Y] (a b : L0 N Y) :
+    a ≤ b ↔ ∀ y, G_X N a y ≤ G_X N b y :=
+  Iff.rfl
+
+theorem G_X_sSup {X Y : Type*} [MeasurableSpace X] [Countable Y]
+    (N : NegligibilitySpace X) (S : Set (L0 N Y)) :
+    G_X N (sSup S) = sSup (G_X N '' S) := by
+  change G_X N ((L0.equivPower (Y := Y) N).symm (sSup (G_X N '' S))) =
+    sSup (G_X N '' S)
+  exact G_X_symm N _
+
+theorem G_X_bot {X Y : Type*} [MeasurableSpace X] [Countable Y]
+    (N : NegligibilitySpace X) :
+    G_X N (⊥ : L0 N Y) = (⊥ : ASubset (AssociatedAlgebra N) Y) := by
+  change G_X N (sSup (∅ : Set (L0 N Y))) = ⊥
+  rw [G_X_sSup, image_empty, sSup_empty]
+
+theorem L0.eq_bot_iff_G_X {X Y : Type*} [MeasurableSpace X] [Countable Y]
+    (N : NegligibilitySpace X) (a : L0 N Y) :
+    a = ⊥ ↔ G_X N a = (⊥ : ASubset (AssociatedAlgebra N) Y) := by
+  constructor
+  · intro h; rw [h]; exact G_X_bot N
+  · intro h
+    apply (L0.equivPower (Y := Y) N).injective
+    rw [← G_X_equiv, ← G_X_equiv, h, G_X_bot]
+
+theorem wayBelow_bot {D : Type*} [CompleteLattice D] (d : D) : (⊥ : D) ≪ d := by
+  intro S hne _hdir _hle
+  obtain ⟨s, hs⟩ := hne
+  exact ⟨s, hs, bot_le⟩
+
+theorem exists_pos_atomless_of_not_isAtomic {A : Type*} [CompleteBooleanAlgebra A]
+    (h : ¬IsAtomic A) :
+    ∃ a : A, a ≠ ⊥ ∧ ∀ b, IsAtom b → ¬b ≤ a := by
+  let p := sSup {a : A | IsAtom a}
+  have hp : p ≠ ⊤ := by
+    intro htop
+    refine h fun a ha => ?_
+    have ha' : a = sSup ((fun b : A => a ⊓ b) '' {b | IsAtom b}) := by
+      calc
+        a = a ⊓ ⊤ := (inf_top_eq a).symm
+        _ = a ⊓ sSup {b | IsAtom b} := by rw [← htop]
+        _ = ⨆ b ∈ {b | IsAtom b}, a ⊓ b := inf_sSup_eq
+        _ = sSup ((fun b => a ⊓ b) '' {b | IsAtom b}) := sSup_image.symm
+    have hex : ∃ b, IsAtom b ∧ a ⊓ b ≠ ⊥ := by
+      by_contra hempty
+      push_neg at hempty
+      have hbot : sSup ((fun b : A => a ⊓ b) '' {b | IsAtom b}) = ⊥ :=
+        sSup_eq_bot.mpr fun d hd => by
+          obtain ⟨b, hb, rfl⟩ := hd
+          exact hempty b hb
+      exact ha (ha'.trans hbot)
+    obtain ⟨b, hb, hne⟩ := hex
+    have heq : a ⊓ b = b := by
+      rcases lt_or_eq_of_le (inf_le_right (a := a) (b := b)) with hlt | heq
+      · exact False.elim (hne (hb.2 (a ⊓ b) hlt))
+      · exact heq
+    exact ⟨b, hb, (inf_eq_right (a := a) (b := b)).mp heq⟩
+  refine ⟨pᶜ, mt compl_eq_bot.mp hp, fun b hb hle => ?_⟩
+  have hmem : b ∈ {a : A | IsAtom a} := hb
+  have hbot : b ≤ ⊥ :=
+    (le_inf (le_sSup hmem) hle).trans_eq inf_compl_eq_bot
+  exact hb.1 (le_bot_iff.mp hbot)
+
+theorem exists_lt_atomless {A : Type*} [CompleteBooleanAlgebra A] {a : A}
+    (hne : a ≠ ⊥) (hna : ∀ b, IsAtom b → ¬b ≤ a) :
+    ∃ c : A, c ≠ ⊥ ∧ c < a ∧ ∀ b, IsAtom b → ¬b ≤ c := by
+  have hnot : ¬IsAtom a := fun ha => hna a ha le_rfl
+  obtain ⟨c, hclt, hcne⟩ : ∃ c, c < a ∧ c ≠ ⊥ := by
+    by_contra h
+    push_neg at h
+    exact hnot ⟨hne, fun c hc => h c hc⟩
+  exact ⟨c, hcne, hclt, fun b hb hle => hna b hb (hle.trans hclt.le)⟩
+
+noncomputable def atomlessSeqAux {A : Type*} [CompleteBooleanAlgebra A] {a : A}
+    (hne : a ≠ ⊥) (hna : ∀ b, IsAtom b → ¬b ≤ a) :
+    ℕ → Σ' x : A, x ≠ ⊥ ∧ (∀ b, IsAtom b → ¬b ≤ x)
+  | 0 =>
+    let h := Classical.choose_spec (exists_lt_atomless hne hna)
+    ⟨Classical.choose (exists_lt_atomless hne hna), h.1, h.2.2⟩
+  | n + 1 =>
+    let prev := atomlessSeqAux hne hna n
+    let hex := exists_lt_atomless prev.2.1 prev.2.2
+    let h := Classical.choose_spec hex
+    ⟨Classical.choose hex, h.1, h.2.2⟩
+
+noncomputable def atomlessSeq {A : Type*} [CompleteBooleanAlgebra A] {a : A}
+    (hne : a ≠ ⊥) (hna : ∀ b, IsAtom b → ¬b ≤ a) : ℕ → A :=
+  fun n => (atomlessSeqAux hne hna n).1
+
+theorem atomlessSeq_ne {A : Type*} [CompleteBooleanAlgebra A] {a : A}
+    (hne : a ≠ ⊥) (hna : ∀ b, IsAtom b → ¬b ≤ a) (n : ℕ) :
+    atomlessSeq hne hna n ≠ ⊥ :=
+  (atomlessSeqAux hne hna n).2.1
+
+theorem atomlessSeq_atomless {A : Type*} [CompleteBooleanAlgebra A] {a : A}
+    (hne : a ≠ ⊥) (hna : ∀ b, IsAtom b → ¬b ≤ a) (n : ℕ) :
+    ∀ b, IsAtom b → ¬b ≤ atomlessSeq hne hna n :=
+  (atomlessSeqAux hne hna n).2.2
+
+theorem atomlessSeq_succ_lt {A : Type*} [CompleteBooleanAlgebra A] {a : A}
+    (hne : a ≠ ⊥) (hna : ∀ b, IsAtom b → ¬b ≤ a) (n : ℕ) :
+    atomlessSeq hne hna (n + 1) < atomlessSeq hne hna n := by
+  change (atomlessSeqAux hne hna (n + 1)).1 < (atomlessSeqAux hne hna n).1
+  let prev := atomlessSeqAux hne hna n
+  exact (Classical.choose_spec (exists_lt_atomless prev.2.1 prev.2.2)).2.1
+
+theorem atomlessSeq_antitone {A : Type*} [CompleteBooleanAlgebra A] {a : A}
+    (hne : a ≠ ⊥) (hna : ∀ b, IsAtom b → ¬b ≤ a) :
+    Antitone (atomlessSeq hne hna) :=
+  antitone_nat_of_succ_le fun n => (atomlessSeq_succ_lt hne hna n).le
+
+noncomputable def meetlessSeq {A : Type*} [CompleteBooleanAlgebra A] (f : ℕ → A) : ℕ → A :=
+  fun n => f n ⊓ (⨅ k, f k)ᶜ
+
+theorem meetlessSeq_iInf_bot {A : Type*} [CompleteBooleanAlgebra A] (f : ℕ → A) :
+    ⨅ n, meetlessSeq f n = ⊥ := by
+  refine le_bot_iff.mp ?_
+  have hle : ⨅ n, meetlessSeq f n ≤ (⨅ n, f n) ⊓ (⨅ k, f k)ᶜ :=
+    le_inf (iInf_mono fun n => inf_le_left) (iInf_le_of_le 0 inf_le_right)
+  exact hle.trans_eq inf_compl_eq_bot
+
+theorem meetlessSeq_succ_lt {A : Type*} [CompleteBooleanAlgebra A] {f : ℕ → A}
+    (hstrict : ∀ n, f (n + 1) < f n) (n : ℕ) :
+    meetlessSeq f (n + 1) < meetlessSeq f n := by
+  set m := ⨅ k, f k
+  refine lt_of_le_of_ne (inf_le_inf_right mᶜ (hstrict n).le) ?_
+  intro heq
+  have hcalc : (f n ⊓ mᶜ) ⊓ (f (n + 1) ⊓ mᶜ)ᶜ = f n ⊓ (f (n + 1))ᶜ ⊓ mᶜ := by
+    rw [compl_inf, compl_compl, inf_sup_left]
+    have hz : f n ⊓ mᶜ ⊓ m = ⊥ := by
+      rw [inf_assoc, inf_comm (a := mᶜ), inf_compl_eq_bot, inf_bot_eq]
+    rw [hz, sup_bot_eq]
+    ac_rfl
+  have hbot : f n ⊓ (f (n + 1))ᶜ ⊓ mᶜ = ⊥ := by
+    have : (f n ⊓ mᶜ) ⊓ (f (n + 1) ⊓ mᶜ)ᶜ = ⊥ := by
+      change meetlessSeq f n ⊓ (meetlessSeq f (n + 1))ᶜ = ⊥
+      rw [heq, inf_compl_eq_bot]
+    rwa [← hcalc]
+  have hle : f n ⊓ (f (n + 1))ᶜ ≤ m :=
+    (disjoint_compl_right_iff (x := f n ⊓ (f (n + 1))ᶜ) (y := m)).mp
+      (disjoint_iff.mpr hbot)
+  have hz : f n ⊓ (f (n + 1))ᶜ = ⊥ :=
+    le_bot_iff.mp ((le_inf (hle.trans (iInf_le f (n + 1))) inf_le_right).trans_eq
+      inf_compl_eq_bot)
+  exact (hstrict n).not_ge
+    ((disjoint_compl_right_iff (x := f n) (y := f (n + 1))).mp (disjoint_iff.mpr hz))
+
+theorem meetlessSeq_ne {A : Type*} [CompleteBooleanAlgebra A] {f : ℕ → A}
+    (hstrict : ∀ n, f (n + 1) < f n) (n : ℕ) : meetlessSeq f n ≠ ⊥ := by
+  intro hbot
+  have : f n ≤ ⨅ k, f k :=
+    (disjoint_compl_right_iff (x := f n) (y := ⨅ k, f k)).mp
+      (disjoint_iff.mpr (by simpa [meetlessSeq] using hbot))
+  exact (hstrict n).not_ge (this.trans (iInf_le f (n + 1)))
+
+theorem atomlessSeq_lt {A : Type*} [CompleteBooleanAlgebra A] {a : A}
+    (hne : a ≠ ⊥) (hna : ∀ b, IsAtom b → ¬b ≤ a) (n : ℕ) :
+    atomlessSeq hne hna n < a := by
+  induction n with
+  | zero => exact (Classical.choose_spec (exists_lt_atomless hne hna)).2.1
+  | succ n ih => exact (atomlessSeq_succ_lt hne hna n).trans ih
+
+theorem directedOn_range_monotone {α : Type*} [Preorder α] {f : ℕ → α}
+    (hf : Monotone f) : DirectedOn (· ≤ ·) (Set.range f) := by
+  intro x hx y hy
+  obtain ⟨i, rfl⟩ := hx
+  obtain ⟨j, rfl⟩ := hy
+  exact ⟨f (max i j), ⟨max i j, rfl⟩, hf (le_max_left i j), hf (le_max_right i j)⟩
+
+
+/-- If `A` is not atomic and `Y` is nonempty, then `Y → A` is not a
+continuous lattice. Constant functions are the paper's indicator RVs
+after transport along `G_X`. -/
+theorem not_isContinuousLattice_fun_of_not_atomic
+    {A Y : Type*} [CompleteBooleanAlgebra A] [Nonempty Y]
+    (hA : ¬IsAtomic A) : ¬IsContinuousLattice (Y → A) := by
+  obtain ⟨u, hu, hna⟩ := exists_pos_atomless_of_not_isAtomic hA
+  let b : Y → A := fun _ => u
+  have hb_ne : b ≠ ⊥ := by
+    intro h
+    exact hu (by simpa [Pi.bot_apply] using congrFun h (Classical.arbitrary Y))
+  have honly : ∀ e : Y → A, e ≪ b → e = ⊥ := by
+    intro e he
+    by_contra hene
+    have hele : e ≤ b := wayBelow_le he
+    have ht_ne : ⨆ y, e y ≠ ⊥ := by
+      intro hbot
+      exact hene (funext fun y =>
+        le_bot_iff.mp ((le_iSup e y).trans_eq hbot))
+    have ht_le : ⨆ y, e y ≤ u := iSup_le fun y => hele y
+    let t := ⨆ y, e y
+    have ht_na : ∀ c, IsAtom c → ¬c ≤ t :=
+      fun c hc hcle => hna c hc (hcle.trans ht_le)
+    let f := atomlessSeq ht_ne ht_na
+    have hf_lt : ∀ n, f (n + 1) < f n := atomlessSeq_succ_lt ht_ne ht_na
+    let w := meetlessSeq f
+    have hw_lt : ∀ n, w (n + 1) < w n := meetlessSeq_succ_lt hf_lt
+    have hw_ne : ∀ n, w n ≠ ⊥ := meetlessSeq_ne hf_lt
+    have hw_le : ∀ n, w n ≤ t := fun n =>
+      inf_le_left.trans (atomlessSeq_lt ht_ne ht_na n).le
+    let c : ℕ → (Y → A) := fun n _ => t ⊓ (w n)ᶜ ⊔ u ⊓ tᶜ
+    have hc_mono : Monotone c := by
+      intro i j hij y
+      refine sup_le_sup ?_ le_rfl
+      exact inf_le_inf_left t (compl_le_compl
+        ((antitone_nat_of_succ_le fun n => (hw_lt n).le) hij))
+    have hc_sup : sSup (Set.range c) = b := by
+      funext y
+      have : sSup (Set.range c) y = ⨆ n, c n y := by
+        rw [sSup_range, iSup_apply]
+      rw [this]
+      have hdist :
+          ⨆ n, t ⊓ (w n)ᶜ ⊔ u ⊓ tᶜ = (⨆ n, t ⊓ (w n)ᶜ) ⊔ u ⊓ tᶜ := by
+        rw [← iSup_sup]
+      rw [hdist, ← inf_iSup_eq, ← compl_iInf, meetlessSeq_iInf_bot, compl_bot,
+        inf_top_eq, sup_inf_left, sup_compl_eq_top, inf_top_eq]
+      exact sup_eq_right.mpr ht_le
+    have hmeet (n : ℕ) : t ⊓ (t ⊓ (w n)ᶜ ⊔ u ⊓ tᶜ)ᶜ = w n := by
+      rw [compl_sup, compl_inf, compl_inf, compl_compl, compl_compl]
+      have htw : t ⊓ (tᶜ ⊔ w n) = t ⊓ w n := by
+        rw [inf_sup_left, inf_compl_eq_bot, bot_sup_eq]
+      rw [← inf_assoc, htw, inf_sup_left]
+      have htu : t ⊓ uᶜ = ⊥ :=
+        disjoint_iff.mp ((disjoint_compl_right_iff (x := t) (y := u)).mpr ht_le)
+      have hz : t ⊓ w n ⊓ uᶜ = ⊥ :=
+        le_bot_iff.mp ((inf_le_inf_right uᶜ inf_le_left).trans_eq htu)
+      have hidem : t ⊓ w n ⊓ t = t ⊓ w n := by
+        calc
+          t ⊓ w n ⊓ t = t ⊓ t ⊓ w n := by ac_rfl
+          _ = t ⊓ w n := by rw [inf_idem]
+      rw [hz, bot_sup_eq, hidem, inf_eq_right.mpr (hw_le n)]
+    have he_nle : ∀ n, ¬e ≤ c n := by
+      intro n hle
+      have ht_nle : t ≤ t ⊓ (w n)ᶜ ⊔ u ⊓ tᶜ :=
+        iSup_le fun y => hle y
+      have hne' : t ⊓ (t ⊓ (w n)ᶜ ⊔ u ⊓ tᶜ)ᶜ ≠ ⊥ := by
+        rw [hmeet n]
+        exact hw_ne n
+      have hbot : t ⊓ (t ⊓ (w n)ᶜ ⊔ u ⊓ tᶜ)ᶜ = ⊥ :=
+        disjoint_iff.mp ((disjoint_compl_right_iff
+          (x := t) (y := t ⊓ (w n)ᶜ ⊔ u ⊓ tᶜ)).mpr ht_nle)
+      exact hne' hbot
+    obtain ⟨z, hz, hez⟩ := he (S := Set.range c)
+      ⟨c 0, Set.mem_range_self 0⟩ (directedOn_range_monotone hc_mono)
+      (le_of_eq hc_sup.symm)
+    obtain ⟨n, rfl⟩ := hz
+    exact he_nle n hez
+  intro hcont
+  have hsup := (hcont b).2
+  have hset : {e : Y → A | e ≪ b} = {⊥} := by
+    ext e
+    constructor
+    · exact honly e
+    · intro he
+      rw [mem_singleton_iff.mp he]
+      exact wayBelow_bot b
+  rw [hset, sSup_singleton] at hsup
+  exact hb_ne hsup
+
+theorem L0.le_symm {X Y : Type*} [MeasurableSpace X] [Countable Y]
+    (N : NegligibilitySpace X) {x y : ASubset (AssociatedAlgebra N) Y} :
+    (L0.equivPower (Y := Y) N).symm x ≤ (L0.equivPower (Y := Y) N).symm y ↔
+      x ≤ y := by
+  change G_X N ((L0.equivPower (Y := Y) N).symm x) ≤
+      G_X N ((L0.equivPower (Y := Y) N).symm y) ↔ x ≤ y
+  rw [G_X_symm, G_X_symm]
+
+theorem G_X_image_symm {X Y : Type*} [MeasurableSpace X] [Countable Y]
+    (N : NegligibilitySpace X) (S : Set (ASubset (AssociatedAlgebra N) Y)) :
+    G_X N '' ((L0.equivPower (Y := Y) N).symm '' S) = S := by
+  ext x
+  constructor
+  · rintro ⟨y, ⟨z, hz, rfl⟩, rfl⟩
+    rwa [G_X_symm]
+  · intro hx
+    exact ⟨(L0.equivPower (Y := Y) N).symm x, ⟨x, hx, rfl⟩, G_X_symm N x⟩
+
+theorem wayBelow_iff_G_X {X Y : Type*} [MeasurableSpace X] [Countable Y]
+    (N : NegligibilitySpace X) (a b : L0 N Y) :
+    a ≪ b ↔ G_X N a ≪ G_X N b := by
+  constructor
+  · intro h S hne hdir hle
+    let S' : Set (L0 N Y) := (L0.equivPower (Y := Y) N).symm '' S
+    have hne' : S'.Nonempty := hne.image _
+    have hdir' : DirectedOn (· ≤ ·) S' := by
+      intro x hx y hy
+      obtain ⟨sx, hsx, rfl⟩ := hx
+      obtain ⟨sy, hsy, rfl⟩ := hy
+      obtain ⟨z, hz, hzx, hzy⟩ := hdir sx hsx sy hsy
+      exact ⟨(L0.equivPower (Y := Y) N).symm z, ⟨z, hz, rfl⟩,
+        (L0.le_symm N).mpr hzx, (L0.le_symm N).mpr hzy⟩
+    have hle' : b ≤ sSup S' := by
+      change G_X N b ≤ G_X N (sSup S')
+      rw [G_X_sSup, G_X_image_symm]
+      exact hle
+    obtain ⟨w, hw, haw⟩ := h hne' hdir' hle'
+    obtain ⟨z, hz, rfl⟩ := hw
+    change G_X N a ≤ G_X N ((L0.equivPower (Y := Y) N).symm z) at haw
+    rw [G_X_symm] at haw
+    exact ⟨z, hz, haw⟩
+  · intro h S hne hdir hle
+    let S' : Set (ASubset (AssociatedAlgebra N) Y) := G_X N '' S
+    have hne' : S'.Nonempty := hne.image _
+    have hdir' : DirectedOn (· ≤ ·) S' := by
+      intro x hx y hy
+      obtain ⟨sx, hsx, rfl⟩ := hx
+      obtain ⟨sy, hsy, rfl⟩ := hy
+      obtain ⟨z, hz, hzx, hzy⟩ := hdir sx hsx sy hsy
+      exact ⟨G_X N z, ⟨z, hz, rfl⟩, hzx, hzy⟩
+    have hle' : G_X N b ≤ sSup S' := by
+      rwa [← G_X_sSup]
+    obtain ⟨w, hw, haw⟩ := h hne' hdir' hle'
+    obtain ⟨z, hz, rfl⟩ := hw
+    exact ⟨z, hz, haw⟩
+
+theorem isContinuousLattice_iff_G_X {X Y : Type*} [MeasurableSpace X] [Countable Y]
+    (N : NegligibilitySpace X) :
+    IsContinuousLattice (L0 N Y) ↔
+      IsContinuousLattice (ASubset (AssociatedAlgebra N) Y) := by
+  constructor
+  · intro h d
+    let d' := (L0.equivPower (Y := Y) N).symm d
+    obtain ⟨hdir, hsup⟩ := h d'
+    have himg : G_X N '' {e | e ≪ d'} = {f | f ≪ d} := by
+      ext f
+      constructor
+      · intro hf
+        obtain ⟨e, he, rfl⟩ := (mem_image _ _ _).1 hf
+        have : G_X N e ≪ G_X N d' := (wayBelow_iff_G_X N e d').mp he
+        rwa [G_X_symm] at this
+      · intro hf
+        refine ⟨(L0.equivPower (Y := Y) N).symm f, ?_, G_X_symm N f⟩
+        refine (wayBelow_iff_G_X N _ d').mpr ?_
+        rwa [G_X_symm, G_X_symm]
+    constructor
+    · intro x hx y hy
+      have hx' : x ∈ G_X N '' {e | e ≪ d'} := by rwa [himg]
+      have hy' : y ∈ G_X N '' {e | e ≪ d'} := by rwa [himg]
+      obtain ⟨ex, hex, rfl⟩ := (mem_image _ _ _).1 hx'
+      obtain ⟨ey, hey, rfl⟩ := (mem_image _ _ _).1 hy'
+      obtain ⟨z, hz, hzx, hzy⟩ := hdir ex hex ey hey
+      refine ⟨G_X N z, ?_, hzx, hzy⟩
+      exact himg ▸ ⟨z, hz, rfl⟩
+    · calc
+        d = G_X N d' := (G_X_symm N d).symm
+        _ = G_X N (sSup {e | e ≪ d'}) := congrArg (G_X N) hsup
+        _ = sSup (G_X N '' {e | e ≪ d'}) := G_X_sSup N _
+        _ = sSup {f | f ≪ d} := by rw [himg]
+  · intro h d
+    obtain ⟨hdir, hsup⟩ := h (G_X N d)
+    have himg : (L0.equivPower (Y := Y) N).symm '' {f | f ≪ G_X N d} =
+        {e | e ≪ d} := by
+      ext e
+      constructor
+      · intro he
+        obtain ⟨f, hf, rfl⟩ := (mem_image _ _ _).1 he
+        exact (wayBelow_iff_G_X N _ d).mpr (by rwa [G_X_symm])
+      · intro he
+        refine ⟨G_X N e, (wayBelow_iff_G_X N e d).mp he, Equiv.symm_apply_apply _ _⟩
+    constructor
+    · intro x hx y hy
+      have hx' : x ∈ (L0.equivPower (Y := Y) N).symm '' {f | f ≪ G_X N d} := by
+        rwa [himg]
+      have hy' : y ∈ (L0.equivPower (Y := Y) N).symm '' {f | f ≪ G_X N d} := by
+        rwa [himg]
+      obtain ⟨fx, hfx, rfl⟩ := (mem_image _ _ _).1 hx'
+      obtain ⟨fy, hfy, rfl⟩ := (mem_image _ _ _).1 hy'
+      obtain ⟨z, hz, hzx, hzy⟩ := hdir fx hfx fy hfy
+      refine ⟨(L0.equivPower (Y := Y) N).symm z, ?_,
+        (L0.le_symm N).mpr hzx, (L0.le_symm N).mpr hzy⟩
+      exact himg ▸ ⟨z, hz, rfl⟩
+    · apply (L0.equivPower (Y := Y) N).injective
+      rw [← G_X_equiv, ← G_X_equiv]
+      calc
+        G_X N d = sSup {f | f ≪ G_X N d} := hsup
+        _ = sSup (G_X N '' ((L0.equivPower (Y := Y) N).symm ''
+              {f | f ≪ G_X N d})) :=
+          congrArg sSup (G_X_image_symm N {f | f ≪ G_X N d}).symm
+        _ = sSup (G_X N '' {e | e ≪ d}) := by rw [himg]
+        _ = G_X N (sSup {e | e ≪ d}) := (G_X_sSup N _).symm
+
+/-- Proposition 44: if `A(X)` is not atomic and `Y` is nonempty countable,
+then `L⁰(X; 𝒫(Y))` is not a continuous dcpo. -/
+theorem proposition_44 {X Y : Type*} [MeasurableSpace X] [Countable Y] [Nonempty Y]
+    (N : NegligibilitySpace X) (hA : ¬IsAtomic (AssociatedAlgebra N)) :
+    ¬IsContinuousLattice (L0 N Y) :=
+  fun h => not_isContinuousLattice_fun_of_not_atomic (Y := Y) hA
+    ((isContinuousLattice_iff_G_X (Y := Y) N).mp h)
+
 end Scott2026
