@@ -7,8 +7,8 @@ find_toolkit() {
   local root="$1" d
   for d in \
     "${PALOMAR_PREFLIGHT_ROOT:-}" \
-    "$(dirname "$root")/palomar-preflight" \
-    "$root/palomar-preflight"; do
+    "$root/palomar-preflight" \
+    "$(dirname "$root")/palomar-preflight"; do
     [[ -n "$d" && -f "$d/palomar_preflight.sh" ]] && {
       cd "$d" && pwd
       return 0
