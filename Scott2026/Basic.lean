@@ -11,6 +11,7 @@ import Scott2026.Categories
 import Scott2026.PowerSet
 import Scott2026.Oid
 import Scott2026.SetCategory
+import Scott2026.OidEssential
 import Scott2026.RawPowerStrict
 import Scott2026.Domain
 import Scott2026.Lambda
@@ -355,9 +356,10 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- §3 through Corollary 18 (CSL p.4–7): `oid` / `oid_eq` / `oid_eps` (Definition 14),
 -- `ePred` / `ePredPowerB` (Definition 15), `oidRel` / `oidRel_id` / `oidRel_comp`
 -- (Definition 16) from `Scott2026.Oid`, with `RelFun.comp` (Definition 8 composition)
--- and `functionalOfRel` (Definition 13) from `Scott2026.RelFun`. Definition 16 is
--- proved only as functor data: fullness, faithfulness and essential surjectivity of
--- `Oid`, hence `Set_A ≃ SetoidR_A`, are not claimed. Theorem 17 / Corollary 18 at
+-- and `functionalOfRel` (Definition 13) from `Scott2026.RelFun`. `SetCategory`
+-- lifts the quotient morphisms and proves fullness and faithfulness;
+-- `OidEssential` reconstructs essential surjectivity and packages
+-- `setAEquivSetoidR : Set_A ≃ SetoidR_A`. Theorem 17 / Corollary 18 at
 -- the `Oid(P^A(X))` level are `theorem_17_va_*` / `corollary_18_*`
 -- (`theorem_17_complete` / `proposition_28_total` / `proposition_28_strict`
 -- remain ground-type). Proposition 28 at `V^A` is `proposition_28_va_complete`

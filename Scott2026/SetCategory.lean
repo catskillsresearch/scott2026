@@ -177,6 +177,115 @@ theorem subsetB_relFunGraphName (X Y : AName.{u} A)
       (fun q => opairB (X.child q.1) (Y.child q.2))
       (fun q => memB (X.child q.1) X ⊓ memB (Y.child q.2) Y)) p)
 
+/-- Two graph-membership generators with the same source force equality of
+their arbitrary target names. -/
+theorem relFunGraph_single_term (X Y : AName.{u} A)
+    (f : RelFun (oid X) (oid Y)) (x y₁ y₂ : AName.{u} A)
+    (i k : X.idx) (j l : Y.idx) :
+    (eqB (opairB x y₁) (opairB (X.child i) (Y.child j)) ⊓ f.val i j) ⊓
+      (eqB (opairB x y₂) (opairB (X.child k) (Y.child l)) ⊓ f.val k l) ≤
+        eqB y₁ y₂ := by
+  let t :=
+    (eqB (opairB x y₁) (opairB (X.child i) (Y.child j)) ⊓ f.val i j) ⊓
+      (eqB (opairB x y₂) (opairB (X.child k) (Y.child l)) ⊓ f.val k l)
+  have hp₁ : t ≤ eqB (opairB x y₁) (opairB (X.child i) (Y.child j)) :=
+    inf_le_left.trans inf_le_left
+  have hp₂ : t ≤ eqB (opairB x y₂) (opairB (X.child k) (Y.child l)) :=
+    inf_le_right.trans inf_le_left
+  rw [eqB_opairB] at hp₁ hp₂
+  have hx₁ : t ≤ eqB x (X.child i) := hp₁.trans inf_le_left
+  have hy₁ : t ≤ eqB y₁ (Y.child j) := hp₁.trans inf_le_right
+  have hx₂ : t ≤ eqB x (X.child k) := hp₂.trans inf_le_left
+  have hy₂ : t ≤ eqB y₂ (Y.child l) := hp₂.trans inf_le_right
+  have hf₁ : t ≤ f.val i j := inf_le_left.trans inf_le_right
+  have hf₂ : t ≤ f.val k l := inf_le_right.trans inf_le_right
+  have hmemXi : t ≤ memB (X.child i) X := by
+    have h := (f.le_eps i j).trans inf_le_left
+    rw [oid_eps] at h
+    exact hf₁.trans h
+  have hmemXk : t ≤ memB (X.child k) X := by
+    have h := (f.le_eps k l).trans inf_le_left
+    rw [oid_eps] at h
+    exact hf₂.trans h
+  have hXiXk : t ≤ eqB (X.child i) (X.child k) := by
+    refine (eqB_trans (X.child i) x (X.child k)).trans' (le_inf ?_ hx₂)
+    rwa [eqB_comm]
+  have hSik : t ≤ (oid X).eq i k := by
+    rw [oid_eq]
+    exact le_inf (le_inf hmemXi hmemXk) hXiXk
+  have hSki : t ≤ (oid X).eq k i := by
+    rw [(oid X).symm]
+    exact hSik
+  have hfil : t ≤ f.val i l :=
+    (f.subst_left k i l).trans' (le_inf hSki hf₂)
+  have hTjl : t ≤ (oid Y).eq j l :=
+    (f.single_valued i j l).trans' (le_inf hf₁ hfil)
+  have hYjYl : t ≤ eqB (Y.child j) (Y.child l) := by
+    rw [oid_eq] at hTjl
+    exact hTjl.trans inf_le_right
+  have hy₁l : t ≤ eqB y₁ (Y.child l) :=
+    (eqB_trans y₁ (Y.child j) (Y.child l)).trans' (le_inf hy₁ hYjYl)
+  refine (eqB_trans y₁ (Y.child l) y₂).trans' (le_inf hy₁l ?_)
+  rw [eqB_comm (Y.child l) y₂]
+  exact hy₂
+
+/-- The graph name of a relational function is internally single-valued. -/
+theorem isSingleValuedB_relFunGraphName (X Y : AName.{u} A)
+    (f : RelFun (oid X) (oid Y)) :
+    isSingleValuedB (relFunGraphName X Y f) = ⊤ := by
+  unfold isSingleValuedB
+  refine iInf_eq_top.mpr fun x => iInf_eq_top.mpr fun y₁ =>
+    iInf_eq_top.mpr fun y₂ => himp_eq_top_iff.mpr ?_
+  rw [relFunGraphName, memB_mk, memB_mk, iSup_inf_eq]
+  refine iSup_le fun p => ?_
+  rw [inf_iSup_eq]
+  refine iSup_le fun q => ?_
+  exact relFunGraph_single_term X Y f x y₁ y₂ p.1 q.1 p.2 q.2
+
+/-- The graph name of a relational function is internally total. -/
+theorem isTotalB_relFunGraphName (X Y : AName.{u} A)
+    (f : RelFun (oid X) (oid Y)) :
+    isTotalB (relFunGraphName X Y f) X = ⊤ := by
+  unfold isTotalB
+  refine iInf_eq_top.mpr fun x => himp_eq_top_iff.mpr ?_
+  rw [memB_eq]
+  refine iSup_le fun i => ?_
+  have htotal : memB (X.child i) X ≤ ⨆ j : Y.idx, f.val i j := by
+    have h := f.total i
+    rwa [oid_eps] at h
+  refine (inf_le_inf le_rfl ((val_le_memB X i).trans htotal)).trans ?_
+  rw [inf_iSup_eq]
+  refine iSup_le fun j => ?_
+  refine le_iSup_of_le (Y.child j) ?_
+  rw [relFunGraphName, memB_mk]
+  refine le_iSup_of_le (i, j) ?_
+  rw [eqB_opairB, eqB_self, inf_top_eq]
+
+/-- The graph reconstructed from a relational function satisfies the full
+internal function predicate, including quantification over arbitrary names. -/
+theorem isFunctionB_relFunGraphName (X Y : AName.{u} A)
+    (f : RelFun (oid X) (oid Y)) :
+    isFunctionB (relFunGraphName X Y f) X Y = ⊤ := by
+  unfold isFunctionB
+  exact inf_eq_top_iff.mpr
+    ⟨inf_eq_top_iff.mpr
+      ⟨subsetB_relFunGraphName X Y f, isSingleValuedB_relFunGraphName X Y f⟩,
+      isTotalB_relFunGraphName X Y f⟩
+
+/-- A relational function reconstructed as a function name. -/
+noncomputable def relFunToHomName (X Y : AName.{u} A)
+    (f : RelFun (oid X) (oid Y)) : HomName (A := A) X Y :=
+  ⟨relFunGraphName X Y f, by
+    rw [memB_funsB]
+    exact isFunctionB_relFunGraphName X Y f⟩
+
+/-- The reconstructed function name maps back to the original relational
+function. -/
+theorem oidHom_relFunToHomName (X Y : AName.{u} A)
+    (f : RelFun (oid X) (oid Y)) :
+    oidHom X Y (relFunToHomName X Y f) = f :=
+  RelFun.ext fun i j => memB_opairB_relFunGraphName X Y f i j
+
 /-- Identity in `Set_A`. -/
 noncomputable def homBId (X : AName.{u} A) : homB X X :=
   Quotient.mk _ ⟨idB X, isHom_id X⟩
@@ -245,6 +354,13 @@ instance : Functor.Faithful (oidFunctor (A := A)) where
     intro X Y f g h
     apply oidHomQ_injective X.name Y.name
     exact h
+
+instance : Functor.Full (oidFunctor (A := A)) where
+  map_surjective := by
+    intro X Y f
+    refine ⟨Quotient.mk _
+      (relFunToHomName X.name Y.name f), ?_⟩
+    exact oidHom_relFunToHomName X.name Y.name f
 
 end SetAObj
 

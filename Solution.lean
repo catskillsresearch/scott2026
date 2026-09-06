@@ -65,7 +65,17 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   memB_eq_iSup_matrix_of_subset eqB_top_of_function_matrix
   oidHomQ oidHomQ_injective relFunGraphName
   memB_opairB_relFunGraphName subsetB_relFunGraphName
+  relFunGraph_single_term isSingleValuedB_relFunGraphName
+  isTotalB_relFunGraphName isFunctionB_relFunGraphName
+  relFunToHomName oidHom_relFunToHomName
   homBId homBComp SetAObj SetAObj.oidFunctor
+  typePSetCode typePSetCode_eq typePSetCode_mem typePSetCode_equiv_iff
+  typeAtom eqB_typeAtom_eq eqB_typeAtom_ne setoidRow
+  memB_typeAtom_setoidRow le_eqB_setoidRow inf_eqB_setoidRow_le
+  nameOfSetoid memB_setoidRow_nameOfSetoid oid_nameOfSetoid_eq
+  oidNameOfSetoidStrictIso setoidEqRelIso oidNameOfSetoidIso
+  oid_nameOfSetoid_eq_general oidNameOfSetoidIsoGeneral
+  setAEquivSetoidR
   AName.domSetoid AName.Dom AName.domMk AName.domOut AName.domChild
   AName.domVal AName.fiberVal AName.extensionalize
   AName.domMk_eq_iff AName.eqB_child_domChild
