@@ -19,12 +19,6 @@ universe u
 
 namespace Scott2026
 
-/-- Embed a pure term in the constant-bearing syntax. -/
-def LamDK.ofLam {Var Const : Type u} : Lam Var → LamDK Var Const
-  | .var x => .var x
-  | .abs x M => .abs x (ofLam M)
-  | .app M N => .app (ofLam M) (ofLam N)
-
 variable {A : Type u} [CompleteBooleanAlgebra A]
   {Var Const : Type u} [DecidableEq Var]
 

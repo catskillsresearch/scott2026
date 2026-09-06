@@ -16,6 +16,7 @@ import Scott2026.RawPowerStrict
 import Scott2026.Domain
 import Scott2026.Lambda
 import Scott2026.Interp
+import Scott2026.InterpConst
 import Scott2026.InterpVA
 import Scott2026.InterpConstVA
 import Scott2026.Lemma31

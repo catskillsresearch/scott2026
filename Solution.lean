@@ -107,6 +107,8 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   LamDK.ofLam interpDKVA interpDKVA_var interpDKVA_const
   interpDKVA_app interpDKVA_abs interpDKVA_ofLam
   interpDKVA_update_determined
+  interpDK interpDK_var interpDK_const interpDK_app interpDK_abs
+  interpDK_ofLam interpDK_pure_sound interpDK_pure_sound_full
   isValuationB functionNameToSetoidFHom
   theorem26FullOfFunctionName theorem26PureOfFunctionName
   theorem26FullOfFunctionName_gamma theorem26PureOfFunctionName_gamma

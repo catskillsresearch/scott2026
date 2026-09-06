@@ -29,6 +29,12 @@ inductive LamDK (Var Const : Type u) : Type u where
   | abs (x : Var) (M : LamDK Var Const)
   | app (M N : LamDK Var Const)
 
+/-- Embed pure lambda syntax in the constant-bearing language. -/
+def LamDK.ofLam {Var Const : Type u} : Lam Var → LamDK Var Const
+  | .var x => .var x
+  | .abs x M => .abs x (ofLam M)
+  | .app M N => .app (ofLam M) (ofLam N)
+
 /-- Paper tag `3`: a constant appears as `(3,d)`. -/
 def pLamConst (d : PSet.{u}) : PSet.{u} :=
   pOpair (PSet.ofNat 3) d
