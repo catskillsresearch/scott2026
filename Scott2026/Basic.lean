@@ -332,6 +332,14 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 
 -- Jech 14.19, CSL Theorem 1(iii), and Jech 14.21 are `jech_lemma_14_19`,
 -- `theorem_1_iii`, and `jech_lemma_14_21` from `Scott2026.VA`.
+-- CSL Theorem 1(ii) is `theorem_1_ii` (FOL MP, `∀`-intro/elim, equality
+-- congruence on `SetFormula` / `𝔏_Set(V^A)`). Theorem 1(i) is not yet
+-- named: ZFC axiom *formulas* and `ZFCProvable` exist; Extensionality,
+-- Pairing, Union, Power, Separation, Infinity, Regularity (Jech 14.26),
+-- and Collection are valid, and the Hilbert rules are sound.
+-- Choice (`axiom_choice_valid`) still blocks `theorem_1_i`: `wellOrderB`
+-- and least-index lemmas exist, but the remaining well-order conjuncts
+-- (antisymmetry, totality, transitivity, least element) are not closed.
 --
 -- After Theorem 2 (CSL p.3–4): `memB_powerB`, pairing identities
 -- `eqB_singletonB` / `eqB_pairB` / `eqB_opairB`, check commutation

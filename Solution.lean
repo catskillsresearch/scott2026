@@ -10,7 +10,17 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   proposition_28_total proposition_28_strict proposition_29 proposition_29_full
   theorem_17_mix
   theorem_17_complete lemma_41_const jech_lemma_14_15 jech_lemma_14_16
-  jech_lemma_14_18 jech_lemma_14_19 theorem_1_iii jech_lemma_14_21
+  jech_lemma_14_18 jech_lemma_14_19 theorem_1_iii theorem_1_ii jech_lemma_14_21
+  jech_lemma_14_17 SetFormula ZFCAxiom ZFCProvable
+  extensionalityAxiom pairingAxiom unionAxiom powerAxiom infinityAxiom
+  regularityAxiom collectionAxiom separationAxiom choiceAxiom
+  axiom_extensionality_valid axiom_pairing_valid axiom_union_valid
+  axiom_power_valid axiom_separation_valid axiom_infinity_valid
+  axiom_regularity_valid axiom_collection_valid
+  regularity_semantic collectB collectB_spec
+  hilbertK_sound hilbertS_sound hilbertDNE_sound
+  allImp_sound allVac_sound allInst_sound eqRefl_sound eqLeibniz_sound
+  bval_isOpairF bval_opairMemF wellOrderB leastIdx
   memB_powerB eqB_singletonB eqB_pairB eqB_opairB
   check_singleton check_pair check_opair check_omega_inductive
   check_omega_least proposition_3
