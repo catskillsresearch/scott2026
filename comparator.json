@@ -2,9 +2,7 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "Scott2026.proposition_27_finite_directed",
-    "Scott2026.proposition_27_finite_sUnion",
-    "Scott2026.proposition_27_finite_countable"
+    "Scott2026.csl2026"
   ],
   "definition_names": [],
   "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"]

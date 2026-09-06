@@ -6,22 +6,18 @@ project:
   description: >-
     Sorry-free Lean 4 / mathlib formalization of Furber, Mardare, Panangaden,
     and Scott, Interpreting Lambda Calculus in Domain-Valued Random Variables
-    (LIPIcs, Vol. 363, CSL 2026, Article 48). The development reconstructs the
-    Boolean-valued universe V^A, the internal Engeler model, and the
-    interpretation of λ-calculus in domain-valued random variables, covering
-    every numbered paper item from Theorem 1 through Proposition 44. Headlines
-    include Theorems 26 and 30, Corollary 34, the Lemma 35 / Proposition 36
-    oracle calculus, the measure algebra A(X)=Σ/N, Propositions 39–42,
-    Theorem 43 (incomparable λ-degrees of two fair-coin subsets of ℕ), and
-    Proposition 44 (L⁰ is not a continuous dcpo when A(X) is non-atomic).
-    Domain-theory background is imported from a vendored copy of scott1972.
-    The Palomar Challenge locks three Mathlib-only Proposition 27 wrappers;
-    the remaining numbered statements are kernel-checked in Scott2026/ and
-    re-exported by Solution.lean. Lean is written by AI agents under the
-    direction and review of the author. The paper's authors were not contacted
-    and did not participate in or endorse this formalization. There is no
-    sorry outside the deliberate holes in Challenge.lean, no project-defined
-    axiom, and Mathlib is the only Lake require.
+    (LIPIcs, Vol. 363, CSL 2026, Article 48). Three capstones sit on top of
+    the rest of the paper: Theorem 26 (internal λ-interpretation in
+    SetoidF_A), Corollary 34 (the Engeler model with numerals in V^A), and
+    Theorem 43 (two fair-coin subsets of ℕ that are incomparable under the
+    λ-definable many-one preorder). Domain-theory background is imported from
+    a vendored copy of scott1972. The Palomar Challenge locks the Mathlib-only
+    whole-paper theorem csl2026 (two distinct subsets of ℕ), whose Solution
+    proof goes through those three capstones. Lean is written by AI agents
+    under the direction and review of the author. The paper's authors were
+    not contacted and did not participate in or endorse this formalization.
+    There is no sorry outside the deliberate holes in Challenge.lean, no
+    project-defined axiom, and Mathlib is the only Lake require.
   authors:
     - "Lars Warren Ericson"
   license: "Apache-2.0"
@@ -37,160 +33,27 @@ classification:
 
 status:
   scope: >-
-    Sorry-free formalization of every numbered CSL 2026 item (Theorems 1–2,
-    17, 26, 30, 43; Definitions 4–11, 13–16, 19–20, 23, 25, 32, 37;
-    Lemmas 12, 31, 35, 38, 41; Propositions 3, 22, 27–29, 33, 36, 39–42, 44;
-    Corollaries 18, 34; Examples 21, 24) in Scott2026/. The Palomar Challenge
-    surface compares three Mathlib-only Proposition 27 wrappers
-    (proposition_27_finite_directed, proposition_27_finite_sUnion,
-    proposition_27_finite_countable). Headline theorems whose types mention
-    project definitions are proved in the library, listed in Challenge.lean
-    and Solution.lean, and are not Comparator-locked.
-  sorry_count: 3
+    Sorry-free formalization of the CSL 2026 development in Scott2026/,
+    packaged around three capstones: theorem26Full (Theorem 26),
+    corollary_34 (Corollary 34), and theorem_43_paper (Theorem 43). The
+    compared inventory matches comparator.json: the Mathlib-only theorem
+    csl2026, whose proof instantiates csl2026_capstones.
+  sorry_count: 1
   sorry_in_definitions: 0
   axioms: ["propext", "Classical.choice", "Quot.sound"]
   main_results:
-    - declaration: "Scott2026.proposition_27_finite_directed"
-      file: "Scott2026/Basic.lean"
-      note: "Proposition 27 directed finite-subset clause; Mathlib-only Comparator target."
-    - declaration: "Scott2026.proposition_27_finite_sUnion"
-      file: "Scott2026/Basic.lean"
-      note: "Proposition 27 join-of-finite-subsets clause; Mathlib-only Comparator target."
-    - declaration: "Scott2026.proposition_27_finite_countable"
-      file: "Scott2026/Basic.lean"
-      note: "Proposition 27 countable-base clause; Mathlib-only Comparator target."
-    - paper: "theorem_1_i / theorem_1_ii / theorem_1_iii"
-      file: "Scott2026/VA.lean"
-      note: "Theorem 1: V^A models ZFC (soundness, Δ₀, mixing)."
-    - paper: "jech_lemma_14_21"
-      file: "Scott2026/VA.lean"
-      note: "Theorem 2: Δ₀ invariance."
-    - paper: "proposition_3"
-      file: "Scott2026/VA.lean"
-      note: "Proposition 3: P_fin^A(check X) = check P_fin(X)."
-    - paper: "definition_4"
-      file: "Scott2026/Basic.lean"
-      note: "Definition 4: completeness of an A-setoid."
-    - paper: "definition_5"
-      file: "Scott2026/Setoid.lean"
-      note: "Definition 5: transport of A-setoid structure along a bijection."
-    - paper: "definition_6"
-      file: "Scott2026/Setoid.lean"
-      note: "Definition 6: product of A-setoids."
-    - paper: "definition_7"
-      file: "Scott2026/Setoid.lean"
-      note: "Definition 7: A-valued predicate."
-    - paper: "definition_8"
-      file: "Scott2026/RelFun.lean"
-      note: "Definition 8: category SetoidR_A."
-    - paper: "definition_9"
-      file: "Scott2026/RelFun.lean"
-      note: "Definition 9: category SetoidF_A."
-    - paper: "definition_10"
-      file: "Scott2026/RelFun.lean"
-      note: "Definition 10: faithful functor γ : SetoidF_A → SetoidR_A."
-    - paper: "APoset / definition_11_powerB"
-      file: "Scott2026/Setoid.lean"
-      note: "Definition 11: A-poset; power-set instance in Basic.lean."
-    - paper: "lemma_12"
-      file: "Scott2026/Basic.lean"
-      note: "Lemma 12: A-monotone maps are functional."
-    - paper: "definition_13"
-      file: "Scott2026/Basic.lean"
-      note: "Definition 13: relational-to-functional conversion F(f)."
-    - paper: "definition_14"
-      file: "Scott2026/Basic.lean"
-      note: "Definition 14: Oid(X) equality (equation 3)."
-    - paper: "definition_15"
-      file: "Scott2026/Basic.lean"
-      note: "Definition 15: predicate e(S) on Oid(X)."
-    - paper: "definition_16"
-      file: "Scott2026/Basic.lean"
-      note: "Definition 16: Oid as a functor Set_A → SetoidR_A."
-    - paper: "theorem_17_va_full"
-      file: "Scott2026/Basic.lean"
-      note: "Theorem 17: Oid(P^A(X)) is complete and mixes existentials."
-    - paper: "corollary_18_prod_full / corollary_18_funs_full"
-      file: "Scott2026/Basic.lean"
-      note: "Corollary 18: completeness of Oid of products and function spaces."
-    - paper: "definition_19 / definition_19_va"
-      file: "Scott2026/Domain.lean"
-      note: "Definition 19: reflexive dcpo; internal form in ReflexiveVA.lean."
-    - paper: "LamDK"
-      file: "Scott2026/LambdaConstVA.lean"
-      note: "Definition 20: language Λ(D, Var, K)."
-    - paper: "example_21"
-      file: "Scott2026/Basic.lean"
-      note: "Example 21: Δ₀ inductive characterizations of the λ-languages."
-    - paper: "proposition_22"
-      file: "Scott2026/Basic.lean"
-      note: "Proposition 22: Λ(check Var)^A exists in V^A."
-    - paper: "definition_23"
-      file: "Scott2026/Lambda.lean"
-      note: "Definition 23: equational theory λ."
-    - paper: "example_24"
-      file: "Scott2026/Basic.lean"
-      note: "Example 24: set-theoretic λ and λ^A."
-    - paper: "definition_25"
-      file: "Scott2026/Basic.lean"
-      note: "Definition 25: interpretation of λ-terms in a reflexive dcpo."
+    - declaration: "Scott2026.csl2026"
+      file: "Scott2026/Paper.lean"
+      note: "Mathlib-only whole-paper face; Comparator target."
     - paper: "theorem26Full"
       file: "Scott2026/Theorem26.lean"
-      note: "Theorem 26: internal SetoidF_A interpretation; theorem_26 is Engeler."
-    - paper: "proposition_27"
-      file: "Scott2026/Basic.lean"
-      note: "Proposition 27 full statement; finite_* wrappers are Comparator-locked."
-    - paper: "proposition_28"
-      file: "Scott2026/Proposition28.lean"
-      note: "Proposition 28: P^A(X) is an internal continuous lattice."
-    - paper: "proposition_29"
-      file: "Scott2026/Basic.lean"
-      note: "Proposition 29: Engeler app/lam retract."
-    - paper: "theorem_30_va"
-      file: "Scott2026/Theorem30Internal.lean"
-      note: "Theorem 30: internal Definition 19 form; theorem_30 is the carrier packaging."
-    - paper: "lemma_31"
-      file: "Scott2026/Lemma31.lean"
-      note: "Lemma 31: pure terms interpret as check-sets."
-    - paper: "definition_32"
-      file: "Scott2026/Lambda.lean"
-      note: "Definition 32: reflexive dcpo with numerals."
-    - paper: "proposition_33"
-      file: "Scott2026/Interp.lean"
-      note: "Proposition 33: Church Booleans and numerals on the Engeler model."
+      note: "Theorem 26: internal SetoidF_A interpretation (uses Definitions 19–25, Theorem 17)."
     - paper: "corollary_34"
       file: "Scott2026/Corollary34.lean"
-      note: "Corollary 34: internal Engeler model with numerals."
-    - paper: "lemma_35_of"
-      file: "Scott2026/Lemma35General.lean"
-      note: "Lemma 35: domain-general discrete numerals and oracles."
-    - paper: "proposition_36_of"
-      file: "Scott2026/Prop36.lean"
-      note: "Proposition 36: λ-definable many-one comparison."
-    - paper: "definition_37"
-      file: "Scott2026/Random.lean"
-      note: "Definition 37: L^0(X; P(Y)) and the Σ-valued order."
-    - paper: "lemma_38"
-      file: "Scott2026/Random.lean"
-      note: "Lemma 38: L^0 modulo a.e. is an A(X)-poset."
-    - paper: "proposition_39"
-      file: "Scott2026/Random.lean"
-      note: "Proposition 39: G_X is a strict A(X)-poset isomorphism."
-    - paper: "proposition_40"
-      file: "Scott2026/Random.lean"
-      note: "Proposition 40: G_X is an application homomorphism."
-    - paper: "lemma_41"
-      file: "Scott2026/Random.lean"
-      note: "Lemma 41: G_X of a constant RV is a check-set."
-    - paper: "proposition_42_algebra"
-      file: "Scott2026/Coin.lean"
-      note: "Proposition 42: Boolean-value-0 statement in coinAlgebra."
+      note: "Corollary 34: Engeler model with numerals in V^A (uses Theorems 26 and 30)."
     - paper: "theorem_43_paper"
       file: "Scott2026/Coin.lean"
-      note: "Theorem 43: incomparable λ-degrees; theorem_43 is the external-oracle form."
-    - paper: "proposition_44_coin"
-      file: "Scott2026/Coin.lean"
-      note: "Proposition 44: fair-coin L^0 is not a continuous dcpo."
+      note: "Theorem 43: incomparable λ-degrees (uses Corollary 34, Lemma 35, Propositions 36 and 39–42)."
 
 fidelity:
   divergences: >-
@@ -304,10 +167,9 @@ review:
 
 known_gaps:
   - >-
-    The Palomar Challenge surface is a Mathlib-only headline subset
-    (Proposition 27 finite-subset wrappers). Every numbered paper item is
-    listed in Challenge.lean and re-exported by Solution.lean; types that
-    mention project definitions are not Comparator-locked.
+    The compared inventory is csl2026, a Mathlib-only existence statement.
+    The project-typed capstones are packed in csl2026_capstones and are
+    not themselves Comparator-locked.
   - >-
     proposition_42_algebra finite-K is a Finset join; the paper’s fuzzy
     pfinB exists-quantifier over P_fin^A(check ω) is not fully internalized
@@ -331,200 +193,14 @@ limitations:
     Challenge.lean may contain deliberate sorries; Solution.lean and
     Scott2026/* must not.
   - >-
-    Challenge/Solution type comparison covers only the Mathlib-expressible
-    Proposition 27 wrappers, not the full paper-type inventory.
+    Challenge/Solution type comparison covers csl2026, not the project-typed
+    capstones packed in csl2026_capstones.
 
 alignment:
   namespace: "Scott2026"
   statements:
-    - source: "Theorem 1 (V^A as a model)"
-      lean: "theorem_1_i; theorem_1_ii; theorem_1_iii"
-      module: "Scott2026.VA"
-      status: proved
-    - source: "Theorem 2 (Δ₀ invariance)"
-      lean: "jech_lemma_14_21"
-      module: "Scott2026.VA"
-      status: proved
-    - source: "Proposition 3"
-      lean: "proposition_3"
-      module: "Scott2026.VA"
-      status: proved
-    - source: "Definition 4 (complete A-setoid)"
-      lean: "definition_4"
-      module: "Scott2026.Basic"
-      status: proved
-    - source: "Definition 5 (transport along a bijection)"
-      lean: "definition_5"
-      module: "Scott2026.Setoid"
-      status: proved
-    - source: "Definition 6 (product of A-setoids)"
-      lean: "definition_6"
-      module: "Scott2026.Setoid"
-      status: proved
-    - source: "Definition 7 (A-valued predicate)"
-      lean: "definition_7"
-      module: "Scott2026.Setoid"
-      status: proved
-    - source: "Definition 8 (SetoidR_A)"
-      lean: "definition_8"
-      module: "Scott2026.RelFun"
-      status: proved
-    - source: "Definition 9 (SetoidF_A)"
-      lean: "definition_9"
-      module: "Scott2026.RelFun"
-      status: proved
-    - source: "Definition 10 (γ : SetoidF_A → SetoidR_A)"
-      lean: "definition_10"
-      module: "Scott2026.RelFun"
-      status: proved
-    - source: "Definition 11 (A-poset)"
-      lean: "APoset"
-      module: "Scott2026.Setoid"
-      status: proved
-    - source: "Lemma 12 (A-monotone maps are functional)"
-      lean: "lemma_12"
-      module: "Scott2026.Basic"
-      status: proved
-    - source: "Definition 13 (F(f) conversion)"
-      lean: "definition_13"
-      module: "Scott2026.Basic"
-      status: proved
-    - source: "Definition 14 (Oid equality)"
-      lean: "definition_14"
-      module: "Scott2026.Basic"
-      status: proved
-    - source: "Definition 15 (predicate e(S))"
-      lean: "definition_15"
-      module: "Scott2026.Basic"
-      status: proved
-    - source: "Definition 16 (Oid functor)"
-      lean: "definition_16"
-      module: "Scott2026.Basic"
-      status: proved
-    - source: "Theorem 17 (Oid(P^A(X)) complete)"
-      lean: "theorem_17_va_full"
-      module: "Scott2026.Basic"
-      status: proved
-    - source: "Corollary 18"
-      lean: "corollary_18_prod_full; corollary_18_funs_full"
-      module: "Scott2026.Basic"
-      status: proved
-    - source: "Definition 19 (reflexive dcpo)"
-      lean: "definition_19"
-      module: "Scott2026.Domain"
-      status: proved
-    - source: "Definition 20 (Λ(D, Var, K))"
-      lean: "LamDK"
-      module: "Scott2026.LambdaConstVA"
-      status: proved
-    - source: "Example 21"
-      lean: "example_21"
-      module: "Scott2026.Basic"
-      status: proved
-    - source: "Proposition 22"
-      lean: "proposition_22"
-      module: "Scott2026.Basic"
-      status: proved
-    - source: "Definition 23 (equational theory λ)"
-      lean: "definition_23"
-      module: "Scott2026.Lambda"
-      status: proved
-    - source: "Example 24"
-      lean: "example_24"
-      module: "Scott2026.Basic"
-      status: proved
-    - source: "Definition 25 (interpretation of λ-terms)"
-      lean: "definition_25"
-      module: "Scott2026.Basic"
-      status: proved
-    - source: "Theorem 26"
-      lean: "theorem26Full"
-      module: "Scott2026.Theorem26"
-      status: proved
-    - source: "Proposition 27, directed finite subsets of 𝒫(X)"
-      lean: "proposition_27_finite_directed"
-      module: "Scott2026.Basic"
+    - source: "Whole-paper face of Theorems 26 and 43 and Corollary 34"
+      lean: "csl2026"
+      module: "Scott2026.Paper"
       status: proved
       note: "Mathlib-only Comparator target."
-    - source: "Proposition 27, union of finite subsets of 𝒫(X)"
-      lean: "proposition_27_finite_sUnion"
-      module: "Scott2026.Basic"
-      status: proved
-      note: "Mathlib-only Comparator target."
-    - source: "Proposition 27, countable family of finite subsets"
-      lean: "proposition_27_finite_countable"
-      module: "Scott2026.Basic"
-      status: proved
-      note: "Mathlib-only Comparator target."
-    - source: "Proposition 27 (full)"
-      lean: "proposition_27"
-      module: "Scott2026.Basic"
-      status: proved
-    - source: "Proposition 28"
-      lean: "proposition_28"
-      module: "Scott2026.Proposition28"
-      status: proved
-    - source: "Proposition 29"
-      lean: "proposition_29"
-      module: "Scott2026.Basic"
-      status: proved
-    - source: "Theorem 30"
-      lean: "theorem_30_va"
-      module: "Scott2026.Theorem30Internal"
-      status: proved
-    - source: "Lemma 31"
-      lean: "lemma_31"
-      module: "Scott2026.Lemma31"
-      status: proved
-    - source: "Definition 32 (reflexive dcpo with numerals)"
-      lean: "definition_32"
-      module: "Scott2026.Lambda"
-      status: proved
-    - source: "Proposition 33"
-      lean: "proposition_33"
-      module: "Scott2026.Interp"
-      status: proved
-    - source: "Corollary 34"
-      lean: "corollary_34"
-      module: "Scott2026.Corollary34"
-      status: proved
-    - source: "Lemma 35"
-      lean: "lemma_35_of"
-      module: "Scott2026.Lemma35General"
-      status: proved
-    - source: "Proposition 36"
-      lean: "proposition_36_of"
-      module: "Scott2026.Prop36"
-      status: proved
-    - source: "Definition 37 (L⁰)"
-      lean: "definition_37"
-      module: "Scott2026.Random"
-      status: proved
-    - source: "Lemma 38"
-      lean: "lemma_38"
-      module: "Scott2026.Random"
-      status: proved
-    - source: "Proposition 39 (G_X isomorphism)"
-      lean: "proposition_39"
-      module: "Scott2026.Random"
-      status: proved
-    - source: "Proposition 40 (G_X application homomorphism)"
-      lean: "proposition_40"
-      module: "Scott2026.Random"
-      status: proved
-    - source: "Lemma 41"
-      lean: "lemma_41"
-      module: "Scott2026.Random"
-      status: proved
-    - source: "Proposition 42"
-      lean: "proposition_42_algebra"
-      module: "Scott2026.Coin"
-      status: proved
-    - source: "Theorem 43"
-      lean: "theorem_43_paper"
-      module: "Scott2026.Coin"
-      status: proved
-    - source: "Proposition 44"
-      lean: "proposition_44_coin"
-      module: "Scott2026.Coin"
-      status: proved

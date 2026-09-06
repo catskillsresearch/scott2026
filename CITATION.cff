@@ -13,11 +13,10 @@ authors:
 abstract: >-
   Sorry-free Lean 4 / mathlib formalization of Furber, Mardare, Panangaden, and
   Scott's Interpreting Lambda Calculus in Domain-Valued Random Variables
-  (LIPIcs, CSL 2026). Covers every numbered paper item from Theorem 1 through
-  Proposition 44, including the internal Engeler model, Theorems 26 and 30,
-  Corollary 34, and Theorem 43 (incomparable λ-degrees of two fair-coin
-  subsets of ℕ). The paper's authors were not contacted and did not
-  participate in, review, or endorse this formalization.
+  (LIPIcs, CSL 2026). Capstones are Theorem 26, Corollary 34, and Theorem 43
+  (incomparable λ-degrees of two fair-coin subsets of ℕ). The paper's authors
+  were not contacted and did not participate in, review, or endorse this
+  formalization.
 keywords:
   - Lean 4
   - domain theory

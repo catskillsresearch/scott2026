@@ -246,11 +246,8 @@ Further named results: `definition_25` / `interp`, `lemma_31`,
 `proposition_40_measure`, `lemma_41_measure` / `lemma_41_algebra`,
 `not_isAtomic_coinAlgebra`.
 
-Compared Palomar declarations (Mathlib-only):
-`proposition_27_finite_directed`, `proposition_27_finite_sUnion`,
-`proposition_27_finite_countable`. The full numbered inventory
-(Theorems 1–44) is listed in `Challenge.lean`, re-exported by
-`Solution.lean`, and recorded in `formalization.yaml`.
+Compared Palomar declaration (Mathlib-only): `csl2026`, proved from
+`csl2026_capstones` (`theorem26Full`, `corollary_34`, `theorem_43_paper`).
 
 ## 6. Proof notes
 
@@ -496,11 +493,9 @@ intended meaning.
   `MeasureAlgebra`.
 - Engeler-only `lemma_35` / `proposition_36` / `proposition_42` /
   `theorem_43` keep weaker or special-case names.
-- The Palomar Challenge locks only three Mathlib-only Proposition 27
-  wrappers. Every numbered paper item is listed in `Challenge.lean` and
-  re-exported by `Solution.lean`. Headline theorems remain
-  kernel-checked in `Scott2026/` but are not Comparator-locked because
-  their types mention project definitions.
+- The Palomar Challenge locks the Mathlib-only theorem `csl2026`. The
+  capstones `theorem26Full`, `corollary_34`, and `theorem_43_paper` are
+  packed in `csl2026_capstones` and remain kernel-checked in `Scott2026/`.
 
 ## 8. Build and preflight
 

@@ -204,7 +204,8 @@ export Scott2026 (APoset lemma_12 lemma_12_converse
   IsContinuousDcpo proposition_44_dcpo proposition_44_measure
   proposition_44_coin not_isAtomic_coinAlgebra
   proposition_27_finite_directed proposition_27_finite_sUnion
-  proposition_27_finite_countable)
+  proposition_27_finite_countable
+  csl2026 csl2026_capstones)
 
 export Scott2026.Lam (FreeFor subst_fresh freeFor_of_not_mem_fv freeFor_of_closed
   substCA substNaive substNaive_captures substNaive_captures_not_freeFor)
@@ -212,10 +213,7 @@ export Scott2026.Lam (FreeFor subst_fresh freeFor_of_not_mem_fv freeFor_of_close
 /-!
 # Solution to the Challenge
 
-Imports the sorry-free development so Comparator can match the Mathlib-only
-Proposition 27 wrappers in `Challenge.lean`. Every numbered paper item listed
-in that module's inventory (Theorems 1–2 and 17, 26, 30, 43; Definitions 4–11,
-13–16, 19–20, 23, 25, 32, 37; Lemmas 12, 31, 35, 38, 41; Propositions 3, 22,
-27–29, 33, 36, 39–42, 44; Corollaries 18, 34; Examples 21, 24) is re-exported
-from `Scott2026/` under the Lean names in the Challenge table.
+Palomar compares this module to `Challenge.lean` using `comparator.json`.
+The compared name is `csl2026`. This file imports `Scott2026.Basic` and
+re-exports that theorem (proved from `csl2026_capstones`).
 -/

@@ -4,9 +4,8 @@ This repository is a standalone Lean 4 formalization of Furber, Mardare,
 Panangaden, and Scott's 2026 paper *Interpreting Lambda Calculus in
 Domain-Valued Random Variables* (LIPIcs, Vol. 363, CSL 2026, Article 48).
 It reconstructs $V^A$, the internal Engeler model, and the interpretation
-of $\lambda$-calculus in domain-valued random variables, covering every
-numbered paper item from Theorem 1 through Proposition 44 (including
-Theorems 26, 30, and 43 and Corollary 34). It is not a thin wrapper and
+of $\lambda$-calculus in domain-valued random variables. The capstones are
+Theorem 26, Corollary 34, and Theorem 43. It is not a thin wrapper and
 not a reimplementation of an independent formalization.
 
 The paper's authors did not participate in, review, or endorse this
@@ -40,12 +39,10 @@ alone, following the same Challenge / Solution pattern as
 [`catskillsresearch/cardb`](https://github.com/catskillsresearch/cardb) and
 `scott1982`.
 
-`comparator.json` compares a Mathlib-only Proposition 27 subset
-(`proposition_27_finite_directed`, `proposition_27_finite_sUnion`,
-`proposition_27_finite_countable`). Every numbered paper definition,
-lemma, proposition, theorem, corollary, and example is listed in
-`Challenge.lean` and re-exported by `Solution.lean`; types that mention
-project definitions are not Comparator-locked.
+`comparator.json` compares the Mathlib-only whole-paper theorem `csl2026`.
+Its Solution proof goes through `csl2026_capstones` (Theorems 26 and 43
+and Corollary 34). The project-typed capstones are not themselves
+Comparator-locked.
 
 The sorry-free development lives in `Scott2026/`. `Challenge.lean` contains
 the deliberate Palomar holes. No project-defined axioms are introduced; compared

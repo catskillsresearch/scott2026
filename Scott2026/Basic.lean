@@ -35,6 +35,7 @@ import Scott2026.InternalDomain
 import Scott2026.Proposition28
 import Scott2026.ReflexiveVA
 import Scott2026.Theorem26
+import Scott2026.Paper
 
 universe u v
 
