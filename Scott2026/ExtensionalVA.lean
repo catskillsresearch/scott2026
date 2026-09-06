@@ -208,6 +208,56 @@ theorem eqB_check_checkExt (X : PSet.{u}) [Nontrivial A] :
   · rw [memB_checkExt, himp_self]
   · rw [memB_checkExt, himp_self]
 
+/-- `checkExt` depends only on the extensional ZFC set represented by a
+pre-set, not on the chosen pre-set presentation. -/
+theorem eqB_checkExt_congr {X Y : PSet.{u}} [Nontrivial A]
+    (h : PSet.Equiv X Y) :
+    eqB (checkExt (A := A) X) (checkExt (A := A) Y) = ⊤ := by
+  have hX : eqB (checkExt (A := A) X) (check (A := A) X) = ⊤ := by
+    rw [eqB_comm]
+    exact eqB_check_checkExt X
+  have hXY : eqB (check (A := A) X) (check (A := A) Y) = ⊤ :=
+    (check_atomic (A := A) X Y).1.mpr h
+  have hY : eqB (check (A := A) Y) (checkExt (A := A) Y) = ⊤ :=
+    eqB_check_checkExt Y
+  have hXY' :
+      eqB (checkExt (A := A) X) (check (A := A) Y) = ⊤ := by
+    apply top_unique
+    exact (le_inf hX.ge hXY.ge).trans (eqB_trans _ _ _)
+  apply top_unique
+  exact (le_inf hXY'.ge hY.ge).trans (eqB_trans _ _ _)
+
+/-- Paper-facing check embedding from Mathlib's extensional ZFC universe.
+The use of `out` is hidden behind `eqB_checkZF_mk`, so no theorem can observe
+which pre-set representative was chosen. -/
+noncomputable def checkZF (X : ZFSet.{u}) : AName.{u} A :=
+  checkExt (A := A) X.out
+
+/-- A small, extensional type of variables/elements for a paper-facing ZFC
+set. Unlike `PSet.Type`, this carrier has no duplicate presentations. -/
+abbrev ZFSetElem (X : ZFSet.{u}) : Type u :=
+  (checkZF (A := A) X).idx
+
+/-- The checked name attached to a paper-facing ZFC set has exactly its
+extensional small element carrier as domain. -/
+theorem checkZF_idx (X : ZFSet.{u}) :
+    (checkZF (A := A) X).idx = ZFSetElem (A := A) X :=
+  rfl
+
+/-- Checking a quotient class agrees, at Boolean equality `⊤`, with checking
+any pre-set representative of that class. -/
+theorem eqB_checkZF_mk (X : PSet.{u}) [Nontrivial A] :
+    eqB (checkZF (A := A) (ZFSet.mk X)) (checkExt (A := A) X) = ⊤ := by
+  apply eqB_checkExt_congr
+  apply ZFSet.eq.mp
+  exact (ZFSet.mk_out (ZFSet.mk X)).trans (ZFSet.mk_eq X).symm
+
+/-- The paper-facing check embedding is definitionally congruent for equality
+in the extensional ZFC universe. -/
+theorem checkZF_congr {X Y : ZFSet.{u}} (h : X = Y) :
+    checkZF (A := A) X = checkZF (A := A) Y :=
+  congrArg (checkZF (A := A)) h
+
 /-- Extensional equality of parameters is preserved by `powerB`. -/
 theorem eqB_powerB_congr {X Y : AName.{u} A} (h : eqB X Y = ⊤) :
     eqB (powerB X) (powerB Y) = ⊤ := by

@@ -64,6 +64,22 @@ theorem isBaseSubsetB_checkExt_pfin_powerB (Y : PSet.{u}) [Nontrivial A] :
   rw [← isBaseSubsetB_eqB_congr_left (proposition_3_ext (A := A) Y)]
   exact isBaseSubsetB_pfinB_powerB (checkExt (A := A) Y)
 
+/-- The checked finite subsets of a paper-facing extensional ZFC set. -/
+noncomputable def checkPfinZF (Y : ZFSet.{u}) : AName.{u} A :=
+  checkExt (A := A) (pfin Y.out)
+
+/-- Proposition 3 at the extensional ZFC boundary. -/
+theorem proposition_3_zf (Y : ZFSet.{u}) [Nontrivial A] :
+    eqB (pfinB (checkZF (A := A) Y)) (checkPfinZF (A := A) Y) = ⊤ :=
+  proposition_3_ext (A := A) Y.out
+
+/-- Checked finite subsets form a base, stated on Mathlib's extensional ZFC
+universe rather than on a chosen pre-set presentation. -/
+theorem isBaseSubsetB_checkZF_pfin_powerB (Y : ZFSet.{u}) [Nontrivial A] :
+    isBaseSubsetB (checkPfinZF (A := A) Y)
+      (powerB (checkZF (A := A) Y)) = ⊤ :=
+  isBaseSubsetB_checkExt_pfin_powerB (A := A) Y.out
+
 /-- Proposition 28's continuous-lattice assertion as the Boolean value of its
 actual `𝔏_Set` formula. -/
 theorem proposition_28_continuous_value (X : AName.{u} A) :
@@ -91,8 +107,8 @@ def Proposition28Statement (X : AName.{u} A) : Prop :=
       (fun i => if i = 0 then pfinB X else powerB X) = ⊤ ∧
     (oid (powerB X)).IsComplete.{u} ∧
     (oid (powerB X)).IsTotal ∧
-    ∀ Y : PSet.{u}, X = checkExt (A := A) Y →
-      isBaseSubsetB (checkExt (A := A) (pfin Y)) (powerB X) = ⊤ ∧
+    ∀ Y : ZFSet.{u}, X = checkZF (A := A) Y →
+      isBaseSubsetB (checkPfinZF (A := A) Y) (powerB X) = ⊤ ∧
         (oid (powerB X)).IsStrict
 
 /-- Proposition 28, with all clauses in one theorem. -/
@@ -104,7 +120,7 @@ theorem proposition_28 (X : AName.{u} A) [Nontrivial A] :
     oid_powerB_isTotal X, ?_⟩
   intro Y hX
   subst X
-  exact ⟨isBaseSubsetB_checkExt_pfin_powerB Y,
-    oid_powerB_checkExt_isStrict Y⟩
+  exact ⟨isBaseSubsetB_checkZF_pfin_powerB Y,
+    oid_powerB_checkExt_isStrict Y.out⟩
 
 end Scott2026

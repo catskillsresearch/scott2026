@@ -48,6 +48,24 @@ Working source: `sources/Scott2026.pdf`. Vision transcription:
 
 A related full version is on arXiv: [2112.06339](https://arxiv.org/abs/2112.06339).
 
+### 2.1 Foundational convention
+
+We read the paper's ground sets extensionally, in ZFC.  The Lean
+formalization therefore exposes ground-set parameters through Mathlib's
+`ZFSet`; `PSet` is used only as an implementation-level well-founded
+presentation behind proved representation-independence lemmas.  Boolean
+names use the quotient domain `AName.Dom`, and checked sets use `checkZF`
+(implemented by `checkExt`), so duplicate pre-set presentations cannot
+create spurious failures of strictness.
+
+We also believe the paper implicitly assumes that the complete Boolean
+algebra \(A\) is nontrivial.  Statements that distinguish Boolean truth
+values or require \(\bot \ne \top\) therefore state `[Nontrivial A]`
+explicitly.  This is necessary: for the one-element Boolean algebra all
+Boolean equalities simultaneously have values \(\top\) and \(\bot\), so the
+paper's numeral-separation and strictness conclusions cannot have their
+intended meaning.
+
 ## 3. Lean layout
 
 | Module | Role |

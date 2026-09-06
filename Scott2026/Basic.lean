@@ -206,13 +206,16 @@ theorem proposition_28_va_total {A : Type u} [CompleteBooleanAlgebra A]
 children implies equality of the canonical names. This is not index-level
 `IsStrict` and is not ground-type `proposition_28_strict`. -/
 theorem proposition_28_va_canonical_eq {A : Type u} [CompleteBooleanAlgebra A]
-    (Y : PSet.{u}) {p q : (powerB (AName.check (A := A) Y)).idx}
-    (h : (oid (powerB (AName.check (A := A) Y))).eq p q = ⊤) :
-    restrictName ((powerB (AName.check (A := A) Y)).child p)
-      (AName.check (A := A) Y) =
-    restrictName ((powerB (AName.check (A := A) Y)).child q)
-      (AName.check (A := A) Y) :=
-  oid_powerB_check_canonical_eq Y h
+    [Nontrivial A] (Y : ZFSet.{u})
+    {p q : (powerB (checkZF (A := A) Y)).idx}
+    (h : (oid (powerB (checkZF (A := A) Y))).eq p q = ⊤) :
+    restrictName ((powerB (checkZF (A := A) Y)).child p)
+      (checkZF (A := A) Y) =
+    restrictName ((powerB (checkZF (A := A) Y)).child q)
+      (checkZF (A := A) Y) := by
+  have hpq := oid_powerB_checkExt_isStrict (A := A) Y.out p q h
+  subst q
+  rfl
 
 /-- Definition 11 on `P^A(X)`: symmetrized Boolean inclusion is `Oid(P^A(X))`
 equality. -/
