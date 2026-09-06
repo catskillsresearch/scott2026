@@ -4,7 +4,7 @@
   "access_right": "open",
   "language": "eng",
   "version": "0.1.0",
-  "description": "Machine-checked Lean 4 formalization scaffold for Furber, Mardare, Panangaden, and Scott's 2026 paper Interpreting Lambda Calculus in Domain-Valued Random Variables (LIPIcs, CSL 2026). The paper's authors were not contacted and did not participate in, review, or endorse this formalization. Primary readable artifact: arxiv.pdf (when published). Source repository: https://github.com/catskillsresearch/scott2026.",
+  "description": "Sorry-free Lean 4 / mathlib formalization of Furber, Mardare, Panangaden, and Scott, Interpreting Lambda Calculus in Domain-Valued Random Variables (LIPIcs, CSL 2026). Covers every numbered paper item from Theorem 1 through Proposition 44, including the internal Engeler model, Theorems 26 and 30, Corollary 34, and Theorem 43 (incomparable λ-degrees of two fair-coin subsets of ℕ). The paper's authors were not contacted and did not participate in, review, or endorse this formalization. Primary readable artifact: arxiv.pdf. Source repository: https://github.com/catskillsresearch/scott2026.",
   "creators": [
     {
       "name": "Ericson, Lars Warren",

@@ -5,7 +5,7 @@ Authors: Lars Warren Ericson.
 -/
 import Scott2026.Basic
 
-export Scott2026 (lemma_12 lemma_12_converse
+export Scott2026 (APoset lemma_12 lemma_12_converse
   Proposition27Statement proposition_27 proposition_27_wayBelow
   proposition_27_continuous finite_subsets_countable
   proposition_28_total proposition_28_strict proposition_29 proposition_29_full
@@ -186,7 +186,7 @@ export Scott2026 (lemma_12 lemma_12_converse
   MapsNumerals proposition_36 proposition_36_i proposition_36_ii
   manyOneLe_of_proposition_36_i
   exists_nat_fun_not_lambda_definable
-  definition_37 lemma_38 G_X proposition_39 proposition_40
+  definition_37 lemma_38 lemma_38_measure G_X proposition_39 proposition_40
   lemma_41
   proposition_42 proposition_42_finite proposition_42_finite_image
   theorem_43 proposition_44
@@ -212,6 +212,10 @@ export Scott2026.Lam (FreeFor subst_fresh freeFor_of_not_mem_fv freeFor_of_close
 /-!
 # Solution to the Challenge
 
-Imports the sorry-free development so Comparator can match source theorems
-against the Mathlib-only declarations in `Challenge.lean`.
+Imports the sorry-free development so Comparator can match the Mathlib-only
+Proposition 27 wrappers in `Challenge.lean`. Every numbered paper item listed
+in that module's inventory (Theorems 1–2 and 17, 26, 30, 43; Definitions 4–11,
+13–16, 19–20, 23, 25, 32, 37; Lemmas 12, 31, 35, 38, 41; Propositions 3, 22,
+27–29, 33, 36, 39–42, 44; Corollaries 18, 34; Examples 21, 24) is re-exported
+from `Scott2026/` under the Lean names in the Challenge table.
 -/

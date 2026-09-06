@@ -3,8 +3,11 @@
 This repository is a standalone Lean 4 formalization of Furber, Mardare,
 Panangaden, and Scott's 2026 paper *Interpreting Lambda Calculus in
 Domain-Valued Random Variables* (LIPIcs, Vol. 363, CSL 2026, Article 48).
-It is not a thin wrapper and not a reimplementation of an independent
-formalization.
+It reconstructs $V^A$, the internal Engeler model, and the interpretation
+of $\lambda$-calculus in domain-valued random variables, covering every
+numbered paper item from Theorem 1 through Proposition 44 (including
+Theorems 26, 30, and 43 and Corollary 34). It is not a thin wrapper and
+not a reimplementation of an independent formalization.
 
 The paper's authors did not participate in, review, or endorse this
 formalization. The formalization is produced by Lars Warren Ericson without
@@ -39,9 +42,10 @@ alone, following the same Challenge / Solution pattern as
 
 `comparator.json` compares a Mathlib-only Proposition 27 subset
 (`proposition_27_finite_directed`, `proposition_27_finite_sUnion`,
-`proposition_27_finite_countable`). The remaining paper headlines are
-proved in `Scott2026/` and re-exported by `Solution.lean`; their types
-mention project definitions and are not Comparator-locked.
+`proposition_27_finite_countable`). Every numbered paper definition,
+lemma, proposition, theorem, corollary, and example is listed in
+`Challenge.lean` and re-exported by `Solution.lean`; types that mention
+project definitions are not Comparator-locked.
 
 The sorry-free development lives in `Scott2026/`. `Challenge.lean` contains
 the deliberate Palomar holes. No project-defined axioms are introduced; compared

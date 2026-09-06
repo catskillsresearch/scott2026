@@ -46,8 +46,10 @@ minutes wall time per run.
 
 Before running full preflight on a submission candidate, confirm:
 
-1. **Research interest** — compared theorems are Scott 1964 headline results
-   (plus any separately labelled reconstructions), not incidental lemmas.
+1. **Research interest** — compared theorems are the Mathlib-expressible
+   Proposition 27 wrappers from the 2026 CSL paper; every other numbered
+   paper item is listed in Challenge.lean / Solution.lean / formalization.yaml
+   but is not Comparator-locked.
 2. **Definition pinning** — every material symbol in each compared theorem type
    is either primitive, defined without `sorry` in Challenge.lean, or listed in
    `comparator.json` → `definition_names` with its defining or semantic law also

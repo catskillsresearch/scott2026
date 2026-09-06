@@ -248,7 +248,9 @@ Further named results: `definition_25` / `interp`, `lemma_31`,
 
 Compared Palomar declarations (Mathlib-only):
 `proposition_27_finite_directed`, `proposition_27_finite_sUnion`,
-`proposition_27_finite_countable`.
+`proposition_27_finite_countable`. The full numbered inventory
+(Theorems 1–44) is listed in `Challenge.lean`, re-exported by
+`Solution.lean`, and recorded in `formalization.yaml`.
 
 ## 6. Proof notes
 
@@ -495,9 +497,10 @@ intended meaning.
 - Engeler-only `lemma_35` / `proposition_36` / `proposition_42` /
   `theorem_43` keep weaker or special-case names.
 - The Palomar Challenge locks only three Mathlib-only Proposition 27
-  wrappers. Headline theorems remain kernel-checked in `Scott2026/`
-  and are re-exported by `Solution.lean`, but are not Comparator-locked
-  because their types mention project definitions.
+  wrappers. Every numbered paper item is listed in `Challenge.lean` and
+  re-exported by `Solution.lean`. Headline theorems remain
+  kernel-checked in `Scott2026/` but are not Comparator-locked because
+  their types mention project definitions.
 
 ## 8. Build and preflight
 

@@ -29,11 +29,12 @@ Original Lean and author-written docs are Apache-2.0. The source PDF
 ## Status
 
 **Library complete; Palomar Challenge is a Mathlib-only subset.** Sorry-free
-proofs of the CSL 2026 headlines live in `Scott2026/` (`corollary_34`,
-`lemma_35_of`, `proposition_36_of`, `theorem26Full` / `theorem_26`,
-`theorem_30_va` / `theorem_30`, `proposition_42_algebra`, `theorem_43_paper`,
-`proposition_44_coin`). `[Nontrivial A]` makes the paper’s implicit
-`⊥ ≠ ⊤` convention explicit. The Challenge / Solution pair compares three
+proofs of every numbered CSL 2026 item (Theorems 1–2, 17, 26, 30, 43;
+Definitions 4–11, 13–16, 19–20, 23, 25, 32, 37; Lemmas 12, 31, 35, 38, 41;
+Propositions 3, 22, 27–29, 33, 36, 39–42, 44; Corollaries 18, 34;
+Examples 21, 24) live in `Scott2026/` and are listed in `Challenge.lean` /
+`Solution.lean` / `formalization.yaml`. `[Nontrivial A]` makes the paper’s
+implicit `⊥ ≠ ⊤` convention explicit. The Comparator locks three
 Proposition 27 wrappers whose types mention only Mathlib constants; the
 remaining paper-type theorems are not Comparator-locked because they pull
 project definitions.
