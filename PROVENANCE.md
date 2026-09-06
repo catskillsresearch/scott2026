@@ -39,11 +39,12 @@ alone, following the same Challenge / Solution pattern as
 [`catskillsresearch/cardb`](https://github.com/catskillsresearch/cardb) and
 `scott1982`.
 
-`comparator.json` compares `csl2026` (Theorem 43: incomparable `≤ₘ`
-degrees) and the definition `proposition_36_i`. The Solution proof of
-`csl2026` goes through `csl2026_capstones` (Theorems 26 and 43 and
-Corollary 34). The project-typed capstones are not themselves
-Comparator-locked.
+`comparator.json` compares two theorems and their two statement definitions:
+`csl2026_internal_interpretation` with `internal_interpretation_statement`
+(the Boolean-valued λ-interpretation and internal Engeler consequences of
+Theorem 26 and Corollary 34), and `csl2026` (Theorem 43: incomparable `≤ₘ`
+degrees) with `proposition_36_i`. The Solution proof of `csl2026` goes through
+`csl2026_capstones` (Theorems 26 and 43 and Corollary 34).
 
 The sorry-free development lives in `Scott2026/`. `Challenge.lean` contains
 the deliberate Palomar holes. No project-defined axioms are introduced; compared

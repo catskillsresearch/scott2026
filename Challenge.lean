@@ -154,17 +154,31 @@ interpretation of closed λ-terms: all equations in the paper's full λ-theory
 have Boolean value `⊤`, the Church Booleans have equality value `⊥`, and
 Church numerals are internally injective.
 
-`D` is the external carrier of the internal interpretation and `eqA` is its
-`A`-valued equality. The Solution instantiates them with the formalized
-Engeler carrier in `V^A`; they are existential here so the Challenge remains
-auditable using only Mathlib. -/
+`D` is the external carrier, `V` is the valuation space, and `eqA` is the
+`A`-valued equality. The statement records reflexivity, symmetry, and
+transitivity of that equality; the variable, application, and abstraction
+clauses; full λ-equational soundness; and the Church separation properties.
+The Solution instantiates this interface with the formalized Engeler carrier
+in `V^A`; it is existential here so the Challenge remains auditable using only
+Mathlib. -/
 def internal_interpretation_statement : Prop :=
     ∀ (A : Type) [CompleteBooleanAlgebra A] [Nontrivial A],
-      ∃ (D : Type) (eqA : D → D → A) (interp : Lam ℕ → D),
-        (∀ {M N : Lam ℕ}, LamEq M N → eqA (interp M) (interp N) = ⊤) ∧
-        eqA (interp churchTrueN) (interp churchFalseN) = ⊥ ∧
-        ∀ n m, eqA (interp (churchNumN n)) (interp (churchNumN m)) = ⊤ →
-          n = m
+      ∃ (D V : Type) (eqA : D → D → A) (app : D → D → D)
+          (lam : (D → D) → D) (interp : Lam ℕ → V → D)
+          (lookup : V → ℕ → D) (update : V → ℕ → D → V) (empty : V),
+        (∀ d, eqA d d = ⊤) ∧
+        (∀ d e, eqA d e = eqA e d) ∧
+        (∀ d e f, eqA d e ⊓ eqA e f ≤ eqA d f) ∧
+        (∀ ρ x, interp (Lam.var x) ρ = lookup ρ x) ∧
+        (∀ ρ M N, interp (M.app N) ρ = app (interp M ρ) (interp N ρ)) ∧
+        (∀ ρ x M,
+          interp (Lam.abs x M) ρ = lam (fun d => interp M (update ρ x d))) ∧
+        (∀ ρ {M N : Lam ℕ},
+          LamEq M N → eqA (interp M ρ) (interp N ρ) = ⊤) ∧
+        eqA (interp churchTrueN empty) (interp churchFalseN empty) = ⊥ ∧
+        ∀ n m,
+          eqA (interp (churchNumN n) empty) (interp (churchNumN m) empty) = ⊤ →
+            n = m
 
 /-- Theorem 26 and Corollary 34 through the auditable statement above. -/
 theorem csl2026_internal_interpretation :

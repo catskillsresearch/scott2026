@@ -25,11 +25,22 @@ Corollary 34, kept as a named definition for Palomar's Challenge/Solution
 boundary. -/
 def internal_interpretation_statement : Prop :=
     ∀ (A : Type) [CompleteBooleanAlgebra A] [Nontrivial A],
-      ∃ (D : Type) (eqA : D → D → A) (interp : Lam ℕ → D),
-        (∀ {M N : Lam ℕ}, LamEq M N → eqA (interp M) (interp N) = ⊤) ∧
-        eqA (interp churchTrueN) (interp churchFalseN) = ⊥ ∧
-        ∀ n m, eqA (interp (churchNumN n)) (interp (churchNumN m)) = ⊤ →
-          n = m
+      ∃ (D V : Type) (eqA : D → D → A) (app : D → D → D)
+          (lam : (D → D) → D) (interp : Lam ℕ → V → D)
+          (lookup : V → ℕ → D) (update : V → ℕ → D → V) (empty : V),
+        (∀ d, eqA d d = ⊤) ∧
+        (∀ d e, eqA d e = eqA e d) ∧
+        (∀ d e f, eqA d e ⊓ eqA e f ≤ eqA d f) ∧
+        (∀ ρ x, interp (Lam.var x) ρ = lookup ρ x) ∧
+        (∀ ρ M N, interp (M.app N) ρ = app (interp M ρ) (interp N ρ)) ∧
+        (∀ ρ x M,
+          interp (Lam.abs x M) ρ = lam (fun d => interp M (update ρ x d))) ∧
+        (∀ ρ {M N : Lam ℕ},
+          LamEq M N → eqA (interp M ρ) (interp N ρ) = ⊤) ∧
+        eqA (interp churchTrueN empty) (interp churchFalseN empty) = ⊥ ∧
+        ∀ n m,
+          eqA (interp (churchNumN n) empty) (interp (churchNumN m) empty) = ⊤ →
+            n = m
 
 /-- Mathlib-facing substantive consequence of Theorem 26 and Corollary 34.
 For every nontrivial complete Boolean algebra, the internal Engeler
@@ -39,10 +50,26 @@ theorem csl2026_internal_interpretation :
     internal_interpretation_statement := by
   intro A _ _
   refine ⟨EngelerCarrier (A := A),
+    Valuation ℕ (EngelerCarrier (A := A)),
     fun X Y => AName.eqB (childΩ X) (childΩ Y),
-    interpClosedVA (A := A), ?_, ?_, ?_⟩
-  · intro M N h
-    rw [interpClosedVA_sound_full h]
+    engelerAppVA (A := A), engelerLamVA (A := A), interpVA (A := A),
+    fun ρ x => ρ.toFun x, Valuation.update,
+    Valuation.default (finsetToCanonical (A := A) ∅),
+    ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
+  · intro d
+    exact AName.eqB_self _
+  · intro d e
+    exact AName.eqB_comm _ _
+  · intro d e f
+    exact AName.eqB_trans _ _ _
+  · intro ρ x
+    rfl
+  · intro ρ M N
+    rfl
+  · intro ρ x M
+    rfl
+  · intro ρ M N h
+    rw [interpVA_sound_full h ρ]
     exact AName.eqB_self _
   · exact eqB_interpClosedVA_churchTrue_churchFalse (A := A)
   · intro n m h
