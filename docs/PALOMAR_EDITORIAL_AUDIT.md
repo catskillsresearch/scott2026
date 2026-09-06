@@ -36,6 +36,17 @@ bash scripts/palomar_preflight.sh --mechanical-only
 
 Skips policy sync and LLM audit. GitHub Actions uses this on every push/PR.
 
+## Editorial-only (retry LLM audit)
+
+```bash
+bash scripts/palomar_preflight.sh --editorial-only
+```
+
+Skips mechanical phases after a green `--mechanical-only` run; reruns policy
+sync, editorial pre-checks, mechanical report, and the LLM audit. Set
+`PALOMAR_EDITORIAL_PYTHON` to reuse a shared `.venv-editorial` (for example
+`../scott1964/.venv-editorial/bin/python`).
+
 Run **full** preflight locally before a Palomar submission commit.
 
 Full editorial audit cost: about **six sequential LLM calls**
@@ -95,8 +106,11 @@ Override via `PALOMAR_EDITORIAL_PRIMARY_MODEL` / `PALOMAR_EDITORIAL_ECONOMY_MODE
 Auth: `CURSOR_API_KEY` environment variable, or `CURSOR_API_KEY` in
 `../tokens_ssto.yaml`.
 
-First run creates `.venv-editorial/` with `cursor-sdk` and `pyyaml`, or reuses
-`../scott1964/.venv-ocr/bin/python` when cursor-sdk is already installed there.
+The editorial audit uses a python that can `import cursor_sdk`. It prefers
+`PALOMAR_EDITORIAL_PYTHON`, then `$VIRTUAL_ENV`, then this project's
+`.venv-editorial` / `.venv-ocr` (including a symlink such as
+`../scott1964/.venv-editorial`), then the same directories in sibling repos.
+A new `.venv-editorial/` is created only when none of those work.
 
 ## Files
 
