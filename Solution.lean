@@ -61,6 +61,11 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   memB_funsB isHom_id isHom_comp
   definition_4 definition_5 definition_6 definition_7 definition_8
   definition_9 definition_10 definition_13 definition_13_iso
+  SetoidRObj SetoidFObj
+  memB_eq_iSup_matrix_of_subset eqB_top_of_function_matrix
+  oidHomQ oidHomQ_injective relFunGraphName
+  memB_opairB_relFunGraphName subsetB_relFunGraphName
+  homBId homBComp SetAObj SetAObj.oidFunctor
   AName.domSetoid AName.Dom AName.domMk AName.domOut AName.domChild
   AName.domVal AName.domMk_eq_iff AName.eqB_child_domChild
   AName.domVal_domMk AName.checkDomMk AName.checkDomEquiv

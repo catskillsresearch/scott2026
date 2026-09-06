@@ -7,8 +7,10 @@ Authors: Lars Warren Ericson.
 import Scott2026.BooleanLogic
 import Scott2026.Setoid
 import Scott2026.RelFun
+import Scott2026.Categories
 import Scott2026.PowerSet
 import Scott2026.Oid
+import Scott2026.SetCategory
 import Scott2026.RawPowerStrict
 import Scott2026.Domain
 import Scott2026.Lambda
