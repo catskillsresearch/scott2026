@@ -5,8 +5,7 @@ Authors: Lars Warren Ericson.
 -/
 
 import Mathlib.SetTheory.ZFC.Basic
-import Scott2026.Setoid
-import Scott2026.VA
+import Scott2026.Oid
 
 /-!
 # Extensional domains of Boolean-valued names
@@ -50,9 +49,21 @@ noncomputable def AName.domOut (X : AName.{u} A) (i : X.Dom) : X.idx :=
 noncomputable def AName.domChild (X : AName.{u} A) (i : X.Dom) : AName.{u} A :=
   X.child (X.domOut i)
 
-/-- The semantic membership degree of an extensional-domain element. -/
+/-- The semantic membership degree of an extensional-domain element. This is
+the canonical extent `‖t ∈ X‖`, not the coefficient of the partial-function
+presentation; see `fiberVal`. -/
 noncomputable def AName.domVal (X : AName.{u} A) (i : X.Dom) : A :=
   memB (X.domChild i) X
+
+/-- The coefficient of an extensional-domain key: the join of all raw
+coefficients presenting that key. -/
+noncomputable def AName.fiberVal (X : AName.{u} A) (i : X.Dom) : A :=
+  ⨆ j : {j : X.idx // X.domMk j = i}, X.val j.1
+
+/-- Collapse duplicate presentations of a name while joining their
+coefficients. -/
+noncomputable def AName.extensionalize (X : AName.{u} A) : AName.{u} A :=
+  mk X.Dom X.domChild X.fiberVal
 
 theorem AName.domMk_eq_iff (X : AName.{u} A) (i j : X.idx) :
     X.domMk i = X.domMk j ↔ eqB (X.child i) (X.child j) = ⊤ :=
@@ -70,6 +81,45 @@ theorem AName.domVal_domMk (X : AName.{u} A) (i : X.idx) :
     X.domVal (X.domMk i) = memB (X.child i) X := by
   unfold domVal
   rw [eqB_top_memB_left (eqB_child_domChild X i)]
+
+/-- Collapsing duplicate domain presentations and joining their coefficients
+does not change Boolean membership. -/
+theorem AName.memB_extensionalize (z X : AName.{u} A) :
+    memB z X.extensionalize = memB z X := by
+  rw [extensionalize, memB_mk, memB_eq]
+  apply le_antisymm
+  · refine iSup_le fun q => ?_
+    rw [fiberVal, inf_iSup_eq]
+    refine iSup_le fun j => ?_
+    refine le_iSup_of_le j.1 ?_
+    have hj : eqB (X.child j.1) (X.domChild q) = ⊤ := by
+      have h := X.eqB_child_domChild j.1
+      rwa [j.2] at h
+    have hz : eqB z (X.domChild q) ≤ eqB z (X.child j.1) := by
+      have h := eqB_trans z (X.domChild q) (X.child j.1)
+      rw [eqB_comm (X.domChild q) (X.child j.1), hj, inf_top_eq] at h
+      exact h
+    exact inf_le_inf hz le_rfl
+  · refine iSup_le fun j => ?_
+    refine le_iSup_of_le (X.domMk j) ?_
+    have hz : eqB z (X.child j) ≤ eqB z (X.domChild (X.domMk j)) := by
+      have h := eqB_trans z (X.child j) (X.domChild (X.domMk j))
+      rw [X.eqB_child_domChild j, inf_top_eq] at h
+      exact h
+    refine le_inf (inf_le_left.trans hz) ?_
+    exact inf_le_right.trans
+      (le_iSup (fun k : {k : X.idx // X.domMk k = X.domMk j} => X.val k.1) ⟨j, rfl⟩)
+
+/-- The extensionalized presentation is Boolean-equal to the original name. -/
+theorem AName.eqB_extensionalize (X : AName.{u} A) :
+    eqB X X.extensionalize = ⊤ := by
+  rw [eqB_eq_subset, subsetB_eq_iInf, subsetB_eq_iInf]
+  apply inf_eq_top_iff.mpr
+  constructor
+  · exact iInf_eq_top.mpr fun z => by
+      rw [memB_extensionalize z X, himp_self]
+  · exact iInf_eq_top.mpr fun z => by
+      rw [memB_extensionalize z X, himp_self]
 
 /-- The domain class of an element in a checked pre-set. -/
 noncomputable def AName.checkDomMk (X : PSet.{u}) (i : X.Type) :
@@ -105,10 +155,120 @@ noncomputable def AName.checkDomEquiv [Nontrivial A] (X : PSet.{u}) :
         induction i using Quotient.inductionOn
         rfl }
 
-/-- Extensional valuations bounded by the membership degrees of `X`. These are
-the partial functions that form the paper's `P^A(X)`. -/
+/-- Every coefficient of the extensional presentation of a checked name is
+`⊤`. -/
+theorem AName.fiberVal_check (X : PSet.{u})
+    (i : (check (A := A) X).Dom) :
+    (check (A := A) X).fiberVal i = ⊤ := by
+  cases X with
+  | mk α f =>
+    apply top_unique
+    let j : {j : (check (A := A) (PSet.mk α f)).idx //
+        (check (A := A) (PSet.mk α f)).domMk j = i} :=
+      ⟨(check (A := A) (PSet.mk α f)).domOut i, Quotient.out_eq i⟩
+    refine le_iSup_of_le j ?_
+    exact le_rfl
+
+/-- A checked name whose raw keys have already been quotiented by extensional
+`PSet` equality. -/
+noncomputable def checkExt (X : PSet.{u}) : AName.{u} A :=
+  mk (PSetElem X)
+    (fun i => check (A := A) (X.Func (Quotient.out i)))
+    (fun _ => ⊤)
+
+/-- Distinct keys of `checkExt X` have Boolean equality `⊥`. -/
+theorem eqB_checkExt_child (X : PSet.{u}) [Nontrivial A]
+    (i j : (checkExt (A := A) X).idx) :
+    (i = j →
+      eqB ((checkExt (A := A) X).child i)
+        ((checkExt (A := A) X).child j) = ⊤) ∧
+    (i ≠ j →
+      eqB ((checkExt (A := A) X).child i)
+        ((checkExt (A := A) X).child j) = ⊥) := by
+  constructor
+  · intro hij
+    subst j
+    exact eqB_self _
+  · intro hij
+    apply (check_atomic (A := A) _ _).2.1.mpr
+    intro hequiv
+    apply hij
+    have hout :
+        Quotient.mk (psetElemSetoid X) (Quotient.out i) =
+          Quotient.mk (psetElemSetoid X) (Quotient.out j) :=
+      Quotient.sound hequiv
+    exact (Quotient.out_eq i).symm.trans (hout.trans (Quotient.out_eq j))
+
+/-- Membership in a name over the discrete keys of `checkExt X` is pointwise
+evaluation. -/
+theorem memB_child_mk_checkExt (X : PSet.{u}) [Nontrivial A]
+    (v : (checkExt (A := A) X).idx → A)
+    (i : (checkExt (A := A) X).idx) :
+    memB ((checkExt (A := A) X).child i)
+      (mk (checkExt (A := A) X).idx (checkExt (A := A) X).child v) = v i := by
+  classical
+  rw [memB_mk]
+  apply le_antisymm
+  · refine iSup_le fun j => ?_
+    by_cases hij : i = j
+    · subst j
+      rw [(eqB_checkExt_child (A := A) X i i).1 rfl, top_inf_eq]
+    · rw [(eqB_checkExt_child (A := A) X i j).2 hij, bot_inf_eq]
+      exact bot_le
+  · exact le_iSup_of_le i (by rw [eqB_self, top_inf_eq])
+
+/-- Membership in a subset of `checkExt X` is pointwise evaluation. -/
+theorem memB_child_powerB_checkExt (X : PSet.{u}) [Nontrivial A]
+    (v : (powerB (checkExt (A := A) X)).idx)
+    (i : (checkExt (A := A) X).idx) :
+    memB ((checkExt (A := A) X).child i)
+      ((powerB (checkExt (A := A) X)).child v) = v.1 i := by
+  change memB ((checkExt (A := A) X).child i)
+    (mk (checkExt (A := A) X).idx (checkExt (A := A) X).child v.1) = v.1 i
+  exact memB_child_mk_checkExt X v.1 i
+
+/-- The raw `powerB` construction is strict when its checked base has
+extensional keys. This is the paper's strictness argument without duplicate
+`PSet` presentations. -/
+theorem oid_powerB_checkExt_isStrict (X : PSet.{u}) [Nontrivial A] :
+    (oid (powerB (checkExt (A := A) X))).IsStrict := by
+  classical
+  intro v w h
+  rw [oid_eq_powerB] at h
+  apply Subtype.ext
+  funext i
+  apply le_antisymm
+  · have hsub : subsetB
+        ((powerB (checkExt (A := A) X)).child v)
+        ((powerB (checkExt (A := A) X)).child w) = ⊤ :=
+      top_unique (h.ge.trans (eqB_le_subsetB _ _))
+    change subsetB
+      (mk (checkExt (A := A) X).idx (checkExt (A := A) X).child v.1)
+      (mk (checkExt (A := A) X).idx (checkExt (A := A) X).child w.1) = ⊤ at hsub
+    rw [subsetB_mk] at hsub
+    have hi := iInf_eq_top.mp hsub i
+    rw [himp_eq_top_iff, memB_child_mk_checkExt X w.1 i] at hi
+    exact hi
+  · have heq : eqB
+        ((powerB (checkExt (A := A) X)).child w)
+        ((powerB (checkExt (A := A) X)).child v) = ⊤ := by
+      rwa [eqB_comm]
+    have hsub : subsetB
+        ((powerB (checkExt (A := A) X)).child w)
+        ((powerB (checkExt (A := A) X)).child v) = ⊤ :=
+      top_unique (heq.ge.trans (eqB_le_subsetB _ _))
+    change subsetB
+      (mk (checkExt (A := A) X).idx (checkExt (A := A) X).child w.1)
+      (mk (checkExt (A := A) X).idx (checkExt (A := A) X).child v.1) = ⊤ at hsub
+    rw [subsetB_mk] at hsub
+    have hi := iInf_eq_top.mp hsub i
+    rw [himp_eq_top_iff, memB_child_mk_checkExt X v.1 i] at hi
+    exact hi
+
+/-- Extensional valuations bounded by the partial-function coefficients of
+`X`. These are the functions that form the paper-facing `P^A(X)`. -/
 def ExtensionalPowerIdx (X : AName.{u} A) : Type u :=
-  {v : X.Dom → A // ∀ i, v i ≤ X.domVal i}
+  {v : X.Dom → A // ∀ i, v i ≤ X.fiberVal i}
 
 /-- The name represented by an extensional bounded valuation. -/
 noncomputable def extensionalPowerName (X : AName.{u} A)

@@ -67,8 +67,12 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   memB_opairB_relFunGraphName subsetB_relFunGraphName
   homBId homBComp SetAObj SetAObj.oidFunctor
   AName.domSetoid AName.Dom AName.domMk AName.domOut AName.domChild
-  AName.domVal AName.domMk_eq_iff AName.eqB_child_domChild
+  AName.domVal AName.fiberVal AName.extensionalize
+  AName.domMk_eq_iff AName.eqB_child_domChild
   AName.domVal_domMk AName.checkDomMk AName.checkDomEquiv
+  AName.memB_extensionalize AName.eqB_extensionalize AName.fiberVal_check
+  checkExt eqB_checkExt_child memB_child_mk_checkExt
+  memB_child_powerB_checkExt oid_powerB_checkExt_isStrict
   psetElemSetoid PSetElem ExtensionalPowerIdx extensionalPowerName
   AName.exists_eq_check_domChild AName.eqB_check_domChild
   memB_domChild_extensionalPowerName_check extensionalPowerSetoid
