@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lars Warren Ericson.
 -/
 
-import Scott2026.Oid
+import Scott2026.SetCategory
 
 /-!
 # Relational infrastructure for internal interpretation
@@ -304,5 +304,276 @@ noncomputable def totalizedValuationRelOfValid
   have h := inf_eq_top_iff.mp hVal
   exact totalizedValuationRel V D Dom Rho h.1 h.2 hDTotal
     (valuationDefault D hD)
+
+section RelationalUpdate
+
+variable {X Y : Type*}
+variable {S : ASetoid (A := A) X} {T : ASetoid (A := A) Y}
+
+/-- Equality-complement substitution in an `A`-setoid. -/
+theorem setoidEq_inf_compl_le_compl (x₁ x₂ z : X) :
+    S.eq x₁ x₂ ⊓ (S.eq x₁ z)ᶜ ≤ (S.eq x₂ z)ᶜ := by
+  rw [le_compl_iff_disjoint_left, disjoint_iff]
+  apply le_bot_iff.mp
+  have hback : S.eq x₂ z ⊓ S.eq x₁ x₂ ≤ S.eq x₁ z := by
+    rw [inf_comm]
+    exact S.trans x₁ x₂ z
+  calc
+    S.eq x₂ z ⊓ (S.eq x₁ x₂ ⊓ (S.eq x₁ z)ᶜ)
+        = (S.eq x₁ z)ᶜ ⊓ (S.eq x₂ z ⊓ S.eq x₁ x₂) := by
+          ac_rfl
+    _ ≤ (S.eq x₁ z)ᶜ ⊓ S.eq x₁ z := inf_le_inf le_rfl hback
+    _ = ⊥ := compl_inf_self _
+
+/-- Boolean matrix for overwriting a relational function at `x` by `d`. -/
+def RelFun.updateVal (f : RelFun S T) (x : X) (d : Y)
+    (i : X) (j : Y) : A :=
+  (S.eq i x ⊓ T.eq d j) ⊔ ((S.eq i x)ᶜ ⊓ f.val i j)
+
+/-- Relational environment update. The source and target are total in the
+paper's application, so equality and its complement partition every input
+with full extent. -/
+noncomputable def RelFun.update (f : RelFun S T)
+    (hS : S.IsTotal) (hT : T.IsTotal) (x : X) (d : Y) :
+    RelFun S T where
+  val := f.updateVal x d
+  respects := by
+    have key : ∀ i₁ i₂ j₁ j₂,
+        S.eq i₁ i₂ ⊓ T.eq j₁ j₂ ⊓ f.updateVal x d i₁ j₁ ≤
+          f.updateVal x d i₂ j₂ := by
+      intro i₁ i₂ j₁ j₂
+      unfold RelFun.updateVal
+      rw [inf_sup_left]
+      refine sup_le ?_ ?_
+      · apply le_sup_of_le_left
+        refine le_inf ?_ ?_
+        · exact (S.trans i₂ i₁ x).trans' <| le_inf
+            ((inf_le_left.trans inf_le_left).trans_eq (S.symm i₁ i₂))
+            (inf_le_right.trans inf_le_left)
+        · exact (T.trans d j₁ j₂).trans' <| le_inf
+            (inf_le_right.trans inf_le_right)
+            (inf_le_left.trans inf_le_right)
+      · apply le_sup_of_le_right
+        refine le_inf ?_ ?_
+        · exact (setoidEq_inf_compl_le_compl i₁ i₂ x).trans' <|
+            le_inf (inf_le_left.trans inf_le_left)
+              (inf_le_right.trans inf_le_left)
+        · exact (f.subst_right i₂ j₁ j₂).trans' <| le_inf
+            (inf_le_left.trans inf_le_right)
+            ((f.subst_left i₁ i₂ j₁).trans' <| le_inf
+              (inf_le_left.trans inf_le_left)
+              (inf_le_right.trans inf_le_right))
+    intro i₁ i₂ j₁ j₂
+    refine le_inf ?_ ?_ <;> rw [le_himp_iff]
+    · exact key i₁ i₂ j₁ j₂
+    · have h := key i₂ i₁ j₂ j₁
+      rwa [S.symm i₂ i₁, T.symm j₂ j₁] at h
+  le_eps := by
+    intro i j
+    rw [hS i, hT j, top_inf_eq]
+    exact le_top
+  single_valued := by
+    intro i j₁ j₂
+    let u₁ := S.eq i x ⊓ T.eq d j₁
+    let u₂ := S.eq i x ⊓ T.eq d j₂
+    let o₁ := (S.eq i x)ᶜ ⊓ f.val i j₁
+    let o₂ := (S.eq i x)ᶜ ⊓ f.val i j₂
+    have huu : u₁ ⊓ u₂ ≤ T.eq j₁ j₂ := by
+      refine (T.trans j₁ d j₂).trans' (le_inf ?_ ?_)
+      · rw [T.symm j₁ d]
+        exact inf_le_left.trans inf_le_right
+      · exact inf_le_right.trans inf_le_right
+    have huo : u₁ ⊓ o₂ ≤ T.eq j₁ j₂ := by
+      exact (show u₁ ⊓ o₂ ≤ ⊥ by
+        calc
+          u₁ ⊓ o₂ ≤ S.eq i x ⊓ (S.eq i x)ᶜ :=
+            le_inf (inf_le_left.trans inf_le_left)
+              (inf_le_right.trans inf_le_left)
+          _ = ⊥ := inf_compl_eq_bot).trans bot_le
+    have hou : o₁ ⊓ u₂ ≤ T.eq j₁ j₂ := by
+      exact (show o₁ ⊓ u₂ ≤ ⊥ by
+        calc
+          o₁ ⊓ u₂ ≤ (S.eq i x)ᶜ ⊓ S.eq i x :=
+            le_inf (inf_le_left.trans inf_le_left)
+              (inf_le_right.trans inf_le_left)
+          _ = ⊥ := compl_inf_self _).trans bot_le
+    have hoo : o₁ ⊓ o₂ ≤ T.eq j₁ j₂ :=
+      (f.single_valued i j₁ j₂).trans' <| le_inf
+        (inf_le_left.trans inf_le_right)
+        (inf_le_right.trans inf_le_right)
+    change (u₁ ⊔ o₁) ⊓ (u₂ ⊔ o₂) ≤ T.eq j₁ j₂
+    calc
+      (u₁ ⊔ o₁) ⊓ (u₂ ⊔ o₂) =
+          (u₁ ⊓ (u₂ ⊔ o₂)) ⊔ (o₁ ⊓ (u₂ ⊔ o₂)) :=
+            inf_sup_right u₁ o₁ (u₂ ⊔ o₂)
+      _ = (u₁ ⊓ u₂ ⊔ u₁ ⊓ o₂) ⊔
+          (o₁ ⊓ u₂ ⊔ o₁ ⊓ o₂) :=
+        congrArg₂ (· ⊔ ·) (inf_sup_left u₁ u₂ o₂)
+          (inf_sup_left o₁ u₂ o₂)
+      _ ≤ T.eq j₁ j₂ :=
+        sup_le (sup_le huu huo) (sup_le hou hoo)
+  total := by
+    intro i
+    rw [hS i]
+    have hsplit : (⊤ : A) = S.eq i x ⊔ (S.eq i x)ᶜ :=
+      (sup_compl_eq_top).symm
+    rw [hsplit]
+    refine sup_le ?_ ?_
+    · have hd : T.eps d = ⊤ := hT d
+      have htot : ⊤ ≤ ⨆ j, T.eq d j := by
+        rw [← hd]
+        exact (RelFun.id T).total d
+      refine (le_inf le_rfl (le_top.trans htot)).trans ?_
+      rw [inf_iSup_eq]
+      exact iSup_le fun j => le_iSup_of_le j <|
+        le_sup_of_le_left le_rfl
+    · have htot : ⊤ ≤ ⨆ j, f.val i j := by
+        rw [← hS i]
+        exact f.total i
+      refine (le_inf le_rfl (le_top.trans htot)).trans ?_
+      rw [inf_iSup_eq]
+      exact iSup_le fun j => le_iSup_of_le j <|
+        le_sup_of_le_right le_rfl
+
+@[simp] theorem RelFun.update_val (f : RelFun S T)
+    (hS : S.IsTotal) (hT : T.IsTotal) (x : X) (d : Y)
+    (i : X) (j : Y) :
+    (f.update hS hT x d).val i j =
+      (S.eq i x ⊓ T.eq d j) ⊔ ((S.eq i x)ᶜ ⊓ f.val i j) :=
+  rfl
+
+/-- Lookup at the overwritten key. -/
+theorem RelFun.update_self (f : RelFun S T)
+    (hS : S.IsTotal) (hT : T.IsTotal) (x : X) (d j : Y) :
+    (f.update hS hT x d).val x j = T.eq d j := by
+  have hxx := hS x
+  change S.eq x x = ⊤ at hxx
+  rw [RelFun.update_val, hxx, top_inf_eq, compl_top, bot_inf_eq,
+    sup_bot_eq]
+
+end RelationalUpdate
+
+/-- An updated relational environment represented as an internal function
+name. -/
+noncomputable def updateEnvName
+    (V D : AName.{u} A) (f : RelFun (oid V) (oid D))
+    (hV : (oid V).IsTotal) (hD : (oid D).IsTotal)
+    (x : V.idx) (d : D.idx) : AName.{u} A :=
+  relFunGraphName V D (f.update hV hD x d)
+
+/-- The graph reconstructed from an updated relational environment is an
+internal function. -/
+theorem isFunctionB_updateEnvName
+    (V D : AName.{u} A) (f : RelFun (oid V) (oid D))
+    (hV : (oid V).IsTotal) (hD : (oid D).IsTotal)
+    (x : V.idx) (d : D.idx) :
+    isFunctionB (updateEnvName V D f hV hD x d) V D = ⊤ :=
+  isFunctionB_relFunGraphName V D (f.update hV hD x d)
+
+/-!
+## Single extents
+-/
+
+/-- One generalized element with prescribed Boolean extent. -/
+def extentSetoid (a : A) : ASetoid (A := A) PUnit.{u + 1} where
+  eq _ _ := a
+  symm _ _ := rfl
+  trans _ _ _ := inf_le_left
+
+@[simp] theorem extentSetoid_eq (a : A) (i j : PUnit.{u + 1}) :
+    (extentSetoid a).eq i j = a :=
+  rfl
+
+@[simp] theorem extentSetoid_eps (a : A) (i : PUnit.{u + 1}) :
+    (extentSetoid a).eps i = a :=
+  rfl
+
+/-- Restrict a relational function to one source element. -/
+def RelFun.at {X Y : Type*}
+    {S : ASetoid (A := A) X} {T : ASetoid (A := A) Y}
+    (f : RelFun S T) (x : X) :
+    RelFun (extentSetoid (S.eps x)) T where
+  val _ y := f.val x y
+  respects := by
+    intro _ _ y₁ y₂
+    refine le_inf ?_ ?_ <;> rw [le_himp_iff]
+    · exact (f.subst_right x y₁ y₂).trans' <|
+        le_inf (inf_le_left.trans inf_le_right) inf_le_right
+    · have h := f.subst_right x y₂ y₁
+      rw [T.symm y₂ y₁, inf_comm] at h
+      exact h.trans' <| le_inf inf_le_right
+        (inf_le_left.trans inf_le_right)
+  le_eps := fun _ y => f.le_eps x y
+  single_valued := fun _ => f.single_valued x
+  total := fun _ => f.total x
+
+@[simp] theorem RelFun.at_val {X Y : Type*}
+    {S : ASetoid (A := A) X} {T : ASetoid (A := A) Y}
+    (f : RelFun S T) (x : X) (i : PUnit.{u + 1}) (y : Y) :
+    (f.at x).val i y = f.val x y :=
+  rfl
+
+section Product
+
+variable {X₁ X₂ Y₁ Y₂ : Type*}
+variable {S₁ : ASetoid (A := A) X₁} {S₂ : ASetoid (A := A) X₂}
+variable {T₁ : ASetoid (A := A) Y₁} {T₂ : ASetoid (A := A) Y₂}
+
+/-- Product of relational functions. -/
+def RelFun.prod (f : RelFun S₁ T₁) (g : RelFun S₂ T₂) :
+    RelFun (S₁.prod S₂) (T₁.prod T₂) where
+  val x y := f.val x.1 y.1 ⊓ g.val x.2 y.2
+  respects := by
+    have key : ∀ x₁ x₂ y₁ y₂,
+        (S₁.prod S₂).eq x₁ x₂ ⊓ (T₁.prod T₂).eq y₁ y₂ ⊓
+            (f.val x₁.1 y₁.1 ⊓ g.val x₁.2 y₁.2) ≤
+          f.val x₂.1 y₂.1 ⊓ g.val x₂.2 y₂.2 := by
+      intro x₁ x₂ y₁ y₂
+      refine le_inf ?_ ?_
+      · exact (f.subst_right x₂.1 y₁.1 y₂.1).trans' <| le_inf
+          (inf_le_left.trans (inf_le_right.trans inf_le_left))
+          ((f.subst_left x₁.1 x₂.1 y₁.1).trans' <| le_inf
+            (inf_le_left.trans (inf_le_left.trans inf_le_left))
+            (inf_le_right.trans inf_le_left))
+      · exact (g.subst_right x₂.2 y₁.2 y₂.2).trans' <| le_inf
+          (inf_le_left.trans (inf_le_right.trans inf_le_right))
+          ((g.subst_left x₁.2 x₂.2 y₁.2).trans' <| le_inf
+            (inf_le_left.trans (inf_le_left.trans inf_le_right))
+            (inf_le_right.trans inf_le_right))
+    intro x₁ x₂ y₁ y₂
+    refine le_inf ?_ ?_ <;> rw [le_himp_iff]
+    · exact key x₁ x₂ y₁ y₂
+    · have h := key x₂ x₁ y₂ y₁
+      rwa [(S₁.prod S₂).symm x₂ x₁, (T₁.prod T₂).symm y₂ y₁] at h
+  le_eps := by
+    intro x y
+    change f.val x.1 y.1 ⊓ g.val x.2 y.2 ≤
+      (S₁.eps x.1 ⊓ S₂.eps x.2) ⊓ (T₁.eps y.1 ⊓ T₂.eps y.2)
+    refine le_inf (le_inf ?_ ?_) (le_inf ?_ ?_)
+    · exact inf_le_left.trans ((f.le_eps x.1 y.1).trans inf_le_left)
+    · exact inf_le_right.trans ((g.le_eps x.2 y.2).trans inf_le_left)
+    · exact inf_le_left.trans ((f.le_eps x.1 y.1).trans inf_le_right)
+    · exact inf_le_right.trans ((g.le_eps x.2 y.2).trans inf_le_right)
+  single_valued := by
+    intro x y₁ y₂
+    rw [ASetoid.prod_eq]
+    exact inf_pair_le (f.single_valued x.1 y₁.1 y₂.1)
+      (g.single_valued x.2 y₁.2 y₂.2)
+  total := by
+    intro x
+    change S₁.eps x.1 ⊓ S₂.eps x.2 ≤
+      ⨆ y : Y₁ × Y₂, f.val x.1 y.1 ⊓ g.val x.2 y.2
+    refine (inf_le_inf (f.total x.1) (g.total x.2)).trans ?_
+    rw [iSup_inf_eq]
+    refine iSup_le fun y₁ => ?_
+    rw [inf_iSup_eq]
+    refine iSup_le fun y₂ => le_iSup_of_le (y₁, y₂) le_rfl
+
+@[simp] theorem RelFun.prod_val (f : RelFun S₁ T₁) (g : RelFun S₂ T₂)
+    (x : X₁ × X₂) (y : Y₁ × Y₂) :
+    (f.prod g).val x y = f.val x.1 y.1 ⊓ g.val x.2 y.2 :=
+  rfl
+
+end Product
 
 end Scott2026

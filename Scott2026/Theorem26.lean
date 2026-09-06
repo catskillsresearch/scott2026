@@ -5,9 +5,8 @@ Authors: Lars Warren Ericson.
 -/
 
 import Scott2026.InterpConstVA
-import Scott2026.InternalInterp
+import Scott2026.InternalEval
 import Scott2026.OidEssential
-import Scott2026.ReflexiveVA
 
 /-!
 # Theorem 26: internal interpretation boundary
