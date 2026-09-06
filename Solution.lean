@@ -41,6 +41,13 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   isSupSubsetB_sUnionB isCompleteLatticeSubsetB_powerB
   directedDownB_powerB joinsDownB_powerB
   isContinuousAtSubsetB_powerB isContinuousLatticeSubsetB_powerB
+  inWayBelowDownB_powerB inWayBelowDownB_le_memB_pfinB
+  memB_pfinB_le_inWayBelowDownB inWayBelowDownB_eq_memB_pfinB
+  inWayBelowDownB_eq_memB_pfinB_wayBelow
+  memB_pfinB_inf_wayBelow_eq_memB_pfinB
+  subsetB_pfinB_powerB directedDownB_pfinB_inter joinsDownB_pfinB_inter
+  isBaseSubsetB_pfinB_powerB
+  isUpperBoundSubsetB_pfinB subsetB_sUnionB_pfinB
   regularity_semantic collectB collectB_spec
   hilbertK_sound hilbertS_sound hilbertDNE_sound
   allImp_sound allVac_sound allInst_sound eqRefl_sound eqLeibniz_sound

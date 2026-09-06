@@ -21,10 +21,11 @@ directedness of `P_fin^A`, `T ⊆ ⋃ P_fin^A(T)`, `isFiniteB_of_subset`,
 both directions of `≪ ↔` finite `⊆` under weaker names
 (`wayBelowSubsetB_le_finite_subset`, `wayBelowSubsetB_of_finite_subset`),
 the ⊆-sup of a family in `P^A(X)` via the tight union `sUnionB`
-(`isCompleteLatticeSubsetB_powerB`), and directed-down / joins-down at
-each `d ∈ P^A(X)`. Not `proposition_27` (that name is the ground `Set X`
-statement). Fat `unionB` remains the one-sided ZFC witness
-(`memB_unionB_of_mem` only).
+(`isCompleteLatticeSubsetB_powerB`), directed-down / joins-down at
+each `d ∈ P^A(X)`, and the base clause
+`isBaseSubsetB (pfinB X) (powerB X) = ⊤`. Not `proposition_27` /
+`proposition_28` (those names are the ground `Set X` statements). Fat
+`unionB` remains the one-sided ZFC witness (`memB_unionB_of_mem` only).
 -/
 
 universe u
@@ -1281,9 +1282,10 @@ theorem isCompleteLatticeSubsetB_powerB (X : AName.{u} A) :
 ## Continuity of `P^A(X)` at each `d`
 
 `e ≪ d` is finite `⊆` (`wayBelowSubsetB_eq_finite_subset`), so
-`{e ∈ P^A(X) | e ≪ d}` agrees with `P_fin^A(d)` once `d ⊆ X`.
-Directedness is binary union; joins-down uses `T ⊆ ⋃ P_fin^A(T)` and
-that every finite subset of `T` is `⊆ T`.
+`{e ∈ P^A(X) | e ≪ d}` agrees with `P_fin^A(d)` once `d ⊆ X`
+(`inWayBelowDownB_eq_memB_pfinB`) and with `{e ∈ P_fin^A(X) | e ≪ d}`
+unconditionally. Directedness is binary union; joins-down uses
+`T ⊆ ⋃ P_fin^A(T)` and that every finite subset of `T` is `⊆ T`.
 -/
 
 theorem subsetB_check_empty (T : AName.{u} A) :
@@ -1313,6 +1315,28 @@ theorem memB_pfinB_le_inWayBelowDownB (e d X : AName.{u} A) :
       (le_inf (inf_le_of_left_le inf_le_left) inf_le_right)
   · exact inf_le_of_left_le inf_le_right
   · exact inf_le_of_left_le inf_le_left
+
+/-- `{e ∈ P^A(X) | e ≪ d}` agrees with `P_fin^A(d)` at `d ⊆ X`. -/
+theorem inWayBelowDownB_eq_memB_pfinB (e d X : AName.{u} A) :
+    inWayBelowDownB e d (powerB X) ⊓ subsetB d X =
+      memB e (pfinB d) ⊓ subsetB d X :=
+  le_antisymm
+    (inf_le_inf_right _ (inWayBelowDownB_le_memB_pfinB e d X))
+    (le_inf (memB_pfinB_le_inWayBelowDownB e d X) inf_le_right)
+
+/-- `{e ∈ P^A(X) | e ≪ d}` is `{e ∈ P_fin^A(X) | e ≪ d}`. -/
+theorem inWayBelowDownB_eq_memB_pfinB_wayBelow (e d X : AName.{u} A) :
+    inWayBelowDownB e d (powerB X) =
+      memB e (pfinB X) ⊓ wayBelowSubsetB e d := by
+  rw [inWayBelowDownB_powerB, memB_pfinB, wayBelowSubsetB_eq_finite_subset,
+    memB_powerB]
+  ac_rfl
+
+/-- `↓d ∩ P_fin^A(X)` agrees with `P_fin^A(d)` at `d ⊆ X`. -/
+theorem memB_pfinB_inf_wayBelow_eq_memB_pfinB (e d X : AName.{u} A) :
+    memB e (pfinB X) ⊓ wayBelowSubsetB e d ⊓ subsetB d X =
+      memB e (pfinB d) ⊓ subsetB d X := by
+  rw [← inWayBelowDownB_eq_memB_pfinB_wayBelow, inWayBelowDownB_eq_memB_pfinB]
 
 theorem nonempty_inWayBelowDownB_powerB (d X : AName.{u} A) :
     (⨆ e : AName.{u} A, inWayBelowDownB e d (powerB X)) = ⊤ := by
@@ -1392,6 +1416,127 @@ theorem isContinuousLatticeSubsetB_powerB (X : AName.{u} A) :
   rw [isCompleteLatticeSubsetB_powerB, top_inf_eq]
   refine iInf_eq_top.mpr fun d => himp_eq_top_iff.mpr ?_
   exact isContinuousAtSubsetB_powerB d X
+
+/-!
+## Base: `P_fin^A(X)` for `P^A(X)`
+
+`↓d ∩ P_fin^A(X)` is directed and `d = ⋃(↓d ∩ P_fin^A(X))` by the
+agreement with `{e ∈ P^A(X) | e ≪ d}`. Not `proposition_28`.
+-/
+
+theorem subsetB_pfinB_powerB (X : AName.{u} A) :
+    subsetB (pfinB X) (powerB X) = ⊤ := by
+  rw [subsetB_eq_iInf]
+  refine iInf_eq_top.mpr fun z => himp_eq_top_iff.mpr ?_
+  rw [memB_pfinB, memB_powerB]
+  exact inf_le_left
+
+/-- `↓d ∩ P_fin^A(X)` is directed. -/
+theorem directedDownB_pfinB_inter (d X : AName.{u} A) :
+    (⨆ e : AName.{u} A, memB e (pfinB X) ⊓ wayBelowSubsetB e d) ⊓
+      ⨅ e1 : AName.{u} A, ⨅ e2 : AName.{u} A,
+        memB e1 (pfinB X) ⊓ wayBelowSubsetB e1 d ⊓
+          (memB e2 (pfinB X) ⊓ wayBelowSubsetB e2 d) ⇨
+          ⨆ e3 : AName.{u} A,
+            memB e3 (pfinB X) ⊓ wayBelowSubsetB e3 d ⊓
+              subsetB e1 e3 ⊓ subsetB e2 e3 = ⊤ := by
+  refine Eq.trans ?eq (directedDownB_powerB d X)
+  unfold directedDownB
+  refine congrArg₂ (· ⊓ ·) ?ne ?dir
+  · exact iSup_congr fun e =>
+      (inWayBelowDownB_eq_memB_pfinB_wayBelow e d X).symm
+  · refine iInf_congr fun e1 => iInf_congr fun e2 => ?_
+    rw [inWayBelowDownB_eq_memB_pfinB_wayBelow e1 d X,
+      inWayBelowDownB_eq_memB_pfinB_wayBelow e2 d X]
+    refine congrArg
+      (fun t =>
+        memB e1 (pfinB X) ⊓ wayBelowSubsetB e1 d ⊓
+          (memB e2 (pfinB X) ⊓ wayBelowSubsetB e2 d) ⇨ t) ?_
+    exact iSup_congr fun e3 => by
+      rw [inWayBelowDownB_eq_memB_pfinB_wayBelow e3 d X]
+
+/-- `d = ⋃(↓d ∩ P_fin^A(X))` once `d ⊆ X`. -/
+theorem joinsDownB_pfinB_inter (d X : AName.{u} A) :
+    memB d (powerB X) ≤
+      ⨅ x : AName.{u} A,
+        (memB x d ⇨
+          ⨆ e : AName.{u} A,
+            memB e (pfinB X) ⊓ wayBelowSubsetB e d ⊓ memB x e) ⊓
+          ((⨆ e : AName.{u} A,
+              memB e (pfinB X) ⊓ wayBelowSubsetB e d ⊓ memB x e) ⇨
+            memB x d) := by
+  refine (joinsDownB_powerB d X).trans_eq ?_
+  unfold joinsDownB
+  refine iInf_congr fun x => ?_
+  refine congrArg₂ (· ⊓ ·) ?fwd ?bwd
+  · refine congrArg (fun t => memB x d ⇨ t) ?_
+    exact iSup_congr fun e =>
+      congrArg (fun t => t ⊓ memB x e)
+        (inWayBelowDownB_eq_memB_pfinB_wayBelow e d X)
+  · refine congrArg (fun t => t ⇨ memB x d) ?_
+    exact iSup_congr fun e =>
+      congrArg (fun t => t ⊓ memB x e)
+        (inWayBelowDownB_eq_memB_pfinB_wayBelow e d X)
+
+/-- `P_fin^A(X)` is a base for `P^A(X)` under `⊆`. Not `proposition_28`. -/
+theorem isBaseSubsetB_pfinB_powerB (X : AName.{u} A) :
+    isBaseSubsetB (pfinB X) (powerB X) = ⊤ := by
+  unfold isBaseSubsetB
+  rw [subsetB_pfinB_powerB, top_inf_eq]
+  refine iInf_eq_top.mpr fun d => himp_eq_top_iff.mpr ?_
+  have hdir := (directedDownB_pfinB_inter d X).ge
+  have hjoin := joinsDownB_pfinB_inter d X
+  refine le_inf ((le_top (a := memB d (powerB X))).trans
+    (hdir.trans inf_le_left)) ?_
+  refine le_iInf fun e1 => le_iInf fun e2 => ?_
+  rw [le_himp_iff]
+  set P :=
+    memB e1 (pfinB X) ⊓ wayBelowSubsetB e1 d ⊓
+      (memB e2 (pfinB X) ⊓ wayBelowSubsetB e2 d)
+  set Q :=
+    ⨆ e3 : AName.{u} A,
+      memB e3 (pfinB X) ⊓ wayBelowSubsetB e3 d ⊓
+        subsetB e1 e3 ⊓ subsetB e2 e3
+  set J :=
+    ⨅ x : AName.{u} A,
+      (memB x d ⇨
+        ⨆ e : AName.{u} A,
+          memB e (pfinB X) ⊓ wayBelowSubsetB e d ⊓ memB x e) ⊓
+        ((⨆ e : AName.{u} A,
+            memB e (pfinB X) ⊓ wayBelowSubsetB e d ⊓ memB x e) ⇨
+          memB x d)
+  have hQ : P ≤ Q := by
+    have hinst :=
+      iInf_le (fun e1' : AName.{u} A =>
+        ⨅ e2' : AName.{u} A,
+          memB e1' (pfinB X) ⊓ wayBelowSubsetB e1' d ⊓
+            (memB e2' (pfinB X) ⊓ wayBelowSubsetB e2' d) ⇨
+            ⨆ e3 : AName.{u} A,
+              memB e3 (pfinB X) ⊓ wayBelowSubsetB e3 d ⊓
+                subsetB e1' e3 ⊓ subsetB e2' e3) e1
+    have hinst2 :=
+      (iInf_le (fun e2' : AName.{u} A =>
+        memB e1 (pfinB X) ⊓ wayBelowSubsetB e1 d ⊓
+          (memB e2' (pfinB X) ⊓ wayBelowSubsetB e2' d) ⇨
+          ⨆ e3 : AName.{u} A,
+            memB e3 (pfinB X) ⊓ wayBelowSubsetB e3 d ⊓
+              subsetB e1 e3 ⊓ subsetB e2' e3) e2).trans' hinst
+    have htop : (P ⇨ Q) = ⊤ :=
+      top_unique (hinst2.trans' (hdir.trans inf_le_right))
+    exact himp_eq_top_iff.mp htop
+  have hboth : memB d (powerB X) ⊓ P ≤ Q ⊓ J :=
+    le_inf (inf_le_of_right_le hQ) (inf_le_of_left_le hjoin)
+  refine hboth.trans ?_
+  have hdistrib :
+      Q ⊓ J = ⨆ e3 : AName.{u} A,
+        memB e3 (pfinB X) ⊓ wayBelowSubsetB e3 d ⊓
+          subsetB e1 e3 ⊓ subsetB e2 e3 ⊓ J := by
+    rw [inf_comm (a := Q) (b := J), inf_iSup_eq]
+    exact iSup_congr fun e3 =>
+      inf_comm (a := J)
+        (b := memB e3 (pfinB X) ⊓ wayBelowSubsetB e3 d ⊓
+          subsetB e1 e3 ⊓ subsetB e2 e3)
+  exact hdistrib.le
 
 end
 

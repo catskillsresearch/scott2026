@@ -369,8 +369,13 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- (`isContinuousLatticeSubsetB (powerB X) = ⊤`), via tight union
 -- `sUnionB` (fat `unionB` stays one-sided) and internal `≪ ↔` finite
 -- `⊆` (`wayBelowSubsetB_eq_finite_subset`, not `proposition_27`).
--- The base clause `isBaseSubsetB (pfinB X) (powerB X) = ⊤` is not
--- stated. The internal language is `isContinuousLatticeSubsetF` /
+-- The base clause is `isBaseSubsetB_pfinB_powerB`
+-- (`isBaseSubsetB (pfinB X) (powerB X) = ⊤`), via agreement of
+-- `{e ∈ P^A(X) | e ≪ d}` with `P_fin^A(d)` at `d ⊆ X`
+-- (`inWayBelowDownB_eq_memB_pfinB`) and directedness / joins of
+-- `↓d ∩ P_fin^A(X)` (`directedDownB_pfinB_inter`,
+-- `joinsDownB_pfinB_inter`). Not named `proposition_28`.
+-- The internal language is `isContinuousLatticeSubsetF` /
 -- `isBaseSubsetB`.
 --
 -- Theorem 30 (CSL p.7): `(P^A(check E), ‖⊆‖, ·, lam)` is an `A`-valued
@@ -455,8 +460,9 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- (`wayBelowSubsetF`, `isContinuousLatticeSubsetF`, matching `*B`
 -- Boolean values). `corollary_34` is still unnamed: numerals are
 -- `corollary_34_check`; the continuous-lattice half is
--- `isContinuousLatticeSubsetB_powerB`; the reflexive dcpo is
--- `theorem_30`. Internal Proposition 27 is
+-- `isContinuousLatticeSubsetB_powerB`; the base is
+-- `isBaseSubsetB_pfinB_powerB` (not `proposition_28`); the reflexive
+-- dcpo is `theorem_30`. Internal Proposition 27 is
 -- `wayBelowSubsetB_eq_finite_subset` (`≪ ↔` finite `⊆`, via
 -- `isFiniteB_of_subset`); not named `proposition_27`.
 -- `eqB_interpClosedVA_churchNum_subsingleton` records that numeral
