@@ -58,22 +58,24 @@ theorem ofNat_mem_setPSet {S : Set ℕ} {n : ℕ} :
 /-- Children of `setPSet` are von Neumann numerals, so inequivalent
 ground sets of `ℕ` remain inequivalent as pre-sets. -/
 theorem setPSet_equiv_iff {S T : Set ℕ} :
-    PSet.Equiv (setPSet S) (setPSet T) ↔ S = T := by
+    PSet.Equiv.{u, u} (setPSet S) (setPSet T) ↔ S = T := by
   constructor
   · intro h
     ext n
     constructor
     · intro hn
       exact ofNat_mem_setPSet.mp
-        ((PSet.Mem.congr_right h).mp (ofNat_mem_setPSet.mpr hn))
+        ((PSet.Mem.congr_right (x := setPSet S) (y := setPSet T) h).mp
+          (ofNat_mem_setPSet.mpr hn))
     · intro hn
       exact ofNat_mem_setPSet.mp
-        ((PSet.Mem.congr_right h.symm).mp (ofNat_mem_setPSet.mpr hn))
+        ((PSet.Mem.congr_right (x := setPSet T) (y := setPSet S) h.symm).mp
+          (ofNat_mem_setPSet.mpr hn))
   · rintro rfl
-    exact PSet.Equiv.rfl
+    exact PSet.Equiv.rfl (x := setPSet S)
 
 theorem setPSet_not_equiv_of_ne {S T : Set ℕ} (hne : S ≠ T) :
-    ¬ PSet.Equiv (setPSet S) (setPSet T) :=
+    ¬ PSet.Equiv.{u, u} (setPSet S) (setPSet T) :=
   mt setPSet_equiv_iff.mp hne
 
 theorem subsetB_setPSet (S : Set ℕ) (X : AName.{u} A) :

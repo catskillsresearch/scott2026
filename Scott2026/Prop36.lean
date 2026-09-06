@@ -4,12 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lars Warren Ericson.
 -/
 
+import Mathlib.Data.Fintype.EquivFin
 import Mathlib.Data.Nat.Pairing
-import Scott2026.Domain
-import Scott2026.Engeler
-import Scott2026.EngelerVA
 import Scott2026.Interp
-import Scott2026.Lambda
 
 /-!
 # Proposition 36: many-one comparison via a numeral-to-numeral combinator
@@ -26,7 +23,7 @@ closed λ-term for `f`, which is false for a general `f`
 (`exists_nat_fun_not_lambda_definable`).
 -/
 
-open Set Function
+open Set Function Classical
 
 namespace Scott2026
 
@@ -43,26 +40,14 @@ same meta-lambdas, so their closed interpretations agree.
 theorem churchNum_interpClosed_zero {D : Type*} [CompleteLattice D]
     (R : ReflexiveDcpo D) :
     interpClosed R (churchNum 0) = R.lam fun _ => R.lam fun Y => Y := by
-  have h : interpClosed R (churchNum 0) =
-      R.lam fun F =>
-        interp R (Lam.abs 1 (Lam.var 1)) (Valuation.empty.update (0 : Fin 2) F) := by
-    simp [interpClosed, churchNum, interp]
-  refine h.trans ?_
-  congr 1
-  funext F
-  simp [interp, Valuation.update, Valuation.empty, Function.update]
+  simp [interpClosed, churchNum, interp, Valuation.update, Valuation.empty,
+    Function.update]
 
 theorem churchNumN_interpClosed_zero {D : Type*} [CompleteLattice D]
     (R : ReflexiveDcpo D) :
     interpClosed R (churchNumN 0) = R.lam fun _ => R.lam fun Y => Y := by
-  have h : interpClosed R (churchNumN 0) =
-      R.lam fun F =>
-        interp R (Lam.abs 1 (Lam.var 1)) (Valuation.empty.update (0 : ℕ) F) := by
-    simp [interpClosed, churchNumN, interp]
-  refine h.trans ?_
-  congr 1
-  funext F
-  simp [interp, Valuation.update, Valuation.empty, Function.update]
+  simp [interpClosed, churchNumN, interp, Valuation.update, Valuation.empty,
+    Function.update]
 
 theorem churchNum_interpClosed_succ {D : Type*} [CompleteLattice D]
     (R : ReflexiveDcpo D) (n : ℕ) :
@@ -167,7 +152,7 @@ theorem churchNumN_lamEq_injective {n m : ℕ}
         interpClosed engelerWithNumerals.toReflexiveDcpo (churchNumN m) :=
     interpClosed_sound_full engelerWithNumerals.toReflexiveDcpo h
   have hnum : engelerWithNumerals.numeral n = engelerWithNumerals.numeral m := by
-    simpa [numeral_eq_interpClosed_churchNumN] using himg
+    rw [numeral_eq_interpClosed_churchNumN, numeral_eq_interpClosed_churchNumN, himg]
   exact engelerWithNumerals.numeral_inj hnum
 
 theorem mapsNumerals_unique {M : Lam ℕ} (_hM : MapsNumerals M) {n m m' : ℕ}
@@ -195,89 +180,21 @@ theorem mapsNumerals_interp_numeral {M : Lam ℕ} (hM : MapsNumerals M) (n : ℕ
       (mapsNumeralsFun_spec M hM n), numeral_eq_interpClosed_churchNumN]
 
 /-!
-## Local oracles (Lemma 35(ii) on Engeler)
+## Oracles (reuse Lemma 35(ii) on Engeler)
 
-`Φ(X) = X · succGraph · {0}` is Scott-continuous and `Φ(c_n) = {n}`.
-`gbar S X = ⋃ n ∈ Φ(X), χ_S(n)` extends `χ_S` and is Scott-continuous, so
-`lam (gbar S)` is an oracle.
+`Interp.gbar` / `numeralFingerprint` / `lemma_35_ii` supply a
+Scott-continuous extension of `χ_S`. Do not redeclare `gbar`.
 -/
 
-def numeralPhi (X : Set ℕ) : Set ℕ :=
-  engelerWithNumerals.app
-    (engelerWithNumerals.app X (numeralSuccGraph engelerPair)) ({0} : Set ℕ)
-
-theorem numeralPhi_scottContinuous : IsScottContinuous numeralPhi := by
-  have hid : IsScottContinuous (id : Set ℕ → Set ℕ) := ScottContinuous.id
-  have hsucc : IsScottContinuous
-      (fun _ : Set ℕ => numeralSuccGraph engelerPair) :=
-    ScottContinuous.const _
-  have hleft : IsScottContinuous
-      (fun X : Set ℕ =>
-        engelerWithNumerals.app X (numeralSuccGraph engelerPair)) :=
-    ReflexiveDcpo.app_comp_scott engelerWithNumerals.toReflexiveDcpo hid hsucc
-  have hzero : IsScottContinuous (fun _ : Set ℕ => ({0} : Set ℕ)) :=
-    ScottContinuous.const _
-  exact ReflexiveDcpo.app_comp_scott engelerWithNumerals.toReflexiveDcpo
-    hleft hzero
-
-theorem numeralPhi_numeral (n : ℕ) :
-    numeralPhi (engelerWithNumerals.numeral n) = ({n} : Set ℕ) := by
-  change
-    (engelerReflexiveDcpo engelerPair engelerPair_injective).app
-      ((engelerReflexiveDcpo engelerPair engelerPair_injective).app
-        (interpClosed (engelerReflexiveDcpo engelerPair engelerPair_injective)
-          (churchNum n))
-        (numeralSuccGraph engelerPair))
-      ({0} : Set ℕ) =
-      ({n} : Set ℕ)
-  exact churchNum_iter_interp engelerPair engelerPair_injective n
-
-def gbar (S : Set ℕ) (X : Set ℕ) : Set ℕ :=
-  ⋃ n ∈ numeralPhi X, chiNum engelerWithNumerals S n
-
-theorem gbar_extends (S : Set ℕ) (n : ℕ) :
-    gbar S (engelerWithNumerals.numeral n) = chiNum engelerWithNumerals S n := by
-  simp [gbar, numeralPhi_numeral n, biUnion_singleton]
-
-theorem gbar_scottContinuous (S : Set ℕ) : IsScottContinuous (gbar S) := by
-  intro 𝒟 hne hdir X hX
-  have hΦ : IsLUB (numeralPhi '' 𝒟) (numeralPhi X) :=
-    numeralPhi_scottContinuous hne hdir hX
-  have hunion : gbar S X = ⋃₀ (gbar S '' 𝒟) := by
-    ext q
-    constructor
-    · intro hq
-      obtain ⟨n, hnΦ, hqχ⟩ := mem_biUnion.mp (show q ∈ ⋃ n ∈ numeralPhi X,
-          chiNum engelerWithNumerals S n from hq)
-      have hnSup : n ∈ sSup (numeralPhi '' 𝒟) := by
-        rwa [hΦ.sSup_eq]
-      have hnU : n ∈ ⋃₀ (numeralPhi '' 𝒟) := by
-        simpa [sSup_eq_sUnion] using hnSup
-      obtain ⟨Y, hY, hnY⟩ := mem_sUnion.mp hnU
-      obtain ⟨Z, hZ, rfl⟩ := (mem_image _ _ _).mp hY
-      refine mem_sUnion.mpr ⟨gbar S Z, mem_image_of_mem _ hZ, ?_⟩
-      exact mem_biUnion.mpr ⟨n, hnY, hqχ⟩
-    · intro hq
-      obtain ⟨Y, hY, hqY⟩ := mem_sUnion.mp hq
-      obtain ⟨Z, hZ, rfl⟩ := (mem_image _ _ _).mp hY
-      obtain ⟨n, hnZ, hqχ⟩ := mem_biUnion.mp (show q ∈ ⋃ n ∈ numeralPhi Z,
-          chiNum engelerWithNumerals S n from hqY)
-      have hnX : n ∈ numeralPhi X := hΦ.1 (mem_image_of_mem _ hZ) hnZ
-      exact mem_biUnion.mpr ⟨n, hnX, hqχ⟩
-  have hlub : IsLUB (gbar S '' 𝒟) (sSup (gbar S '' 𝒟)) := isLUB_sSup _
-  have hsup : sSup (gbar S '' 𝒟) = gbar S X := by
-    simpa [sSup_eq_sUnion] using hunion.symm
-  rwa [hsup] at hlub
-
 /-- Oracle for `S`: `lam` of the Scott-continuous extension `gbar S`. -/
-def chiOracle (S : Set ℕ) : Set ℕ :=
+noncomputable def chiOracle (S : Set ℕ) : Set ℕ :=
   engelerWithNumerals.lam (gbar S)
 
 theorem chiOracle_spec (S : Set ℕ) (n : ℕ) :
     engelerWithNumerals.app (chiOracle S) (engelerWithNumerals.numeral n) =
       chiNum engelerWithNumerals S n :=
   lemma_35_ii_of_extension engelerWithNumerals S (gbar S)
-    (gbar_scottContinuous S) (gbar_extends S) n
+    (gbar_scottContinuous S) (gbar_numeral S) n
 
 /-!
 ## Characteristic values
@@ -290,9 +207,11 @@ theorem chiNum_eq_iff {D : Type*} [CompleteLattice D]
   by_cases hn : n ∈ S
   · by_cases hm : m ∈ T
     · simp [hn, hm]
-    · simp [hn, hm, R.bool_ne]
+    · rw [if_pos hn, if_neg hm]
+      exact iff_of_false R.bool_ne.symm (fun hiff => hm (hiff.mp hn))
   · by_cases hm : m ∈ T
-    · simp [hn, hm, Ne.symm R.bool_ne]
+    · rw [if_neg hn, if_pos hm]
+      exact iff_of_false R.bool_ne (fun hiff => hn (hiff.mpr hm))
     · simp [hn, hm]
 
 /-!
@@ -384,7 +303,7 @@ theorem manyOneLe_of_proposition_36_ii {S₁ S₂ : Set ℕ}
   manyOneLe_of_proposition_36_i (proposition_36_i_of_ii h)
 
 /-- Algebraic many-one comparison: some (not necessarily λ-definable) `f`
-with `χ_{S₂}(f n) = χ_{S₁}(n)`. Oracles always exist via `gbar`. -/
+with `χ_{S₂}(f n) = χ_{S₁}(n)`. Oracles always exist via `lemma_35_ii`. -/
 theorem manyOneLe_iff_chi (S₁ S₂ : Set ℕ) :
     ManyOneLe engelerWithNumerals S₁ S₂ ↔
       ∃ f : ℕ → ℕ, ∀ n,
@@ -464,9 +383,8 @@ def lamOfCode (n : ℕ) : Lam ℕ :=
 
 theorem lamOfCode_encode (M : Lam ℕ) : lamOfCode (lamEncode M) = M := by
   have h : ∃ N, lamEncode N = lamEncode M := ⟨M, rfl⟩
-  have hif : lamOfCode (lamEncode M) = Classical.choose h := by
-    simp [lamOfCode, h]
-  exact lamEncode_injective (hif ▸ Classical.choose_spec h)
+  simp only [lamOfCode, dif_pos h]
+  exact lamEncode_injective (Classical.choose_spec h)
 
 /-- A witness `m` for `M c_n = c_m`, or `0` if none exists. -/
 def representedAt (M : Lam ℕ) (n : ℕ) : ℕ :=
@@ -477,11 +395,8 @@ theorem representedAt_eq {M : Lam ℕ} {n m : ℕ}
     (h : LamEq (M.app (churchNumN n)) (churchNumN m)) :
     representedAt M n = m := by
   have hex : ∃ k, LamEq (M.app (churchNumN n)) (churchNumN k) := ⟨m, h⟩
-  have hrep : representedAt M n = Classical.choose hex := by
-    simp [representedAt, hex]
-  have hch : LamEq (M.app (churchNumN n)) (churchNumN (Classical.choose hex)) :=
-    Classical.choose_spec hex
-  exact churchNumN_lamEq_injective (hch.symm.trans h)
+  simp only [representedAt, dif_pos hex]
+  exact churchNumN_lamEq_injective ((Classical.choose_spec hex).symm.trans h)
 
 /-- Not every `f : ℕ → ℕ` is represented by a closed λ-term. A “Church
 numeral of an arbitrary function” is therefore not a λ-term. -/
@@ -495,9 +410,12 @@ theorem exists_nat_fun_not_lambda_definable :
   have hMcode : lamOfCode n = M := lamOfCode_encode M
   have hAt : representedAt M n = f n := representedAt_eq (hrep n)
   have hfval : f n = representedAt M n + 1 := by
-    simp [f, n, hMcode]
-  have : representedAt M n = representedAt M n + 1 := by
-    rw [hAt, hfval]
+    change representedAt (lamOfCode n) n + 1 = representedAt M n + 1
+    rw [hMcode]
+  have : representedAt M n = representedAt M n + 1 :=
+    hAt.trans hfval
   exact Nat.succ_ne_self (representedAt M n) this.symm
+
+end
 
 end Scott2026

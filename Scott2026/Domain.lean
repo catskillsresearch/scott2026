@@ -192,7 +192,7 @@ theorem scottOpen_preimage {D E : Type*} [CompleteLattice D] [CompleteLattice E]
   refine ⟨fun a b hab ha => hU.1 (hmono hab) ha, fun S hS hSdir hmem => ?_⟩
   have hfS : IsLUB (f '' S) (f (sSup S)) := hf hS hSdir (isLUB_sSup S)
   have hsupU : sSup (f '' S) ∈ U := by
-    rwa [← hfS.sSup_eq]
+    rwa [hfS.sSup_eq]
   have hdirf : DirectedOn (· ≤ ·) (f '' S) := by
     intro y hy z hz
     obtain ⟨s, hs, rfl⟩ := (mem_image _ _ _).mp hy

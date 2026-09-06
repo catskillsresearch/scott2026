@@ -15,6 +15,8 @@ import Scott2026.Lambda
 import Scott2026.Interp
 import Scott2026.InterpVA
 import Scott2026.Lemma31
+import Scott2026.Corollary34
+import Scott2026.Prop36
 import Scott2026.LambdaVA
 import Scott2026.Engeler
 import Scott2026.EngelerVA
@@ -433,6 +435,28 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- Proposition 33 (CSL p.11): `proposition_33` packages the Engeler
 -- model as a reflexive continuous lattice with Church numerals
 -- (`engelerWithNumerals`, `IsContinuousLattice (Set ℕ)`).
+--
+-- Corollary 34 (CSL p.11): the paper name is the internal V^A statement
+-- “reflexive continuous lattice with numerals”. There is no internal
+-- way-below language (same limit as `theorem_30`). The Lean package is
+-- `corollary_34_check` (Lemma 31 check/VA Church images, Δ₀ Boolean
+-- distinctness via Theorem 2, (ii)–(iv) on `interpClosedVA`).
+-- `eqB_interpClosedVA_churchNum_subsingleton` records that numeral
+-- injectivity needs `[Nontrivial A]`.
+--
+-- Lemma 35 (CSL p.12): `lemma_35` / `lemma_35_i` / `lemma_35_ii` are
+-- Engeler-only (`engelerWithNumerals` on `𝒫(ℕ)`). Scott-discrete
+-- Booleans/numerals via Scott-open separators (`ScottOpen`); oracles
+-- via `gbar` and the retract. `lemma_35_ii_of_extension` stays the
+-- weaker “given a Scott-continuous extension” lemma. A general
+-- `ReflexiveDcpoWithNumerals` statement is blocked: the structure does
+-- not store `if`/`succ`/`pred`/`0?`.
+--
+-- Proposition 36 (CSL p.12): `proposition_36` is paper (i) ↔ (ii) on
+-- `engelerWithNumerals` with a closed numeral-to-numeral `M`
+-- (`MapsNumerals`). `ManyOneLe` stays algebraic (any `f : ℕ → ℕ`).
+-- `exists_nat_fun_not_lambda_definable` is why
+-- `ManyOneLe → proposition_36_i` is not claimed.
 
 /-- Example 21, ground: `Λ(Var)` is the least inductive set of pure terms. -/
 theorem example_21 {Var : Type*} {S : Set (Lam Var)} (h : Lam.IsInductive S) :

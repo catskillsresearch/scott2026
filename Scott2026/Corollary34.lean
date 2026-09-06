@@ -197,7 +197,7 @@ theorem setToCanonical_injective [Nontrivial A] :
 
 /-- Ground Church Booleans remain distinct as `setPSet` pre-sets. -/
 theorem churchTrue_interp_setPSet_not_equiv :
-    ¬ PSet.Equiv
+    ¬ PSet.Equiv.{u, u}
         (setPSet (interpClosed
           (engelerReflexiveDcpo engelerPair engelerPair_injective)
           churchTrue))
@@ -217,8 +217,10 @@ theorem setPSetAssign_zero (S T : Set ℕ) :
 
 theorem setPSetAssign_one (S T : Set ℕ) :
     setPSetAssign S T 1 = setPSet T := by
-  rw [show (1 : Fin 2) = Fin.succ 0 from rfl, D0Formula.consPSet_succ]
-  rfl
+  change D0Formula.consPSet (setPSet S) (fun _ : Fin 1 => setPSet T) 1 =
+    setPSet T
+  rw [show (1 : Fin 2) = Fin.succ 0 from rfl]
+  exact D0Formula.consPSet_succ (setPSet S) (fun _ : Fin 1 => setPSet T) 0
 
 /-- Theorem 2 on `¬ x = y`: inequivalent ground sets have
 `‖check(setPSet S) = check(setPSet T)‖ = 0`. `Subsingleton A` collapses
@@ -437,7 +439,7 @@ theorem corollary_34_check :
     eqB_interpClosedVA_churchTrue_churchFalse (A := A),
     fun hA n m h =>
       haveI : Nontrivial A := hA
-      churchNum_interpClosedVA_injective (A := A) h,
+      churchNum_interpClosedVA_injective (A := A) (n := n) (m := m) h,
     interpClosedVA_churchIfN_true (A := A),
     interpClosedVA_churchIfN_false (A := A),
     interpClosedVA_churchSucc (A := A),

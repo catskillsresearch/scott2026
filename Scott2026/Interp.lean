@@ -937,13 +937,11 @@ theorem churchNot_interp_app (pair : Finset ℕ × ℕ → ℕ)
   have h1 : R.app (interpClosed R churchNot) B =
       interp R (((Lam.var 0).app churchFalse).app churchTrue)
         (Valuation.empty.update 0 B) := by
-    simp [interpClosed, churchNot, interp_abs_app]; rfl
+    simp [interpClosed, churchNot, interp_abs_app]
   rw [h1]
-  change R.app (R.app (interp R (Lam.var 0) (Valuation.empty.update 0 B))
-      (interp R churchFalse (Valuation.empty.update 0 B)))
-      (interp R churchTrue (Valuation.empty.update 0 B)) = _
-  have hB : interp R (Lam.var 0) (Valuation.empty.update 0 B) = B := by
-    simp [interp, Valuation.update]
+  simp only [interp]
+  have hB : (Valuation.empty.update (0 : Fin 2) B).toFun 0 = B := by
+    simp [Valuation.update]
   rw [hB, interp_closed_of_fv_empty R churchFalse _ churchFalse_fv,
     interp_closed_of_fv_empty R churchTrue _ churchTrue_fv]
 

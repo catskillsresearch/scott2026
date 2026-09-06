@@ -79,7 +79,16 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   churchSucc churchPred churchIsZero
   definition_32
   churchTrue_interp_ne_churchFalse churchNum_interp_injective
-  engelerWithNumerals proposition_33)
+  engelerWithNumerals proposition_33
+  corollary_34_check
+  eqB_interpClosedVA_churchTrue_churchFalse
+  churchNum_interpClosedVA_injective
+  eqB_interpClosedVA_churchNum_subsingleton
+  definition_32_interpClosedVA
+  ScottOpen lemma_35 lemma_35_i lemma_35_ii
+  MapsNumerals proposition_36 proposition_36_i proposition_36_ii
+  manyOneLe_of_proposition_36_i
+  exists_nat_fun_not_lambda_definable)
 
 export Scott2026.Lam (FreeFor subst_fresh freeFor_of_not_mem_fv freeFor_of_closed
   substCA substNaive substNaive_captures substNaive_captures_not_freeFor)
