@@ -374,7 +374,9 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- `{e ∈ P^A(X) | e ≪ d}` with `P_fin^A(d)` at `d ⊆ X`
 -- (`inWayBelowDownB_eq_memB_pfinB`) and directedness / joins of
 -- `↓d ∩ P_fin^A(X)` (`directedDownB_pfinB_inter`,
--- `joinsDownB_pfinB_inter`). Not named `proposition_28`.
+-- `joinsDownB_pfinB_inter`). Check-base transfer is
+-- `isBaseSubsetB_check_pfin_powerB`, via `proposition_3` and
+-- `isBaseSubsetB_eqB_congr_left`. Not named `proposition_28`.
 -- The internal language is `isContinuousLatticeSubsetF` /
 -- `isBaseSubsetB`.
 --
@@ -461,7 +463,8 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- Boolean values). `corollary_34` is still unnamed: numerals are
 -- `corollary_34_check`; the continuous-lattice half is
 -- `isContinuousLatticeSubsetB_powerB`; the base is
--- `isBaseSubsetB_pfinB_powerB` (not `proposition_28`); the reflexive
+-- `isBaseSubsetB_pfinB_powerB` (not `proposition_28`); check-base
+-- transfer is `isBaseSubsetB_check_pfin_powerB`. The reflexive
 -- dcpo is `theorem_30`. Internal Proposition 27 is
 -- `wayBelowSubsetB_eq_finite_subset` (`≪ ↔` finite `⊆`, via
 -- `isFiniteB_of_subset`); not named `proposition_27`.

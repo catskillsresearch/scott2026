@@ -46,7 +46,8 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   inWayBelowDownB_eq_memB_pfinB_wayBelow
   memB_pfinB_inf_wayBelow_eq_memB_pfinB
   subsetB_pfinB_powerB directedDownB_pfinB_inter joinsDownB_pfinB_inter
-  isBaseSubsetB_pfinB_powerB
+  isBaseSubsetB_pfinB_powerB isBaseSubsetB_eqB_congr_left
+  isBaseSubsetB_check_pfin_powerB
   isUpperBoundSubsetB_pfinB subsetB_sUnionB_pfinB
   regularity_semantic collectB collectB_spec
   hilbertK_sound hilbertS_sound hilbertDNE_sound

@@ -22,10 +22,13 @@ both directions of `≪ ↔` finite `⊆` under weaker names
 (`wayBelowSubsetB_le_finite_subset`, `wayBelowSubsetB_of_finite_subset`),
 the ⊆-sup of a family in `P^A(X)` via the tight union `sUnionB`
 (`isCompleteLatticeSubsetB_powerB`), directed-down / joins-down at
-each `d ∈ P^A(X)`, and the base clause
-`isBaseSubsetB (pfinB X) (powerB X) = ⊤`. Not `proposition_27` /
-`proposition_28` (those names are the ground `Set X` statements). Fat
-`unionB` remains the one-sided ZFC witness (`memB_unionB_of_mem` only).
+each `d ∈ P^A(X)`, the base clause
+`isBaseSubsetB (pfinB X) (powerB X) = ⊤`, congruence of that predicate
+in the base under `eqB B B' = ⊤`, and the check-base transfer
+`isBaseSubsetB (check (pfin Y)) (powerB (check Y)) = ⊤`. Not
+`proposition_27` / `proposition_28` (those names are the ground `Set X`
+statements). Fat `unionB` remains the one-sided ZFC witness
+(`memB_unionB_of_mem` only).
 -/
 
 universe u
@@ -1537,6 +1540,24 @@ theorem isBaseSubsetB_pfinB_powerB (X : AName.{u} A) :
         (b := memB e3 (pfinB X) ⊓ wayBelowSubsetB e3 d ⊓
           subsetB e1 e3 ⊓ subsetB e2 e3)
   exact hdistrib.le
+
+/-- Congruence of `isBaseSubsetB` in the base: `‖B = B'‖ = 1` implies
+the Boolean values agree. -/
+theorem isBaseSubsetB_eqB_congr_left {B B' D : AName.{u} A}
+    (h : eqB B B' = ⊤) :
+    isBaseSubsetB B D = isBaseSubsetB B' D := by
+  unfold isBaseSubsetB
+  have hsub : subsetB B D = subsetB B' D := subsetB_eqB_congr_left h
+  have hmem (e : AName.{u} A) : memB e B = memB e B' :=
+    eqB_top_memB_right h
+  simp_rw [hsub, hmem]
+
+/-- `check(P_fin(Y))` is a base for `P^A(check Y)`, via `proposition_3`
+and `isBaseSubsetB_eqB_congr_left`. Not `proposition_28`. -/
+theorem isBaseSubsetB_check_pfin_powerB (Y : PSet.{u}) :
+    isBaseSubsetB (check (A := A) (pfin Y)) (powerB (check Y)) = ⊤ := by
+  rw [← isBaseSubsetB_eqB_congr_left (proposition_3 (A := A) Y)]
+  exact isBaseSubsetB_pfinB_powerB (check (A := A) Y)
 
 end
 
