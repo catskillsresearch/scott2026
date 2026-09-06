@@ -144,23 +144,29 @@ related_formalizations:
 automation:
   methods:
     - method: agent
-      models: ["Cursor Grok 4.6 High Fast (SpaceXAI / Cursor)"]
+      models: ["GPT-5.6 (OpenAI / Cursor, Sol variant)"]
+      framework: "Cursor"
+      role: >-
+        Lean 4 / mathlib formalization, lake build repair, and long-running
+        agent loops.
+    - method: agent
+      models: ["Anthropic Claude Fable 5"]
+      framework: "Cursor"
+      role: "Heaviest proof work and long-horizon formalization."
+    - method: agent
+      models: ["Anthropic Claude Opus 5"]
+      framework: "Cursor"
+      role: "Day-to-day formalization and proof-engineering."
+    - method: agent
+      models: ["Cursor Grok 4.6 (SpaceXAI / Cursor)"]
       framework: "Cursor"
       role: >-
         Primary agent for Lean 4 / mathlib formalization, lake build repair,
         vision-OCR transcription, and arxiv.md drafting.
     - method: agent
-      models: ["Cursor Composer 2.5 Fast"]
+      models: ["Cursor Composer 2.5"]
       framework: "Cursor"
       role: "Routine scaffolding and medium-complexity proof obligations."
-    - method: agent
-      models: ["Anthropic Claude Sonnet 5 (medium reasoning)"]
-      framework: "Cursor"
-      role: "Day-to-day formalization and proof-engineering."
-    - method: agent
-      models: ["Anthropic Claude Opus 4.8 (high reasoning)"]
-      framework: "Cursor"
-      role: "Heaviest proof work."
     - method: manual
       models: []
       role: >-

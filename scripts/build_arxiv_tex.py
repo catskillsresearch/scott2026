@@ -274,7 +274,7 @@ def inject_placeholders(latex: str, placeholders: dict[str, str]) -> str:
 
 def cleanup_pandoc_latex(latex: str) -> str:
     latex = latex.replace("\\pandocbounded{", "{")
-    latex = re.sub(r"\\tightlist\n", "", latex)
+    latex = re.sub(r"\\tightlist\n?", "", latex)
     for cmd in ("section", "subsection", "subsubsection", "paragraph"):
         latex = re.sub(
             rf"(\\{cmd}\{{)\d+(?:\.\d+)*\.?\s+",
@@ -305,6 +305,7 @@ def insert_appendix_command(latex: str) -> str:
 def cleanup_abstract_latex(latex: str) -> str:
     """Keep the abstract pdfLaTeX/arXiv-safe: ASCII plus standard LaTeX escapes."""
     latex = latex.replace("\\pandocbounded{", "{")
+    latex = re.sub(r"\\tightlist\n?", "", latex)
     latex = latex.replace("\\textbf{{[}", "\\textbf{[")
     latex = latex.replace("\\texttt{{[}", "\\texttt{[")
     latex = latex.replace("{]}}", "]}")

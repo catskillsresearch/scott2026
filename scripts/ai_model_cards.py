@@ -20,62 +20,78 @@ class ModelCard:
 
 MODEL_CARDS: tuple[ModelCard, ...] = (
     ModelCard(
-        label="Cursor",
-        cite_key="Cur26",
+        label="GPT-5.6",
+        cite_key="Gpt26",
         tool_note=(
-            "agent-assisted editing in the Cursor IDE: formalizing Furber, Mardare, "
-            "Panangaden, and Scott's 2026 CSL paper *Interpreting Lambda Calculus in "
-            "Domain-Valued Random Variables* in Lean 4 / mathlib, "
-            "`lake build` repair, vision-OCR "
-            "transcription, drafting this narrative (`arxiv.md`), and tracking the formalized "
-            "inventory. Generated Lean was provisional until it compiled under the pinned "
-            "toolchain."
+            "OpenAI's GPT-5.6 family in Cursor (Sol variant) for Lean 4 / mathlib "
+            "formalization, `lake build` repair, and long-running agent loops on "
+            "`Scott2026/`. Generated Lean was provisional until it compiled under the "
+            "pinned toolchain."
         ),
         reference=(
-            "Anysphere, Inc. *Cursor: AI-native code editor and agent environment*. "
-            "<https://cursor.com> (accessed 2026)."
+            "OpenAI. *GPT-5.6* (Sol variant as integrated in Cursor). Model documentation, "
+            "<https://cursor.com/docs/models/gpt-5-6-sol> (accessed 2026)."
         ),
     ),
     ModelCard(
-        label="Cursor Composer 2.5 Fast",
+        label="Anthropic Claude Fable 5",
+        cite_key="Fab26",
+        tool_note=(
+            "selective use in Cursor for the heaviest proof work and long-horizon "
+            "formalization. Every emitted proof term was checked by the Lean kernel."
+        ),
+        reference=(
+            "Anthropic. *Claude Fable 5*. Announcement, "
+            "<https://www.anthropic.com/news/claude-fable-5-mythos-5>; system card, "
+            "<https://www-cdn.anthropic.com/2f9323abbcc4abe219577539efe19a623c9ca2bd/"
+            "Claude%20Fable%205%20&%20Claude%20Mythos%205%20System%20Card.pdf>; "
+            "Cursor model page, <https://cursor.com/docs/models/claude-fable-5> "
+            "(accessed 2026)."
+        ),
+    ),
+    ModelCard(
+        label="Anthropic Claude Opus 5",
+        cite_key="Opu26",
+        tool_note=(
+            "day-to-day formalization and proof-engineering in Cursor: inventory and "
+            "narrative maintenance, module wiring, and medium-to-hard Lean obligations "
+            "where the proof strategy was already fixed."
+        ),
+        reference=(
+            "Anthropic. *Claude Opus 5*. Announcement, "
+            "<https://www.anthropic.com/research/claude-opus-5>; model documentation as "
+            "integrated in Cursor, <https://cursor.com/docs/models/claude-opus-5> "
+            "(accessed 2026)."
+        ),
+    ),
+    ModelCard(
+        label="Cursor Grok 4.6",
+        cite_key="Grk26",
+        tool_note=(
+            "primary SpaceXAI / Cursor agent for Lean 4 / mathlib formalization, "
+            "`lake build` repair, vision-OCR transcription, drafting this narrative "
+            "(`arxiv.md`), and tracking the formalized inventory."
+        ),
+        reference=(
+            "SpaceXAI and Anysphere, Inc. *Grok 4.6*. Official model card, "
+            "<https://media.x.ai/v1/website/card-7f81d41b.pdf>; developer documentation, "
+            "<https://docs.x.ai/developers/models/grok-4.6>; Cursor model page, "
+            "<https://cursor.com/docs/models/grok-4-6>; Cursor announcement, "
+            "<https://cursor.com/blog/grok-4-6> (accessed 2026)."
+        ),
+    ),
+    ModelCard(
+        label="Cursor Composer 2.5",
         cite_key="Cmp25",
         tool_note=(
             "routine multi-step work: module scaffolding, dependency-ordered wiring of "
-            "`Scott2026/`, documentation, and medium proof obligations "
-            "where the strategy was already fixed."
+            "`Scott2026/`, documentation, and medium proof obligations where the "
+            "strategy was already fixed."
         ),
         reference=(
             "Anysphere, Inc. *Composer 2.5*. Model announcement and documentation, "
             "<https://cursor.com/blog/composer-2-5>; model card as integrated in Cursor, "
-            "<https://cursor.com/docs/models> (accessed 2026)."
-        ),
-    ),
-    ModelCard(
-        label="Anthropic Claude Sonnet 5 (medium reasoning)",
-        cite_key="Son26",
-        tool_note=(
-            "day-to-day formalization and proof-engineering in Cursor at the medium reasoning "
-            "tier: inventory and narrative maintenance, module wiring, and medium-complexity "
-            "Lean obligations where the proof strategy was already fixed."
-        ),
-        reference=(
-            "Anthropic. *Claude Sonnet 5* (medium reasoning variant). System card, "
-            "<https://www.anthropic.com/claude-sonnet-5-system-card>; model documentation as "
-            "integrated in Cursor, <https://cursor.com/docs/models> (accessed 2026)."
-        ),
-    ),
-    ModelCard(
-        label="Anthropic Claude Opus 4.8 (high reasoning)",
-        cite_key="Ant26",
-        tool_note=(
-            "selective use for the heaviest proof work. Every emitted proof term was "
-            "checked by the Lean kernel."
-        ),
-        reference=(
-            "Anthropic. *Claude Opus 4.8* (high thinking/reasoning variant). System card and "
-            "announcement, <https://www.anthropic.com/news/claude-opus-4-8>; model documentation "
-            "as integrated in Cursor, <https://cursor.com/docs/models/claude-opus-4-8> "
-            "(accessed 2026)."
+            "<https://cursor.com/docs/models/composer-2-5> (accessed 2026)."
         ),
     ),
 )

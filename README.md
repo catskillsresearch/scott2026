@@ -42,7 +42,7 @@ project definitions.
 
 | File | Role |
 |---|---|
-| `arxiv.md` | Formalization narrative and theorem inventory |
+| `arxiv.md` | Formalization narrative: introduction, Mathlib notes, Mermaid blueprints, short Lean snippets; generate the full-source appendix with `scripts/generate_arxiv_with_code.sh` |
 | `sources/Scott2026.pdf` | Primary source PDF (CSL 2026) |
 | `Scott2026/` | Sorry-free development |
 | `Challenge.lean` | Palomar statement of record |
@@ -98,7 +98,7 @@ and `Classical.choice`.
 ## arXiv / Zenodo PDF
 
 ```bash
-bash scripts/build_arxiv_pdf.sh      # arxiv.tex + arxiv.pdf + dist/arxiv_submit.zip
+bash scripts/build_arxiv_pdf.sh      # arxiv.tex + arxiv.pdf + view.pdf + dist/arxiv_submit.zip
 bash scripts/package_zenodo.sh       # dist/scott2026-zenodo.zip
 ```
 

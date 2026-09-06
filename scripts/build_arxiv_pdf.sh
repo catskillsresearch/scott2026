@@ -18,6 +18,8 @@ latexmk -interaction=nonstopmode -halt-on-error "$TEX" >/dev/null 2>&1 || {
   exit 1
 }
 echo "wrote $PDF ($(du -h "$PDF" | cut -f1))"
+cp -f "$PDF" view.pdf
+echo "wrote view.pdf (full narrative + Lean appendix, same bytes as $PDF)"
 
 echo "==> Packaging arXiv submission zip"
 bash scripts/package_arxiv_submit.sh --skip-tex-build
