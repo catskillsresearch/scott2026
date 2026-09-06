@@ -33,6 +33,10 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   wayBelowSubsetB_le_subsetB wayBelow_le_formula_valid
   isDirectedSubsetB_pfinB wayBelowSubsetB_le_exists_pfin
   memB_pfinB isFiniteB_empty isFiniteB_singleton isFiniteB_union2B
+  isFiniteB_of_subset isFiniteB_of_subset_finsetB
+  isFiniteB_of_subset_singleton
+  wayBelowSubsetB_le_finite_subset wayBelowSubsetB_of_finite_subset
+  wayBelowSubsetB_eq_finite_subset
   regularity_semantic collectB collectB_spec
   hilbertK_sound hilbertS_sound hilbertDNE_sound
   allImp_sound allVac_sound allInst_sound eqRefl_sound eqLeibniz_sound

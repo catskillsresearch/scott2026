@@ -366,9 +366,10 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- / `definition_11_canonicalPowerB`. Raw index-level `IsStrict` is false
 -- (`oid_powerB_not_strict`); there is no `proposition_28_va_strict`.
 -- The continuous-lattice-with-base clause is not stated: the internal
--- language is now `isContinuousLatticeSubsetF` / `isBaseSubsetB`, but
--- `isContinuousLatticeSubsetB (powerB X) = ⊤` is blocked by
--- `isFiniteB_of_subset` (internal Proposition 27).
+-- language is now `isContinuousLatticeSubsetF` / `isBaseSubsetB`, and
+-- internal `≪ ↔` finite `⊆` is `wayBelowSubsetB_eq_finite_subset`
+-- (not `proposition_27`). `isContinuousLatticeSubsetB (powerB X) = ⊤`
+-- is the remaining lemma.
 --
 -- Theorem 30 (CSL p.7): `(P^A(check E), ‖⊆‖, ·, lam)` is an `A`-valued
 -- reflexive dcpo on the canonical carrier (`theorem_30` / `theorem_30_model`
@@ -451,13 +452,12 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- continuous-lattice language (subset order) is in `InternalDomain.lean`
 -- (`wayBelowSubsetF`, `isContinuousLatticeSubsetF`, matching `*B`
 -- Boolean values). `corollary_34` is still unnamed: numerals are
--- `corollary_34_check`; the continuous-lattice clause needs internal
--- Proposition 27 (`≪ ↔` finite `⊆`). Available: `≪ → ⊆`
--- (`wayBelowSubsetB_le_subsetB`, `wayBelow_le_formula_valid`),
--- directedness of `P_fin^A` (`isDirectedSubsetB_pfinB`), and
--- `wayBelowSubsetB_le_exists_pfin`. The missing lemma is
--- `isFiniteB_of_subset`. `eqB_interpClosedVA_churchNum_subsingleton`
--- records that numeral injectivity needs `[Nontrivial A]`.
+-- `corollary_34_check`; the continuous-lattice clause needs
+-- `isContinuousLatticeSubsetB (powerB X) = ⊤`. Internal Proposition 27
+-- is `wayBelowSubsetB_eq_finite_subset` (`≪ ↔` finite `⊆`, via
+-- `isFiniteB_of_subset`); not named `proposition_27`.
+-- `eqB_interpClosedVA_churchNum_subsingleton` records that numeral
+-- injectivity needs `[Nontrivial A]`.
 --
 -- Lemma 35 (CSL p.12): `lemma_35` / `lemma_35_i` / `lemma_35_ii` are
 -- Engeler-only (`engelerWithNumerals` on `𝒫(ℕ)`). Scott-discrete

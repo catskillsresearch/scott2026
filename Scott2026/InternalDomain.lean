@@ -15,12 +15,13 @@ the `𝔏_Set(V^A)` formulas (subset order) and matching semantic Boolean values
 
 `corollary_34` remains unnamed: the paper type is the internal statement that
 `P^A(check E)` is a reflexive continuous lattice with numerals. The numerals
-half is `corollary_34_check`. The continuous-lattice half is blocked by the
-internal Proposition 27 equivalence (finite ⊆ ↔ way-below), of which this
-file proves the language, `≪ → ⊆`, directedness of `P_fin^A`, and
-`T ⊆ ⋃ P_fin^A(T)`. The missing lemma is `isFiniteB_of_subset`
-(a ⊆-subset of a finite name is finite), needed to finish
-`wayBelowSubsetB S T ≤ isFiniteB S ⊓ subsetB S T`.
+half is `corollary_34_check`. The continuous-lattice half needs
+`isContinuousLatticeSubsetB (powerB X) = ⊤`, which uses the internal
+Proposition 27 equivalence. This file proves the language, `≪ → ⊆`,
+directedness of `P_fin^A`, `T ⊆ ⋃ P_fin^A(T)`, `isFiniteB_of_subset`, and
+both directions of `≪ ↔` finite `⊆` under weaker names
+(`wayBelowSubsetB_le_finite_subset`, `wayBelowSubsetB_of_finite_subset`).
+Not `proposition_27` (that name is the ground `Set X` statement).
 -/
 
 universe u
@@ -673,8 +674,7 @@ theorem subsetUnionB_pfinB (T : AName.{u} A) :
   exact le_top.trans hx.ge
 
 /-- Instantiating `≪` at `P_fin^A(T)`: some finite `U ⊆ T` has `S ⊆ U`.
-Not `proposition_27`: that paper name needs the further lemma
-`isFiniteB_of_subset` (`S ⊆ U` and `U` finite imply `S` finite). -/
+Not `proposition_27`: that paper name is the ground `Set X` statement. -/
 theorem wayBelowSubsetB_le_exists_pfin (S T : AName.{u} A) :
     wayBelowSubsetB S T ≤
       ⨆ U : AName.{u} A, memB U (pfinB T) ⊓ subsetB S U := by
@@ -689,6 +689,451 @@ theorem wayBelowSubsetB_le_exists_pfin (S T : AName.{u} A) :
   convert hinst using 1
   rw [hdir, hun]
   simp
+
+/-!
+## Subsets of finite names are finite
+-/
+
+theorem isFiniteB_of_eqB (S T : AName.{u} A) :
+    eqB S T ⊓ isFiniteB T ≤ isFiniteB S := by
+  rw [eqB_comm (x := S) (y := T)]
+  exact isFiniteB_congr T S
+
+theorem subsetB_restrictName (S X : AName.{u} A) :
+    subsetB (restrictName S X) X = ⊤ :=
+  subsetB_of_le_val X (fun i => X.val i ⊓ memB (X.child i) S) (fun _ => inf_le_left)
+
+theorem memB_restrictName (z S X : AName.{u} A) :
+    memB z (restrictName S X) = memB z S ⊓ memB z X := by
+  unfold restrictName
+  rw [memB_mk, memB_eq (x := z) (y := X)]
+  refine le_antisymm ?le ?ge
+  · refine iSup_le fun i => ?_
+    have hS : eqB z (X.child i) ⊓ memB (X.child i) S ≤ memB z S := by
+      rw [eqB_comm (x := z) (y := X.child i), inf_comm]
+      exact memB_eqB_left (X.child i) S z
+    have hX : eqB z (X.child i) ⊓ X.val i ≤
+        ⨆ j, eqB z (X.child j) ⊓ X.val j :=
+      le_iSup_of_le i le_rfl
+    refine le_inf ?_ ?_
+    · exact hS.trans' (le_inf inf_le_left (inf_le_of_right_le inf_le_right))
+    · exact hX.trans' (le_inf inf_le_left (inf_le_of_right_le inf_le_left))
+  · rw [inf_iSup_eq]
+    refine iSup_le fun i => ?_
+    refine le_iSup_of_le i ?_
+    have hS : memB z S ⊓ eqB z (X.child i) ≤ memB (X.child i) S :=
+      memB_eqB_left z S (X.child i)
+    refine le_inf (inf_le_of_right_le inf_le_left) ?_
+    exact le_inf (inf_le_of_right_le inf_le_right)
+      (hS.trans' (le_inf inf_le_left (inf_le_of_right_le inf_le_left)))
+
+theorem memB_union2B_restrict (z S U V : AName.{u} A) :
+    memB z (union2B (restrictName S U) (restrictName S V)) =
+      memB z S ⊓ memB z (union2B U V) := by
+  rw [memB_union2B, memB_restrictName, memB_restrictName, memB_union2B,
+    inf_sup_left]
+
+theorem himp_inf_self (a b : A) : a ⇨ a ⊓ b = a ⇨ b := by
+  refine le_antisymm ?fwd ?bwd
+  · rw [le_himp_iff]
+    exact (himp_inf_le (a := a) (b := a ⊓ b)).trans inf_le_right
+  · rw [le_himp_iff]
+    exact le_inf inf_le_right himp_inf_le
+
+theorem eqB_union2B_restrict (S U V : AName.{u} A) :
+    eqB S (union2B (restrictName S U) (restrictName S V)) =
+      subsetB S (union2B U V) := by
+  rw [eqB_eq_iInf, subsetB_eq_iInf]
+  refine iInf_congr fun z => ?_
+  rw [memB_union2B_restrict]
+  have hbwd : (memB z S ⊓ memB z (union2B U V) ⇨ memB z S) = ⊤ :=
+    himp_eq_top_iff.mpr inf_le_left
+  rw [himp_inf_self, hbwd, inf_top_eq]
+
+theorem memB_finsetB_succ {n} (z : AName.{u} A) (xs : Fin (n + 1) → AName.{u} A) :
+    memB z (finsetB xs) =
+      eqB z (xs 0) ⊔ memB z (finsetB (fun i : Fin n => xs i.succ)) := by
+  rw [memB_finsetB, memB_finsetB]
+  refine le_antisymm ?le ?ge
+  · refine iSup_le fun i => ?_
+    refine Fin.cases ?_ ?_ i
+    · exact le_sup_left
+    · intro j
+      exact le_sup_of_le_right (le_iSup (fun k : Fin n => eqB z (xs k.succ)) j)
+  · refine sup_le ?_ ?_
+    · exact le_iSup_of_le (0 : Fin (n + 1)) le_rfl
+    · refine iSup_le fun j => ?_
+      exact le_iSup_of_le j.succ le_rfl
+
+theorem eqB_finsetB_cons {n} (xs : Fin (n + 1) → AName.{u} A) :
+    eqB (finsetB xs)
+      (union2B (singletonB (xs 0)) (finsetB (fun i : Fin n => xs i.succ))) = ⊤ := by
+  refine eqB_of_memB_iff _ _ fun z => ?_
+  rw [memB_finsetB_succ, memB_union2B, memB_singletonB]
+
+theorem subsetB_finsetB0 {n} (xs : Fin n → AName.{u} A) (S : AName.{u} A)
+    (hn : n = 0) :
+    subsetB (finsetB xs) S = ⊤ := by
+  subst hn
+  unfold finsetB
+  rw [subsetB_mk]
+  exact iInf_eq_top.mpr fun i => nomatch i.down
+
+theorem memB_finsetB0 {n} (z : AName.{u} A) (xs : Fin n → AName.{u} A)
+    (hn : n = 0) : memB z (finsetB xs) = ⊥ := by
+  subst hn
+  rw [memB_finsetB]
+  exact iSup_of_empty _
+
+/-- A name contained in a singleton is empty or that singleton. -/
+theorem isFiniteB_of_subset_singleton (S x : AName.{u} A) :
+    subsetB S (singletonB x) ≤ isFiniteB S := by
+  have hsplit : subsetB S (singletonB x) =
+      (subsetB S (singletonB x) ⊓ memB x S) ⊔
+        (subsetB S (singletonB x) ⊓ (memB x S)ᶜ) := by
+    have htop : memB x S ⊔ (memB x S)ᶜ = ⊤ := sup_compl_eq_top
+    calc subsetB S (singletonB x)
+        = subsetB S (singletonB x) ⊓ ⊤ := (inf_top_eq _).symm
+      _ = subsetB S (singletonB x) ⊓ (memB x S ⊔ (memB x S)ᶜ) := by rw [htop]
+      _ = (subsetB S (singletonB x) ⊓ memB x S) ⊔
+            (subsetB S (singletonB x) ⊓ (memB x S)ᶜ) := inf_sup_left _ _ _
+  rw [hsplit]
+  refine sup_le ?yes ?no
+  · have heq : subsetB S (singletonB x) ⊓ memB x S = eqB S (singletonB x) := by
+      rw [eqB_eq_subset, subsetB_singletonB]
+    rw [heq]
+    exact (isFiniteB_of_eqB S (singletonB x)).trans'
+      (le_inf le_rfl (le_top.trans (isFiniteB_singleton x).ge))
+  · have hempty : subsetB S (singletonB x) ⊓ (memB x S)ᶜ ≤
+        subsetB S (finsetB (fun i : Fin 0 => i.elim0)) := by
+      rw [subsetB_eq_iInf S (finsetB (fun i : Fin 0 => i.elim0))]
+      refine le_iInf fun z => ?_
+      rw [le_himp_iff, memB_finsetB0 z _ rfl]
+      have hzx : subsetB S (singletonB x) ⊓ memB z S ≤ eqB z x := by
+        have h := memB_of_subsetB z S (singletonB x)
+        rw [memB_singletonB, inf_comm] at h
+        exact h
+      have hx : eqB z x ⊓ memB z S ≤ memB x S := by
+        rw [inf_comm]
+        exact memB_eqB_left z S x
+      have hbot : subsetB S (singletonB x) ⊓ (memB x S)ᶜ ⊓ memB z S ≤ ⊥ := by
+        have hre :
+            subsetB S (singletonB x) ⊓ (memB x S)ᶜ ⊓ memB z S ≤
+              subsetB S (singletonB x) ⊓ memB z S ⊓ (memB x S)ᶜ :=
+          le_inf
+            (le_inf (inf_le_of_left_le inf_le_left) inf_le_right)
+            (inf_le_of_left_le inf_le_right)
+        have hmem : subsetB S (singletonB x) ⊓ memB z S ⊓ (memB x S)ᶜ ≤ ⊥ := by
+          have h1 : subsetB S (singletonB x) ⊓ memB z S ⊓ (memB x S)ᶜ ≤
+              eqB z x ⊓ memB z S ⊓ (memB x S)ᶜ :=
+            inf_le_inf_right _ (le_inf hzx inf_le_right)
+          have h2 : eqB z x ⊓ memB z S ⊓ (memB x S)ᶜ ≤ memB x S ⊓ (memB x S)ᶜ :=
+            inf_le_inf_right _ hx
+          exact h1.trans (h2.trans (le_of_eq inf_compl_eq_bot))
+        exact hre.trans hmem
+      exact hbot
+    have heq : subsetB S (finsetB (fun i : Fin 0 => i.elim0)) ≤
+        eqB S (finsetB (fun i : Fin 0 => i.elim0)) := by
+      rw [eqB_eq_subset, subsetB_finsetB0 (fun i : Fin 0 => i.elim0) S rfl,
+        inf_top_eq]
+    refine (hempty.trans heq).trans ?_
+    exact (isFiniteB_of_eqB S (finsetB (fun i : Fin 0 => i.elim0))).trans'
+      (le_inf le_rfl (le_top.trans (isFiniteB_finsetB _).ge))
+
+/-- A name contained in a finite enumeration is finite. -/
+theorem isFiniteB_of_subset_finsetB {n} (S : AName.{u} A)
+    (xs : Fin n → AName.{u} A) :
+    subsetB S (finsetB xs) ≤ isFiniteB S := by
+  induction n generalizing S with
+  | zero =>
+    have hempty : subsetB (finsetB xs) S = ⊤ := subsetB_finsetB0 xs S rfl
+    have heq : subsetB S (finsetB xs) ≤ eqB S (finsetB xs) := by
+      rw [eqB_eq_subset, hempty, inf_top_eq]
+    exact heq.trans ((isFiniteB_of_eqB S (finsetB xs)).trans'
+      (le_inf le_rfl (le_top.trans (isFiniteB_finsetB xs).ge)))
+  | succ n ih =>
+    have hcons : eqB (finsetB xs)
+        (union2B (singletonB (xs 0))
+          (finsetB (fun i : Fin n => xs i.succ))) = ⊤ :=
+      eqB_finsetB_cons xs
+    have hsub : subsetB S (finsetB xs) ≤
+        subsetB S (union2B (singletonB (xs 0))
+          (finsetB (fun i : Fin n => xs i.succ))) := by
+      have hle : subsetB (finsetB xs)
+          (union2B (singletonB (xs 0))
+            (finsetB (fun i : Fin n => xs i.succ))) = ⊤ :=
+        top_unique (hcons.ge.trans (eqB_le_subsetB _ _))
+      have htr := subsetB_trans S (finsetB xs)
+        (union2B (singletonB (xs 0))
+          (finsetB (fun i : Fin n => xs i.succ)))
+      rw [hle, inf_top_eq] at htr
+      exact htr
+    refine hsub.trans ?_
+    set head := xs 0
+    set rest := fun i : Fin n => xs i.succ
+    set S0 := restrictName S (singletonB head)
+    set S1 := restrictName S (finsetB rest)
+    have hS0 : isFiniteB S0 = ⊤ :=
+      top_unique ((subsetB_restrictName S (singletonB head)).ge.trans
+        (isFiniteB_of_subset_singleton S0 head))
+    have hS1 : isFiniteB S1 = ⊤ :=
+      top_unique ((subsetB_restrictName S (finsetB rest)).ge.trans (ih S1 rest))
+    have hU : isFiniteB (union2B S0 S1) = ⊤ :=
+      top_unique ((le_inf hS0.ge hS1.ge).trans (isFiniteB_union2B S0 S1))
+    have heq : subsetB S (union2B (singletonB head) (finsetB rest)) ≤
+        eqB S (union2B S0 S1) := (eqB_union2B_restrict S (singletonB head)
+          (finsetB rest)).ge
+    exact heq.trans ((isFiniteB_of_eqB S (union2B S0 S1)).trans'
+      (le_inf le_rfl (le_top.trans hU.ge)))
+
+/-- A ⊆-subset of a finite name is finite. -/
+theorem isFiniteB_of_subset (S U : AName.{u} A) :
+    subsetB S U ⊓ isFiniteB U ≤ isFiniteB S := by
+  unfold isFiniteB
+  rw [inf_iSup_eq]
+  refine iSup_le fun n => ?_
+  rw [inf_iSup_eq]
+  refine iSup_le fun xs => ?_
+  have hsub : subsetB S U ⊓ eqB U (finsetB xs) ≤ subsetB S (finsetB xs) := by
+    have htr := subsetB_trans S U (finsetB xs)
+    exact htr.trans' (le_inf inf_le_left
+      (inf_le_of_right_le (eqB_le_subsetB U (finsetB xs))))
+  exact hsub.trans (isFiniteB_of_subset_finsetB S xs)
+
+/-- `≪` implies finite and `⊆`. Not `proposition_27`. -/
+theorem wayBelowSubsetB_le_finite_subset (S T : AName.{u} A) :
+    wayBelowSubsetB S T ≤ isFiniteB S ⊓ subsetB S T := by
+  refine le_inf ?fin ?sub
+  · refine (wayBelowSubsetB_le_exists_pfin S T).trans (iSup_le fun U => ?_)
+    rw [memB_pfinB]
+    exact (isFiniteB_of_subset S U).trans'
+      (le_inf inf_le_right (inf_le_of_left_le inf_le_right))
+  · exact wayBelowSubsetB_le_subsetB S T
+
+/-!
+## Converse: finite `⊆` implies `≪`
+-/
+
+theorem subsetB_eqB_congr_left {X Y Z : AName.{u} A} (h : eqB X Y = ⊤) :
+    subsetB X Z = subsetB Y Z := by
+  refine le_antisymm ?_ ?_
+  · have := subsetB_of_eqB X Y Z
+    rw [h, top_inf_eq] at this
+    exact this
+  · have := subsetB_of_eqB Y X Z
+    rw [eqB_comm (x := Y) (y := X), h, top_inf_eq] at this
+    exact this
+
+theorem subsetUnionB_apply (T 𝒟 x : AName.{u} A) :
+    memB x T ⊓ subsetUnionB T 𝒟 ≤ ⨆ y, memB y 𝒟 ⊓ memB x y := by
+  unfold subsetUnionB
+  have h :=
+    iInf_le (fun x' : AName.{u} A =>
+      memB x' T ⇨ ⨆ y, memB y 𝒟 ⊓ memB x' y) x
+  refine (le_himp_iff.mp h).trans' ?_
+  rw [inf_comm]
+
+theorem isDirectedSubsetB_apply (𝒟 u v : AName.{u} A) :
+    isDirectedSubsetB 𝒟 ⊓ memB u 𝒟 ⊓ memB v 𝒟 ≤
+      ⨆ w, memB w 𝒟 ⊓ subsetB u w ⊓ subsetB v w := by
+  unfold isDirectedSubsetB
+  have hp :=
+    iInf_le (fun u' : AName.{u} A =>
+      ⨅ v' : AName.{u} A,
+        memB u' 𝒟 ⊓ memB v' 𝒟 ⇨
+          ⨆ w, memB w 𝒟 ⊓ subsetB u' w ⊓ subsetB v' w) u
+  have hp' :=
+    iInf_le (fun v' : AName.{u} A =>
+      memB u 𝒟 ⊓ memB v' 𝒟 ⇨
+        ⨆ w, memB w 𝒟 ⊓ subsetB u w ⊓ subsetB v' w) v
+  have hle := hp.trans hp'
+  have hpair : (⨅ u' : AName.{u} A, ⨅ v' : AName.{u} A,
+        memB u' 𝒟 ⊓ memB v' 𝒟 ⇨
+          ⨆ w, memB w 𝒟 ⊓ subsetB u' w ⊓ subsetB v' w) ⊓
+      memB u 𝒟 ⊓ memB v 𝒟 ≤
+      ⨆ w, memB w 𝒟 ⊓ subsetB u w ⊓ subsetB v w := by
+    have h := le_himp_iff.mp hle
+    refine h.trans' ?_
+    exact le_inf (inf_le_of_left_le inf_le_left)
+      (le_inf (inf_le_of_left_le inf_le_right) inf_le_right)
+  refine hpair.trans' ?_
+  exact inf_le_inf_right _ (inf_le_inf_right _ inf_le_right)
+
+theorem iSup_inf_iSup_eq {ι κ : Type*} (f : ι → A) (g : κ → A) :
+    (⨆ i, f i) ⊓ ⨆ j, g j = ⨆ i, ⨆ j, f i ⊓ g j := by
+  refine le_antisymm ?le ?ge
+  · have h : (⨆ i, f i) ⊓ ⨆ j, g j = ⨆ j, (⨆ i, f i) ⊓ g j :=
+      inf_iSup_eq _ _
+    rw [h]
+    refine iSup_le fun j => ?_
+    have h' : (⨆ i, f i) ⊓ g j = ⨆ i, f i ⊓ g j := by
+      rw [inf_comm, inf_iSup_eq]
+      exact iSup_congr fun i => inf_comm (a := g j) (b := f i)
+    rw [h']
+    refine iSup_le fun i => le_iSup_of_le i (le_iSup_of_le j le_rfl)
+  · refine iSup_le fun i => iSup_le fun j =>
+      le_inf (le_iSup_of_le i inf_le_left) (le_iSup_of_le j inf_le_right)
+
+/-- A finite enumeration contained in `T ⊆ ⋃ 𝒟` for directed `𝒟` sits
+inside some member of `𝒟`. -/
+theorem finsetB_le_exists_directed {n} (xs : Fin n → AName.{u} A)
+    (T 𝒟 : AName.{u} A) :
+    subsetB (finsetB xs) T ⊓ isDirectedSubsetB 𝒟 ⊓ subsetUnionB T 𝒟 ≤
+      ⨆ U, memB U 𝒟 ⊓ subsetB (finsetB xs) U := by
+  induction n generalizing T 𝒟 with
+  | zero =>
+    have hempty (U : AName.{u} A) : subsetB (finsetB xs) U = ⊤ :=
+      subsetB_finsetB0 xs U rfl
+    have hne : nonemptyB 𝒟 ≤
+        ⨆ U, memB U 𝒟 ⊓ subsetB (finsetB xs) U := by
+      unfold nonemptyB
+      refine iSup_mono fun U => ?_
+      rw [hempty, inf_top_eq]
+    refine hne.trans' ?_
+    unfold isDirectedSubsetB
+    exact inf_le_of_left_le (inf_le_of_right_le inf_le_left)
+  | succ n ih =>
+    have hcons : eqB (finsetB xs)
+        (union2B (singletonB (xs 0))
+          (finsetB (fun i : Fin n => xs i.succ))) = ⊤ :=
+      eqB_finsetB_cons xs
+    set head := xs 0
+    set rest := fun i : Fin n => xs i.succ
+    have hsubT : subsetB (finsetB xs) T =
+        memB head T ⊓ subsetB (finsetB rest) T := by
+      have h1 : subsetB (finsetB xs) T =
+          subsetB (union2B (singletonB head) (finsetB rest)) T :=
+        subsetB_eqB_congr_left hcons
+      rw [h1, subsetB_union2B, subsetB_singletonB]
+    rw [hsubT]
+    set G :=
+      memB head T ⊓ subsetB (finsetB rest) T ⊓ isDirectedSubsetB 𝒟 ⊓
+        subsetUnionB T 𝒟
+    have hto_rest : G ≤ subsetB (finsetB rest) T ⊓ isDirectedSubsetB 𝒟 ⊓
+        subsetUnionB T 𝒟 :=
+      le_inf (le_inf (inf_le_of_left_le (inf_le_of_left_le inf_le_right))
+          (inf_le_of_left_le inf_le_right))
+        inf_le_right
+    have hto_head : G ≤ memB head T ⊓ subsetUnionB T 𝒟 :=
+      le_inf (inf_le_of_left_le (inf_le_of_left_le inf_le_left)) inf_le_right
+    have hto_dir : G ≤ isDirectedSubsetB 𝒟 :=
+      inf_le_of_left_le inf_le_right
+    have hrest := (ih rest T 𝒟).trans' hto_rest
+    have hhead := (subsetUnionB_apply T 𝒟 head).trans' hto_head
+    have hcomb : G ≤
+        (⨆ U1, memB U1 𝒟 ⊓ subsetB (finsetB rest) U1) ⊓
+          (⨆ U2, memB U2 𝒟 ⊓ memB head U2) ⊓ isDirectedSubsetB 𝒟 :=
+      le_inf (le_inf hrest hhead) hto_dir
+    refine hcomb.trans ?_
+    rw [iSup_inf_iSup_eq]
+    rw [iSup_inf_eq]
+    refine iSup_le fun U1 => ?_
+    rw [iSup_inf_eq]
+    refine iSup_le fun U2 => ?_
+    have hdir := isDirectedSubsetB_apply 𝒟 U1 U2
+    have hto_uv :
+        (memB U1 𝒟 ⊓ subsetB (finsetB rest) U1) ⊓
+          (memB U2 𝒟 ⊓ memB head U2) ⊓ isDirectedSubsetB 𝒟 ≤
+          isDirectedSubsetB 𝒟 ⊓ memB U1 𝒟 ⊓ memB U2 𝒟 :=
+      le_inf
+        (le_inf inf_le_right (inf_le_of_left_le (inf_le_of_left_le inf_le_left)))
+        (inf_le_of_left_le (inf_le_of_right_le inf_le_left))
+    have hW := hdir.trans' hto_uv
+    have hkeep_rest :
+        (memB U1 𝒟 ⊓ subsetB (finsetB rest) U1) ⊓
+          (memB U2 𝒟 ⊓ memB head U2) ⊓ isDirectedSubsetB 𝒟 ≤
+          subsetB (finsetB rest) U1 :=
+      inf_le_of_left_le (inf_le_of_left_le inf_le_right)
+    have hkeep_head :
+        (memB U1 𝒟 ⊓ subsetB (finsetB rest) U1) ⊓
+          (memB U2 𝒟 ⊓ memB head U2) ⊓ isDirectedSubsetB 𝒟 ≤
+          memB head U2 :=
+      inf_le_of_left_le (inf_le_of_right_le inf_le_right)
+    have hjoin :
+        (memB U1 𝒟 ⊓ subsetB (finsetB rest) U1) ⊓
+          (memB U2 𝒟 ⊓ memB head U2) ⊓ isDirectedSubsetB 𝒟 ≤
+          (⨆ W, memB W 𝒟 ⊓ subsetB U1 W ⊓ subsetB U2 W) ⊓
+            (subsetB (finsetB rest) U1 ⊓ memB head U2) :=
+      le_inf hW (le_inf hkeep_rest hkeep_head)
+    refine hjoin.trans ?_
+    rw [iSup_inf_eq (f := fun W : AName.{u} A =>
+      memB W 𝒟 ⊓ subsetB U1 W ⊓ subsetB U2 W)]
+    refine iSup_le fun W => ?_
+    have hrestW : subsetB (finsetB rest) U1 ⊓ subsetB U1 W ≤
+        subsetB (finsetB rest) W :=
+      (subsetB_trans (finsetB rest) U1 W).trans'
+        (le_inf inf_le_left inf_le_right)
+    have hheadW : memB head U2 ⊓ subsetB U2 W ≤ memB head W :=
+      memB_of_subsetB head U2 W
+    have hsubW :
+        (memB W 𝒟 ⊓ subsetB U1 W ⊓ subsetB U2 W) ⊓
+          (subsetB (finsetB rest) U1 ⊓ memB head U2) ≤
+        memB W 𝒟 ⊓ subsetB (finsetB xs) W := by
+      have hfin : subsetB (union2B (singletonB head) (finsetB rest)) W =
+          subsetB (finsetB xs) W := (subsetB_eqB_congr_left hcons).symm
+      have hun : subsetB (union2B (singletonB head) (finsetB rest)) W =
+          memB head W ⊓ subsetB (finsetB rest) W := by
+        rw [subsetB_union2B, subsetB_singletonB]
+      refine le_inf (inf_le_of_left_le (inf_le_of_left_le inf_le_left)) ?_
+      rw [← hfin, hun]
+      refine le_inf ?_ ?_
+      · exact hheadW.trans'
+          (le_inf (inf_le_of_right_le inf_le_right)
+            (inf_le_of_left_le inf_le_right))
+      · exact hrestW.trans'
+          (le_inf (inf_le_of_right_le inf_le_left)
+            (inf_le_of_left_le (inf_le_of_left_le inf_le_right)))
+    exact le_iSup_of_le W hsubW
+
+/-- Finite `⊆` implies `≪`. Not `proposition_27`. -/
+theorem wayBelowSubsetB_of_finite_subset (S T : AName.{u} A) :
+    isFiniteB S ⊓ subsetB S T ≤ wayBelowSubsetB S T := by
+  unfold wayBelowSubsetB
+  refine le_iInf fun 𝒟 => ?_
+  rw [le_himp_iff, le_himp_iff]
+  have hre : isFiniteB S ⊓ subsetB S T ⊓ isDirectedSubsetB 𝒟 ⊓
+      subsetUnionB T 𝒟 ≤
+      isFiniteB S ⊓ (subsetB S T ⊓ isDirectedSubsetB 𝒟 ⊓ subsetUnionB T 𝒟) :=
+    le_inf (inf_le_of_left_le (inf_le_of_left_le inf_le_left))
+      (le_inf (le_inf
+          (inf_le_of_left_le (inf_le_of_left_le inf_le_right))
+          (inf_le_of_left_le inf_le_right))
+        inf_le_right)
+  refine hre.trans ?_
+  unfold isFiniteB
+  rw [iSup_inf_eq (f := fun n : ℕ =>
+    ⨆ xs : Fin n → AName.{u} A, eqB S (finsetB xs))]
+  refine iSup_le fun n => ?_
+  rw [iSup_inf_eq (f := fun xs : Fin n → AName.{u} A => eqB S (finsetB xs))]
+  refine iSup_le fun xs => ?_
+  have hto : eqB S (finsetB xs) ⊓ (subsetB S T ⊓ isDirectedSubsetB 𝒟 ⊓
+      subsetUnionB T 𝒟) ≤
+      eqB S (finsetB xs) ⊓ (subsetB (finsetB xs) T ⊓ isDirectedSubsetB 𝒟 ⊓
+        subsetUnionB T 𝒟) := by
+    refine le_inf inf_le_left (le_inf (le_inf ?sub ?dir) ?un)
+    · exact (subsetB_of_eqB S (finsetB xs) T).trans'
+        (le_inf inf_le_left
+          (inf_le_of_right_le (inf_le_of_left_le inf_le_left)))
+    · exact inf_le_of_right_le (inf_le_of_left_le inf_le_right)
+    · exact inf_le_of_right_le inf_le_right
+  refine hto.trans ?_
+  refine (inf_le_inf_left (eqB S (finsetB xs))
+    (finsetB_le_exists_directed xs T 𝒟)).trans ?_
+  rw [inf_iSup_eq]
+  refine iSup_le fun U => ?_
+  refine le_iSup_of_le U ?_
+  refine le_inf (inf_le_of_right_le inf_le_left) ?_
+  have h := subsetB_of_eqB (finsetB xs) S U
+  refine h.trans' ?_
+  refine le_inf ?_ (inf_le_of_right_le inf_le_right)
+  rw [eqB_comm]
+  exact inf_le_left
+
+/-- Internal subset-order `≪` is finite `⊆`. Not `proposition_27`. -/
+theorem wayBelowSubsetB_eq_finite_subset (S T : AName.{u} A) :
+    wayBelowSubsetB S T = isFiniteB S ⊓ subsetB S T :=
+  le_antisymm (wayBelowSubsetB_le_finite_subset S T)
+    (wayBelowSubsetB_of_finite_subset S T)
 
 end
 
