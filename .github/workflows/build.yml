@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: catskillsresearch/palomar-preflight
-          ref: de7e8b926342c75358801c609efd1296af4ed412
+          ref: 2647a33c250664b950a369e94eb0353c19c77fd3
           path: palomar-preflight
 
       - name: Install elan
