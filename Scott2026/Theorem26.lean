@@ -5,6 +5,7 @@ Authors: Lars Warren Ericson.
 -/
 
 import Scott2026.InterpConstVA
+import Scott2026.InternalInterp
 import Scott2026.OidEssential
 import Scott2026.ReflexiveVA
 
@@ -24,12 +25,6 @@ namespace Scott2026
 open AName
 
 variable {A : Type u} [CompleteBooleanAlgebra A]
-
-/-- A partial valuation from the variable name `V` to the domain `D`, with
-domain of definition `Dom`. -/
-noncomputable def isValuationB
-    (V D Dom Rho : AName.{u} A) : A :=
-  subsetB Dom V ⊓ isFunctionB Rho Dom D
 
 /-- Turn an internal function-name witness into its `SetoidF_A` map. This is
 Definition 16 followed by Definition 13, exactly as in the proof of
