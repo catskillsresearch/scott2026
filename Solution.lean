@@ -104,6 +104,9 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   iSup_memB_inf_eqB_le lamDKInductiveB_pure_part
   lamDKInductiveB_const_le lamDKVal_le_memB_of_inductive lamDKB_least
   lamDKVal_check check_encodeLamDK lamDKB_check_eq
+  LamDK.ofLam interpDKVA interpDKVA_var interpDKVA_const
+  interpDKVA_app interpDKVA_abs interpDKVA_ofLam
+  interpDKVA_update_determined
   psetElemSetoid PSetElem ExtensionalPowerIdx extensionalPowerName
   AName.exists_eq_check_domChild AName.eqB_check_domChild
   memB_domChild_extensionalPowerName_check extensionalPowerSetoid

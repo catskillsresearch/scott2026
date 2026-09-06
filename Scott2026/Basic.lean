@@ -17,6 +17,7 @@ import Scott2026.Domain
 import Scott2026.Lambda
 import Scott2026.Interp
 import Scott2026.InterpVA
+import Scott2026.InterpConstVA
 import Scott2026.Lemma31
 import Scott2026.Corollary34
 import Scott2026.Prop36
