@@ -23,6 +23,7 @@ import Scott2026.EngelerVA
 import Scott2026.Random
 import Scott2026.Coin
 import Scott2026.VA
+import Scott2026.InternalDomain
 
 universe u v
 
@@ -364,8 +365,10 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- `proposition_28_va_canonical_total` / `proposition_28_va_canonical_complete`
 -- / `definition_11_canonicalPowerB`. Raw index-level `IsStrict` is false
 -- (`oid_powerB_not_strict`); there is no `proposition_28_va_strict`.
--- The continuous-lattice-with-base clause is not stated (no internal
--- formula language for way-below / continuous lattices in `V^A`).
+-- The continuous-lattice-with-base clause is not stated: the internal
+-- language is now `isContinuousLatticeSubsetF` / `isBaseSubsetB`, but
+-- `isContinuousLatticeSubsetB (powerB X) = ⊤` is blocked by
+-- `isFiniteB_of_subset` (internal Proposition 27).
 --
 -- Theorem 30 (CSL p.7): `(P^A(check E), ‖⊆‖, ·, lam)` is an `A`-valued
 -- reflexive dcpo on the canonical carrier (`theorem_30` / `theorem_30_model`
@@ -444,12 +447,17 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- (`engelerWithNumerals`, `IsContinuousLattice (Set ℕ)`).
 --
 -- Corollary 34 (CSL p.11): the paper name is the internal V^A statement
--- “reflexive continuous lattice with numerals”. There is no internal
--- way-below language (same limit as `theorem_30`). The Lean package is
--- `corollary_34_check` (Lemma 31 check/VA Church images, Δ₀ Boolean
--- distinctness via Theorem 2, (ii)–(iv) on `interpClosedVA`).
--- `eqB_interpClosedVA_churchNum_subsingleton` records that numeral
--- injectivity needs `[Nontrivial A]`.
+-- “reflexive continuous lattice with numerals”. The internal `≪` /
+-- continuous-lattice language (subset order) is in `InternalDomain.lean`
+-- (`wayBelowSubsetF`, `isContinuousLatticeSubsetF`, matching `*B`
+-- Boolean values). `corollary_34` is still unnamed: numerals are
+-- `corollary_34_check`; the continuous-lattice clause needs internal
+-- Proposition 27 (`≪ ↔` finite `⊆`). Available: `≪ → ⊆`
+-- (`wayBelowSubsetB_le_subsetB`, `wayBelow_le_formula_valid`),
+-- directedness of `P_fin^A` (`isDirectedSubsetB_pfinB`), and
+-- `wayBelowSubsetB_le_exists_pfin`. The missing lemma is
+-- `isFiniteB_of_subset`. `eqB_interpClosedVA_churchNum_subsingleton`
+-- records that numeral injectivity needs `[Nontrivial A]`.
 --
 -- Lemma 35 (CSL p.12): `lemma_35` / `lemma_35_i` / `lemma_35_ii` are
 -- Engeler-only (`engelerWithNumerals` on `𝒫(ℕ)`). Scott-discrete

@@ -14,9 +14,10 @@ the Engeler model in `V^A` (Theorem 30) is a reflexive continuous lattice
 with numerals, given check of the Church Booleans and numerals, with the
 whole statement interpreted in `V^A`.
 
-There is no internal formula language for way-below / continuous lattices
-in `V^A` (the same limitation already recorded for `theorem_30`). The
-Lean name is therefore `corollary_34_check`, not `corollary_34`.
+The internal `≪` / continuous-lattice language (subset order) lives in
+`InternalDomain.lean`. The Lean name remains `corollary_34_check`, not
+`corollary_34`: the paper type still needs `isContinuousLatticeSubsetB
+(powerB (check ω)) = ⊤`, blocked by `isFiniteB_of_subset`.
 
 Proof sketch (vision ll.786–788):
 * Lemma 31: `‖⟦check M⟧^A = check(⟦M⟧)‖ = 1` for closed Church `⊤`, `⊥`,

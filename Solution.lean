@@ -19,6 +19,20 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   axiom_power_valid axiom_separation_valid axiom_infinity_valid
   axiom_regularity_valid axiom_collection_valid axiom_choice_valid
   zfcAxiom_valid
+  subsetF nonemptyF subsetUnionF isUpperBoundSubsetF isSupSubsetF
+  isDirectedSubsetF wayBelowSubsetF isCompleteLatticeSubsetF
+  inWayBelowDownF directedDownF joinsDownF isContinuousAtSubsetF
+  isContinuousLatticeSubsetF wayBelow_le_formula
+  nonemptyB subsetUnionB isUpperBoundSubsetB isSupSubsetB
+  isDirectedSubsetB wayBelowSubsetB isCompleteLatticeSubsetB
+  inWayBelowDownB directedDownB joinsDownB isContinuousAtSubsetB
+  isContinuousLatticeSubsetB isBaseSubsetB union2B
+  bval_subsetF bval_nonemptyF bval_subsetUnionF
+  bval_isUpperBoundSubsetF bval_isSupSubsetF bval_isDirectedSubsetF
+  bval_wayBelowSubsetF bval_isCompleteLatticeSubsetF bval_inWayBelowDownF
+  wayBelowSubsetB_le_subsetB wayBelow_le_formula_valid
+  isDirectedSubsetB_pfinB wayBelowSubsetB_le_exists_pfin
+  memB_pfinB isFiniteB_empty isFiniteB_singleton isFiniteB_union2B
   regularity_semantic collectB collectB_spec
   hilbertK_sound hilbertS_sound hilbertDNE_sound
   allImp_sound allVac_sound allInst_sound eqRefl_sound eqLeibniz_sound
