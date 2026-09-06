@@ -205,6 +205,7 @@ export Scott2026 (APoset lemma_12 lemma_12_converse
   proposition_44_coin not_isAtomic_coinAlgebra
   proposition_27_finite_directed proposition_27_finite_sUnion
   proposition_27_finite_countable
+  internal_interpretation_statement csl2026_internal_interpretation
   csl2026 csl2026_capstones)
 
 export Scott2026.Lam (FreeFor subst_fresh freeFor_of_not_mem_fv freeFor_of_closed
@@ -214,7 +215,7 @@ export Scott2026.Lam (FreeFor subst_fresh freeFor_of_not_mem_fv freeFor_of_close
 # Solution to the Challenge
 
 Palomar compares this module to `Challenge.lean` using `comparator.json`.
-The compared names are `csl2026` and `proposition_36_i`. This file imports
-`Scott2026.Basic` and re-exports them (`csl2026` is proved from
-`csl2026_capstones`).
+The compared names are `csl2026_internal_interpretation`, `csl2026`, and
+`proposition_36_i`. This file imports `Scott2026.Basic` and re-exports them
+(`csl2026` is proved from `csl2026_capstones`).
 -/

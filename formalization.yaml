@@ -2,19 +2,22 @@
 version: "v0.4"
 
 project:
-  name: "Interpreting Lambda Calculus in Domain-Valued Random Variables (CSL 2026)"
+  name: "Lean Formalization of Interpreting Lambda Calculus in Domain-Valued Random Variables (CSL 2026)"
   description: >-
-    Sorry-free Lean 4 / mathlib formalization of Furber, Mardare, Panangaden,
-    and Scott, Interpreting Lambda Calculus in Domain-Valued Random Variables
-    (LIPIcs, Vol. 363, CSL 2026, Article 48). Three capstones sit on top of
+    Formalization in Lean 4 / mathlib of the existing paper by Furber,
+    Mardare, Panangaden, and Scott, Interpreting Lambda Calculus in
+    Domain-Valued Random Variables (LIPIcs, Vol. 363, CSL 2026, Article 48).
+    This repository formalizes that published mathematics; it does not present
+    the paper's results as new mathematics originating in this repository.
+    Three capstones sit on top of
     the rest of the paper: Theorem 26 (internal λ-interpretation in
     SetoidF_A), Corollary 34 (the Engeler model with numerals in V^A), and
     Theorem 43 (two fair-coin subsets of ℕ that are incomparable under the
     λ-definable many-one preorder). Domain-theory background is imported from
-    a vendored copy of scott1972. The Palomar Challenge locks Theorem 43 as
-    csl2026 (incomparable λ-definable many-one degrees) together with the
-    definition proposition_36_i. The Solution proof goes through the three
-    capstones. Lean is written by AI agents
+    a vendored copy of scott1972. The Palomar Challenge locks both the
+    Boolean-valued internal-interpretation consequence of Theorem 26 and
+    Corollary 34 as csl2026_internal_interpretation and Theorem 43 as csl2026,
+    together with the definition proposition_36_i. Lean is written by AI agents
     under the direction and review of the author. The paper's authors were
     not contacted and did not participate in or endorse this formalization.
     There is no sorry outside the deliberate holes in Challenge.lean, no
@@ -25,24 +28,29 @@ project:
   responsible_maintainers:
     - "Lars Warren Ericson"
 
-repository:
-  role: substantive-development
-
 classification:
   arxiv: [cs.LO, cs.PL]
   msc2020: ["68Q55", "06D99", "03B70"]
 
 status:
   scope: >-
-    Sorry-free formalization of the CSL 2026 development in Scott2026/,
+    Sorry-free formalization of the existing CSL 2026 paper in Scott2026/,
     packaged around three capstones: theorem26Full (Theorem 26),
     corollary_34 (Corollary 34), and theorem_43_paper (Theorem 43). The
-    compared inventory matches comparator.json: csl2026 (Theorem 43) and
-    proposition_36_i; the Solution proof instantiates csl2026_capstones.
-  sorry_count: 1
+    compared inventory matches comparator.json:
+    csl2026_internal_interpretation (the Boolean-valued λ-interpretation,
+    Boolean separation, and numeral injectivity supplied by Theorem 26 and
+    Corollary 34), csl2026 (Theorem 43), and proposition_36_i.
+  sorry_count: 2
   sorry_in_definitions: 0
   axioms: ["propext", "Classical.choice", "Quot.sound"]
   main_results:
+    - declaration: "Scott2026.csl2026_internal_interpretation"
+      file: "Scott2026/Paper.lean"
+      note: "Comparator target: Mathlib-only face of Theorem 26 and Corollary 34, instantiated by the internal Engeler model in V^A."
+    - declaration: "Scott2026.internal_interpretation_statement"
+      file: "Scott2026/Paper.lean"
+      note: "Compared statement definition for the Boolean-valued interpretation capstone."
     - declaration: "Scott2026.csl2026"
       file: "Scott2026/Paper.lean"
       note: "Theorem 43: incomparable ≤ₘ degrees; Comparator target."
@@ -173,8 +181,11 @@ known_gaps:
   - >-
     Challenge proposition_36_i is the λ-combinator form of Proposition 36(i);
     the library definition is the Engeler-oracle form. Comparator treats
-    the definition as a hole (types only). Theorems 26 and Corollary 34
-    remain in csl2026_capstones and are not themselves Comparator-locked.
+    the definition as a hole (types only). The exact project-internal types of
+    theorem26Full and corollary_34 are not copied into the Mathlib-only
+    Challenge; their substantive Boolean-valued soundness, Boolean separation,
+    and numeral-injectivity consequences are Comparator-locked as
+    csl2026_internal_interpretation.
   - >-
     proposition_42_algebra finite-K is a Finset join; the paper’s fuzzy
     pfinB exists-quantifier over P_fin^A(check ω) is not fully internalized
@@ -198,12 +209,18 @@ limitations:
     Challenge.lean may contain deliberate sorries; Solution.lean and
     Scott2026/* must not.
   - >-
-    Challenge/Solution comparison covers csl2026 and proposition_36_i, not
-    the project-typed capstones packed in csl2026_capstones.
+    Challenge/Solution comparison covers csl2026_internal_interpretation,
+    csl2026, and proposition_36_i. It does not copy the large project-specific
+    A-name and SetoidF_A interfaces into the Mathlib-only Challenge.
 
 alignment:
   namespace: "Scott2026"
   statements:
+    - source: "Theorem 26 and Corollary 34 (Boolean-valued internal Engeler interpretation)"
+      lean: "csl2026_internal_interpretation"
+      module: "Scott2026.Paper"
+      status: proved
+      note: "Comparator target; existential Mathlib-only face instantiated by interpClosedVA on the internal Engeler carrier."
     - source: "Theorem 43 (incomparable λ-degrees)"
       lean: "csl2026"
       module: "Scott2026.Paper"

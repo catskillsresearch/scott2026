@@ -31,9 +31,10 @@ Original Lean and author-written docs are Apache-2.0. The source PDF
 **Library complete; Palomar Challenge is a Mathlib-only face.** Three
 capstones sit on top of the paper: `theorem26Full` (Theorem 26),
 `corollary_34` (Corollary 34), and `theorem_43_paper` (Theorem 43). The
-Comparator locks Theorem 43 as `csl2026` (incomparable `≤ₘ` degrees) and
-the relation `proposition_36_i`. The Solution proof goes through those
-three via `csl2026_capstones`. `[Nontrivial A]` makes the paper’s
+Comparator locks their Boolean-valued interpretation and internal Engeler
+consequences as `csl2026_internal_interpretation`, Theorem 43 as `csl2026`
+(incomparable `≤ₘ` degrees), and the relation `proposition_36_i`.
+`[Nontrivial A]` makes the paper’s
 implicit `⊥ ≠ ⊤` convention explicit.
 
 ## Files (Palomar)
@@ -42,7 +43,7 @@ implicit `⊥ ≠ ⊤` convention explicit.
 |---|---|
 | `arxiv.md` | Formalization narrative: introduction, Mathlib notes, Mermaid blueprints, short Lean snippets; generate the full-source appendix with `scripts/generate_arxiv_with_code.sh` |
 | `sources/Scott2026.pdf` | Primary source PDF (CSL 2026) |
-| `Scott2026/` | Sorry-free development |
+| `Scott2026/` | Sorry-free formalization of the published paper |
 | `Challenge.lean` | Palomar statement of record |
 | `Solution.lean` | Palomar solution module: imports `Scott2026/*` proofs |
 | `comparator.json` | Comparator config for the compared theorems and definitions |

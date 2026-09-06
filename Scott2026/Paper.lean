@@ -20,6 +20,48 @@ Corollary 34 in the proof without putting those types in Challenge.
 
 namespace Scott2026
 
+/-- Statement of the Mathlib-facing substantive consequence of Theorem 26 and
+Corollary 34, kept as a named definition for Palomar's Challenge/Solution
+boundary. -/
+def internal_interpretation_statement : Prop :=
+    ∀ (A : Type) [CompleteBooleanAlgebra A] [Nontrivial A],
+      ∃ (D : Type) (eqA : D → D → A) (interp : Lam ℕ → D),
+        (∀ {M N : Lam ℕ}, LamEq M N → eqA (interp M) (interp N) = ⊤) ∧
+        eqA (interp churchTrueN) (interp churchFalseN) = ⊥ ∧
+        ∀ n m, eqA (interp (churchNumN n)) (interp (churchNumN m)) = ⊤ →
+          n = m
+
+/-- Mathlib-facing substantive consequence of Theorem 26 and Corollary 34.
+For every nontrivial complete Boolean algebra, the internal Engeler
+interpretation validates the full λ-theory and separates the Church Booleans
+and numerals. This is Comparator-locked alongside Theorem 43. -/
+theorem csl2026_internal_interpretation :
+    internal_interpretation_statement := by
+  intro A _ _
+  refine ⟨EngelerCarrier (A := A),
+    fun X Y => AName.eqB (childΩ X) (childΩ Y),
+    interpClosedVA (A := A), ?_, ?_, ?_⟩
+  · intro M N h
+    rw [interpClosedVA_sound_full h]
+    exact AName.eqB_self _
+  · exact eqB_interpClosedVA_churchTrue_churchFalse (A := A)
+  · intro n m h
+    have hn :
+        interpClosedVA (A := A) (churchNumN n) =
+          interpClosedVA (churchNum n) := by
+      rw [interpClosedVA_churchNumN, interpClosedVA_churchNum,
+        churchNum_interpClosed_eq_churchNumN]
+    have hm :
+        interpClosedVA (A := A) (churchNumN m) =
+          interpClosedVA (churchNum m) := by
+      rw [interpClosedVA_churchNumN, interpClosedVA_churchNum,
+        churchNum_interpClosed_eq_churchNumN]
+    change AName.eqB
+      (childΩ (interpClosedVA (A := A) (churchNumN n)))
+      (childΩ (interpClosedVA (A := A) (churchNumN m))) = ⊤ at h
+    rw [hn, hm] at h
+    exact churchNum_interpClosedVA_injective (A := A) h
+
 /-- Identity combinator `λx. x`, used to show `≤ₘ` is reflexive. -/
 def lamId : Lam ℕ :=
   Lam.abs 0 (Lam.var 0)

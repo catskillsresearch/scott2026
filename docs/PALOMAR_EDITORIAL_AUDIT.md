@@ -57,9 +57,11 @@ minutes wall time per run.
 
 Before running full preflight on a submission candidate, confirm:
 
-1. **Research interest** — the compared theorem is `csl2026` (Theorem 43:
-   incomparable `≤ₘ` degrees) together with the definition
-   `proposition_36_i`.
+1. **Research interest** — the compared theorems are
+   `csl2026_internal_interpretation` (the Boolean-valued λ-interpretation and
+   internal Engeler consequences of Theorem 26 and Corollary 34) and
+   `csl2026` (Theorem 43: incomparable `≤ₘ` degrees), together with the
+   definition `proposition_36_i`.
 2. **Definition pinning** — every material symbol in each compared theorem type
    is either primitive, defined without `sorry` in Challenge.lean, or listed in
    `comparator.json` → `definition_names` with its defining or semantic law also

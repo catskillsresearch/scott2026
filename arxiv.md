@@ -1,4 +1,4 @@
-# A Lean 4 Development of Interpreting Lambda Calculus in Domain-Valued Random Variables (CSL 2026)
+# A Lean 4 Formalization of Interpreting Lambda Calculus in Domain-Valued Random Variables (CSL 2026)
 
 **Author.** Lars Warren Ericson (Catskills Research Company).
 **Source paper.** Robert Furber, Radu Mardare, Prakash Panangaden, and Dana Scott,
@@ -246,9 +246,12 @@ Further named results: `definition_25` / `interp`, `lemma_31`,
 `proposition_40_measure`, `lemma_41_measure` / `lemma_41_algebra`,
 `not_isAtomic_coinAlgebra`.
 
-Compared Palomar declarations: `csl2026` (Theorem 43) and
-`proposition_36_i`. The Solution proof of `csl2026` uses
-`csl2026_capstones` (`theorem26Full`, `corollary_34`, `theorem_43_paper`).
+Compared Palomar declarations: `csl2026_internal_interpretation` (the
+Boolean-valued interpretation and internal Engeler consequences of Theorem 26
+and Corollary 34), `csl2026` (Theorem 43), and `proposition_36_i`. The
+Solution instantiates the internal-interpretation face with `interpClosedVA`;
+the proof of `csl2026` uses `csl2026_capstones` (`theorem26Full`,
+`corollary_34`, `theorem_43_paper`).
 
 ## 6. Proof notes
 
@@ -494,9 +497,9 @@ intended meaning.
   `MeasureAlgebra`.
 - Engeler-only `lemma_35` / `proposition_36` / `proposition_42` /
   `theorem_43` keep weaker or special-case names.
-- The Palomar Challenge locks `csl2026` (Theorem 43) and
-  `proposition_36_i`. The capstones `theorem26Full`, `corollary_34`, and
-  `theorem_43_paper` are packed in `csl2026_capstones` and remain
+- The Palomar Challenge locks `csl2026_internal_interpretation`,
+  `csl2026` (Theorem 43), and `proposition_36_i`. The exact project-facing
+  capstones `theorem26Full`, `corollary_34`, and `theorem_43_paper` remain
   kernel-checked in `Scott2026/`.
 
 ## 8. Build and preflight
