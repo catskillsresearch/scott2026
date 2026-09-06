@@ -32,6 +32,7 @@ import Scott2026.ExtensionalVA
 import Scott2026.InternalDomain
 import Scott2026.Proposition28
 import Scott2026.ReflexiveVA
+import Scott2026.Theorem26
 
 universe u v
 

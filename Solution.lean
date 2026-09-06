@@ -107,6 +107,9 @@ export Scott2026 (scaffold_placeholder lemma_12 lemma_12_converse
   LamDK.ofLam interpDKVA interpDKVA_var interpDKVA_const
   interpDKVA_app interpDKVA_abs interpDKVA_ofLam
   interpDKVA_update_determined
+  isValuationB functionNameToSetoidFHom
+  theorem26FullOfFunctionName theorem26PureOfFunctionName
+  theorem26FullOfFunctionName_gamma theorem26PureOfFunctionName_gamma
   psetElemSetoid PSetElem ExtensionalPowerIdx extensionalPowerName
   AName.exists_eq_check_domChild AName.eqB_check_domChild
   memB_domChild_extensionalPowerName_check extensionalPowerSetoid
