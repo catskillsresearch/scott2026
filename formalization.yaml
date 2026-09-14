@@ -29,8 +29,8 @@ project:
     - "Lars Warren Ericson"
 
 classification:
-  arxiv: [cs.LO, cs.PL]
-  msc2020: ["68Q55", "06D99", "03B70"]
+  arxiv: [cs.LO, cs.PL, math.LO]
+  msc2020: ["68Q55", "06D99", "03B70", "68V20"]
 
 status:
   scope: >-

@@ -41,7 +41,7 @@ implicit `⊥ ≠ ⊤` convention explicit.
 
 | File | Role |
 |---|---|
-| `arxiv.md` | Formalization narrative: introduction, Mathlib notes, Mermaid blueprints, short Lean snippets; generate the full-source appendix with `scripts/generate_arxiv_with_code.sh` |
+| `arxiv.md` | Formalization narrative, Mermaid blueprints, inline Lean gists; Appendix A is a GitHub module index via `scripts/generate_arxiv_with_code.sh` |
 | `sources/Scott2026.pdf` | Primary source PDF (CSL 2026) |
 | `Scott2026/` | Sorry-free formalization of the published paper |
 | `Challenge.lean` | Palomar statement of record |

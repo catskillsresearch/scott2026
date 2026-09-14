@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Append complete Lean source to arxiv.md → arxiv_with_code.md (build artifact)."""
+"""Append Lean module index to arxiv.md → arxiv_with_code.md (build artifact)."""
 
 from __future__ import annotations
 
@@ -7,8 +7,8 @@ from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+GITHUB = "https://github.com/catskillsresearch/scott2026"
 
-# Library files in a readable dependency order (Basic last: it re-exports).
 FILES = [
     "Scott2026.lean",
     "Scott2026/BooleanLogic.lean",
@@ -88,10 +88,14 @@ FILE_ROLES: dict[str, str] = {
     "Scott2026/Corollary34.lean": "Corollary 34",
     "Scott2026/Lemma35General.lean": "General Lemma 35",
     "Scott2026/Prop36.lean": "Proposition 36",
-    "Scott2026/Random.lean": "Measure algebra, L⁰, G_X",
+    "Scott2026/Random.lean": "Measure algebra, L^0, G_X",
     "Scott2026/Coin.lean": "Coin space; Props 42–44; Theorem 43",
     "Scott2026/Basic.lean": "Re-exports and inventory",
 }
+
+
+def github_blob(rel: str) -> str:
+    return f"{GITHUB}/blob/main/{rel}"
 
 
 def paper_title(arxiv_text: str) -> str:
@@ -118,7 +122,7 @@ def main() -> None:
         raise SystemExit(f"missing Lean files: {missing}")
 
     arxiv_path = ROOT / "arxiv.md"
-    arxiv = arxiv_path.read_text()
+    arxiv = arxiv_path.read_text(encoding="utf-8")
     title = paper_title(arxiv)
     body = narrative_body(arxiv)
 
@@ -127,71 +131,55 @@ def main() -> None:
         "<!-- AUTO-GENERATED: run scripts/generate_arxiv_with_code.sh to refresh -->\n"
         "<!-- AGENTS: do not read or grep this file. Use arxiv.md; see .cursorignore -->\n"
     )
-    parts.append(f"# {title} — full narrative + complete Lean source\n\n")
+    parts.append(f"# {title} — narrative + Lean module index\n\n")
     parts.append(
         "> **Generated artifact — not for agents.** Inventory and narrative live in "
         "[`arxiv.md`](arxiv.md). Regenerate with `scripts/generate_arxiv_with_code.sh`. "
         "This file is stale whenever it is older than `arxiv.md` or any listed `.lean` file.\n\n"
     )
     parts.append(
-        f"*Generated {date.today().isoformat()} from `arxiv.md` and all library "
-        "`.lean` files in dependency order.*\n\n"
+        f"*Generated {date.today().isoformat()} from `arxiv.md` and the module list "
+        "in `scripts/generate_arxiv_with_code.py`.*\n\n"
     )
     parts.append(
         "**Review copy.** The narrative body matches [`arxiv.md`](arxiv.md) "
         "(excluding the title block through the first `---`). "
-        "This file appends **Appendix A: Complete Lean source** with every line "
-        "of the `Scott2026/` formalization inlined below.\n\n"
+        "This file appends **Appendix A: Lean module index** with GitHub links "
+        "to every `Scott2026/` library file (no inlined full source). "
+        "Vendored `Scott1972/` is not listed; see `vendor/scott1972`.\n\n"
     )
     parts.append("---\n\n")
     parts.append("## Document map\n\n")
     parts.append("| Part | Contents |\n")
     parts.append("| --- | --- |\n")
-    parts.append("| **§1–§9** | Full `arxiv.md` narrative |\n")
-    parts.append("| **Appendix A** | Complete Lean 4 source, one subsection per file |\n\n")
-    parts.append("### Appendix A — file index\n\n")
-
-    total_lines = 0
-    for f in FILES:
-        n = len((ROOT / f).read_text().splitlines())
-        total_lines += n
-        parts.append(f"- [`{f}`](#{f.replace('/', '').replace('.', '').lower()}) — {n} lines\n")
-
-    parts.append(f"\n**Total:** {len(FILES)} files, {total_lines} lines of Lean.\n\n")
+    parts.append("| **Narrative** | Full `arxiv.md` body with inline Lean gists |\n")
+    parts.append("| **Appendix A** | Hyperlinked module index |\n\n")
     parts.append("---\n\n")
     parts.append("# Narrative (from arxiv.md)\n\n")
     parts.append(body)
     parts.append("\n\n---\n\n")
-    parts.append("# Appendix A: Complete Lean source\n\n")
+    parts.append("# Appendix A: Lean module index\n\n")
+    parts.append(
+        f"Checked by `lake build`. Complete sources: [{GITHUB}]({GITHUB}). "
+        "Each row links to the corresponding file on GitHub.\n\n"
+    )
     parts.append("| Role | File |\n")
     parts.append("| --- | --- |\n")
     for f in FILES:
-        parts.append(f"| {FILE_ROLES[f]} | `{f}` |\n")
+        parts.append(f"| {FILE_ROLES[f]} | [`{f}`]({github_blob(f)}) |\n")
     parts.append(
         "\nPrimary source (PDF): [`sources/Scott2026.pdf`]"
-        "(sources/Scott2026.pdf) — Furber, Mardare, Panangaden, and Scott, "
-        "*Interpreting Lambda Calculus in Domain-Valued Random Variables* "
+        f"({GITHUB}/blob/main/sources/Scott2026.pdf) — Furber, Mardare, Panangaden, "
+        "and Scott, *Interpreting Lambda Calculus in Domain-Valued Random Variables* "
         "(LIPIcs, CSL 2026).\n\n"
     )
-    parts.append(
-        "Files appear in dependency order (`Basic.lean` last). "
-        "Each block is a verbatim copy of the repository file at generation time. "
-        "Vendored `Scott1972/` sources are not inlined; see `vendor/scott1972`.\n\n"
-    )
 
-    for f in FILES:
-        content = (ROOT / f).read_text().rstrip() + "\n"
-        content = content.replace("```", "'''")
-        n = len(content.splitlines())
-        parts.append(f"## `{f}`\n\n")
-        parts.append(f"*{n} lines.*\n\n")
-        parts.append("```lean\n")
-        parts.append(content)
-        parts.append("```\n\n")
+    total_lines = sum(len((ROOT / f).read_text().splitlines()) for f in FILES)
+    parts.append(f"**Total:** {len(FILES)} modules, {total_lines} lines of Lean in `Scott2026/`.\n\n")
 
     out = ROOT / "arxiv_with_code.md"
     out.write_text("".join(parts))
-    print(f"wrote {out} ({total_lines} Lean lines across {len(FILES)} files)")
+    print(f"wrote {out} ({total_lines} Lean lines indexed across {len(FILES)} files)")
 
 
 if __name__ == "__main__":

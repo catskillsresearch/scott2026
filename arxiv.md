@@ -1,4 +1,4 @@
-# A Lean 4 Formalization of Interpreting Lambda Calculus in Domain-Valued Random Variables (CSL 2026)
+# A Lean 4 Certificate for Furber et al (CSL 2026) Interpreting Lambda Calculus in Domain-Valued Random Variables
 
 **Author.** Lars Warren Ericson (Catskills Research Company).
 **Source paper.** Robert Furber, Radu Mardare, Prakash Panangaden, and Dana Scott,
@@ -10,37 +10,23 @@ Vol. 363, CSL 2026, Article 48.
 
 ## Abstract
 
-This note records a Lean 4 / mathlib formalization of Furber, Mardare,
-Panangaden, and Scott's 2026 CSL paper *Interpreting Lambda Calculus in
+This note records a Lean 4 / Mathlib formalization of Furber, Mardare,
+Panangaden, and Scott's CSL 2026 paper *Interpreting Lambda Calculus in
 Domain-Valued Random Variables*. The paper develops Boolean-valued set theory
-and domain theory from scratch and shows how the $\lambda$-calculus can be
-interpreted using domain-valued random variables, building on Dana Scott's
-vision of Boolean-valued models for probabilistic higher-type programming.
-
-The library in `Scott2026/` is sorry-free and project-axiom-free. It covers
-the paper's Boolean-valued universe $V^A$, the internal Engeler model,
-Theorems 26 and 30, Corollary 34, the general Lemma 35 / Proposition 36
-oracle calculus, the measure algebra $A(X)=\Sigma/\mathcal{N}$,
-Propositions 39–42, Theorem 43, and Proposition 44. Domain-theory background
-is imported from a vendored copy of
-[`scott1972`](https://github.com/catskillsresearch/scott1972) at
-`vendor/scott1972` (frozen SHA in `vendor/FROZEN.txt`). The development is
-packaged for [Palomar](https://palomar-registry.org/about) with a Challenge /
-Solution pair and `formalization.yaml` metadata.
-
-The paper's authors were not contacted and did not participate in, review, or
-endorse this formalization. Lean is written by AI agents under the direction
-and review of the author, who takes sole responsibility for the mathematical
-content.
-
-Proofs in this note are compact. Where a Lean argument fits in about ten
-lines, the snippet is copied from the library; otherwise the note states the
-theorem and points to the implementation in `Scott2026/`. The complete source
-is generated as Appendix A of the review copy
-(`scripts/generate_arxiv_with_code.sh` → `arxiv_with_code.md`).
-
-<!-- AI_MODEL_TOOL_BULLETS -->
-<!-- /AI_MODEL_TOOL_BULLETS -->
+and domain theory and interprets the $\lambda$-calculus via domain-valued
+random variables. The sorry-free `Scott2026/` library (~38,000 lines) covers
+$V^A$, the internal Engeler model, Theorems 26 and 30, Corollary 34, Lemma 35 /
+Proposition 36, the measure algebra $A(X)=\Sigma/\mathcal{N}$, Propositions
+39--42, Theorem 43, and Proposition 44. Continuous-lattice background is
+vendored from scott1972 (`vendor/scott1972`). Deliberate `sorry`s appear only
+in the Mathlib-only `Challenge.lean` (`csl2026_internal_interpretation`,
+`csl2026`, `proposition_36_i`); `Solution.lean` re-exports kernel-checked
+proofs. There
+are no project axioms beyond Mathlib's classical footprint. The paper's authors
+were not involved in or endorsing this work. Lean was written by AI agents
+under the author's direction and review. Proof summaries include short Lean
+fragments; the full library is indexed with links to
+https://github.com/catskillsresearch/scott2026.
 
 ## 1. Introduction
 
@@ -94,9 +80,9 @@ standard mathlib footprint `[propext, Classical.choice, Quot.sound]`.
 The sorry-free development is about 38,000 lines across 38 Lean modules
 under `Scott2026/`, plus the vendored Scott 1972 continuous-lattice
 library. Deliberate proof holes occur only in the Mathlib-only
-`Challenge.lean`. The Palomar compared inventory is a Mathlib-expressible
-subset of Proposition 27; the remaining paper-type theorems are
-kernel-checked in the library and re-exported by `Solution.lean`.
+`Challenge.lean`. That challenge face is a Mathlib-expressible subset of
+Proposition 27; the remaining paper-type theorems are kernel-checked in
+`Scott2026/` and re-exported by `Solution.lean`.
 
 | Module cluster | Role |
 | --- | --- |
@@ -106,11 +92,10 @@ kernel-checked in the library and re-exported by `Solution.lean`.
 | `Domain`, `Lambda`, `Interp`, `Lemma35General`, `Prop36` | Ground reflexive dcpos, Church calculus, oracles |
 | `Random`, `Coin` | Measure algebra, $L^0$, $G_X$, Propositions 42–44 |
 | `Basic` | Re-exports and inventory comments |
-| `Challenge` / `Solution` | Palomar statement of record vs sorry-free proofs |
+| `Challenge` / `Solution` | Mathlib-only challenge statements vs sorry-free proofs |
 
 `Scott1972` is compiled from `vendor/scott1972` (`srcDir`; pin `a198b6e`,
-see `vendor/FROZEN.txt`), not as a Lake path/git dependency, so Palomar's
-sandbox need not write outside `.lake/`.
+see `vendor/FROZEN.txt`), not as a Lake path/git dependency.
 
 ## 3. How the proofs use Mathlib
 
@@ -140,14 +125,15 @@ topology (`IsEmbedding`, `Continuous`, Scott topology). Lemma 35(ii)
 applies `scottExtend` to the discrete numeral subspace and feeds the
 extension to `ReflexiveDcpo.lam`.
 
-**Measure theory.** Fair coins are Mathlib Bernoulli measures
-(`Probability.Distributions.Bernoulli`) on `Bool`, extended by
+**Measure theory.** Fair coins are Mathlib Bernoulli measures on `Bool`
+(extended by
 `Measure.infinitePi` to $2^\omega$ and by `Measure.prod` to
 $2^\omega\times 2^\omega$. Nullity, countable unions, and
 `toMeasurable` are the usual `MeasureTheory` lemmas. The paper algebra
-`MeasureAlgebra μ` is a `Quotient` of `{s // MeasurableSet s}` by
-$\mu(s\mathbin{\triangle} t)=0$, with a `CompleteBooleanAlgebra`
-instance under `[IsFiniteMeasure μ]` (countable-chain-condition
+`MeasureAlgebra`, parameterized by a measure $\mu$, is a `Quotient` of
+`{s // MeasurableSet s}` by $\mu(s\mathbin{\triangle} t)=0$, with a
+`CompleteBooleanAlgebra` instance under `[IsFiniteMeasure μ]`
+(countable-chain-condition
 essential suprema).
 
 **Combinatorics of syntax.** Capture-avoiding substitution needs
@@ -166,6 +152,7 @@ import graph follows the published order: extensional names, then the
 internal evaluator, then Engeler in $V^A$, then numerals and oracles,
 then the measure-algebra example.
 
+<!-- figure-caption: High-level dependency order of the formalized paper results. -->
 ```mermaid
 flowchart LR
   ZFC["Extensional ZFC<br/><i>VA · ExtensionalVA · Oid</i>"]
@@ -180,6 +167,7 @@ flowchart LR
   L35 --> RV
 ```
 
+<!-- figure-caption: Internal interpretation, Engeler model, numerals, and the random-variable capstone (Theorems 26--43). -->
 ```mermaid
 flowchart TD
   D19["Def 19 internal<br/>isReflexiveDcpoB"]
@@ -246,14 +234,29 @@ Further named results: `definition_25` / `interp`, `lemma_31`,
 `proposition_40_measure`, `lemma_41_measure` / `lemma_41_algebra`,
 `not_isAtomic_coinAlgebra`.
 
-Compared Palomar declarations: `csl2026_internal_interpretation` (the
-Boolean-valued interpretation and internal Engeler consequences of Theorem 26
-and Corollary 34), `csl2026` (Theorem 43), and `proposition_36_i`. The
-Solution instantiates the internal-interpretation face with `interpClosedVA`;
-the proof of `csl2026` uses `csl2026_capstones` (`theorem26Full`,
-`corollary_34`, `theorem_43_paper`).
+Compared declarations in `Challenge.lean`: `csl2026_internal_interpretation`
+(the Boolean-valued interpretation and internal Engeler consequences of
+Theorem 26 and Corollary 34), `csl2026` (Theorem 43), and `proposition_36_i`.
+The Solution instantiates the internal-interpretation face with
+`interpClosedVA`; the proof of `csl2026` uses `csl2026_capstones`
+(`theorem26Full`, `corollary_34`, `theorem_43_paper`). Representative
+challenge statements:
 
-## 6. Proof notes
+```lean
+theorem csl2026_internal_interpretation :
+    internal_interpretation_statement := by
+  sorry
+
+theorem csl2026 : ∃ T₁ T₂ : Set ℕ,
+    ¬proposition_36_i T₁ T₂ ∧ ¬proposition_36_i T₂ T₁ := by
+  sorry
+
+def proposition_36_i (S₁ S₂ : Set ℕ) : Prop :=
+  ∃ M : Lam ℕ, ∃ hM : MapsNumerals M,
+    ∀ n, n ∈ S₁ ↔ mapsNumeralsFun M hM n ∈ S₂
+```
+
+## Proof notes
 
 This section records strategy where the mechanization has to say more
 than the published text, and shows a short Lean fragment when the
@@ -392,7 +395,7 @@ theorem proposition_36_of {D : Type*} [CompleteLattice D]
 
 ### 6.6 Measure algebra, $G_X$, and Proposition 42
 
-`MeasureAlgebra μ` quotients measurable sets. The Boolean value of a
+`MeasureAlgebra` quotients measurable sets. The Boolean value of a
 measurable event is $\bot$ exactly when the event is null:
 
 ```lean
@@ -445,8 +448,14 @@ $T_i=\{n\mid a_i(x)\cdot\llbracket c_n\rrbracket=\llbracket\top\rrbracket\}$
 and Proposition 36 give both non-reducibility conclusions.
 
 The statement is short; the construction of the conull set is not, so
-this note does not copy the body. After `exists_mem_paperGoodSet` the
-library defines $T_i$ as the set of $n$ with
+this note does not copy the body. The capstone type matches the library proof:
+
+```lean
+theorem theorem_43_paper :
+    ∃ T₁ T₂ : Set ℕ, ¬proposition_36_i T₁ T₂ ∧ ¬proposition_36_i T₂ T₁
+```
+
+After `exists_mem_paperGoodSet` the library defines $T_i$ as the set of $n$ with
 $a_i(x)\cdot\llbracket c_n\rrbracket=\llbracket\top\rrbracket$ and
 finishes with `proposition_36_i` in `Scott2026/Coin.lean`. The
 external-oracle theorem `theorem_43` is unchanged and has the same type.
@@ -497,34 +506,49 @@ intended meaning.
   `MeasureAlgebra`.
 - Engeler-only `lemma_35` / `proposition_36` / `proposition_42` /
   `theorem_43` keep weaker or special-case names.
-- The Palomar Challenge locks `csl2026_internal_interpretation`,
-  `csl2026` (Theorem 43), and `proposition_36_i`. The exact project-facing
-  capstones `theorem26Full`, `corollary_34`, and `theorem_43_paper` remain
+- `Challenge.lean` compares `csl2026_internal_interpretation`, `csl2026`
+  (Theorem 43), and `proposition_36_i`. The project-facing capstones
+  `theorem26Full`, `corollary_34`, and `theorem_43_paper` remain
   kernel-checked in `Scott2026/`.
 
-## 8. Build and preflight
+## Build
 
 The repository pins Lean / mathlib **v4.33.0** (`lean-toolchain`).
 
 ```bash
 lake exe cache get
 lake build
-bash scripts/palomar_preflight.sh --mechanical-only   # CI / routine
-bash scripts/palomar_preflight.sh                     # before Palomar submission
-bash scripts/generate_arxiv_with_code.sh              # → arxiv_with_code.md
+bash scripts/build_arxiv_pdf.sh
 ```
 
-`arxiv_with_code.md` is a generated review copy: this narrative plus
-**Appendix A**, a verbatim inlining of every `Scott2026/` Lean file
-(~38,000 lines). It is gitignored and stale whenever it is older than
-`arxiv.md` or any listed `.lean` file. Do not treat it as the inventory
-source of truth.
+Regenerate `arxiv_with_code.md` when `arxiv.md` or listed sources change:
+`bash scripts/generate_arxiv_with_code.sh`.
 
-## 9. License and source PDF
+## Acknowledgments
+
+Thanks to **Prof. Dana Scott** (Carnegie Mellon University) for bringing the
+CSL 2026 paper to the author's attention. Scott did not participate in this
+work and does not endorse it.
+
+### AI-assisted development
+
+Lean in this repository was written by AI agents under the author's direction
+and review. The human author retains sole responsibility for the mathematical
+content, the formalization route, and every formal claim. **No large language
+model is listed as a co-author.**
+
+We gratefully acknowledge assistance from the following tools:
+
+<!-- AI_MODEL_TOOL_BULLETS -->
+<!-- /AI_MODEL_TOOL_BULLETS -->
+
+## References
+
+<!-- AI_MODEL_REFERENCES -->
+<!-- /AI_MODEL_REFERENCES -->
+
+## License and source PDF
 
 Original Lean and author-written docs: Apache-2.0. `sources/Scott2026.pdf`
 and `sources/JechSetTheory2003.pdf` are **not** Apache-2.0; see `NOTICE`
 and `sources/README.md`.
-
-<!-- AI_MODEL_REFERENCES -->
-<!-- /AI_MODEL_REFERENCES -->

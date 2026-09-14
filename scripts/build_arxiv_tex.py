@@ -9,7 +9,7 @@ Pipeline:
   4. Strip manual section numbers (any depth, e.g. `1.`, `1.3`, `5.1`) so LaTeX does
      the numbering and we never get duplicates like "5.1 5.1".
   5. Replace fenced code with \\lstinputlisting blocks (ASCII-sanitized for arXiv pdfLaTeX).
-  5b. Render ```mermaid blocks to vector PDFs via mermaid-cli (mmdc).
+  5b. Render ```mermaid blocks to PNG via mermaid-cli (mmdc) for arXiv pdfLaTeX.
   6. Inject AI model-card acknowledgements from `scripts/ai_model_cards.py` (before HTML-comment strip).
   7. pandoc → LaTeX, then splice the listing/math/figure placeholders back in.
 """
@@ -59,7 +59,7 @@ def find_chrome() -> str | None:
 def render_mermaid(code: str, idx: int) -> str:
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
     mmd_path = FIGURES_DIR / f"figure-{idx:03d}.mmd"
-    pdf_path = FIGURES_DIR / f"figure-{idx:03d}.pdf"
+    png_path = FIGURES_DIR / f"figure-{idx:03d}.png"
     mmd_path.write_text(code.strip() + "\n", encoding="utf-8")
 
     mmdc = shutil.which("mmdc")
@@ -72,14 +72,14 @@ def render_mermaid(code: str, idx: int) -> str:
     chrome = find_chrome()
     if chrome:
         env["PUPPETEER_EXECUTABLE_PATH"] = chrome
-    cmd = [mmdc, "-i", str(mmd_path), "-o", str(pdf_path), "--pdfFit", "-b", "transparent"]
+    cmd = [mmdc, "-i", str(mmd_path), "-o", str(png_path), "-b", "white"]
     if PUPPETEER_CONFIG.is_file():
         cmd += ["-p", str(PUPPETEER_CONFIG)]
     proc = subprocess.run(cmd, env=env, capture_output=True, text=True, check=False)
-    if proc.returncode != 0 or not pdf_path.is_file():
+    if proc.returncode != 0 or not png_path.is_file():
         sys.stderr.write(proc.stdout + "\n" + proc.stderr + "\n")
         raise RuntimeError(f"mmdc failed to render figure {idx}")
-    return pdf_path.relative_to(ROOT).as_posix()
+    return png_path.relative_to(ROOT).as_posix()
 
 
 def extract_title() -> str:
@@ -97,6 +97,10 @@ FENCE_RE = re.compile(r"^```([^\n]*)\n(.*?)^```\s*$", re.MULTILINE | re.DOTALL)
 MANUAL_SECTION_NUM = re.compile(r"^(#{1,6})[ \t]+\d+(?:\.\d+)*\.?[ \t]+", re.MULTILINE)
 NARRATIVE_MARKER = "# Narrative (from arxiv.md)"
 LEAN_MODULE_RE = re.compile(r"^###\s+(Scott2026(?:\.lean|/[^\s{]+))\s*$", re.MULTILINE)
+FIGURE_CAPTION_RE = re.compile(
+    r"<!--\s*figure-caption:\s*(.*?)\s*-->\s*\n```mermaid",
+    re.IGNORECASE | re.DOTALL,
+)
 
 
 def github_math_to_tex(text: str) -> str:
@@ -120,8 +124,8 @@ def drop_github_nav(text: str) -> str:
 
 def normalize_appendix_headings(text: str) -> str:
     text = re.sub(
-        r"^#\s+Appendix A: Complete Lean source\s*$",
-        "## Complete Lean source",
+        r"^#\s+Appendix A: (?:Complete Lean source|Lean module index)\s*$",
+        "## Lean module index",
         text,
         flags=re.MULTILINE,
     )
@@ -176,6 +180,26 @@ def lean_block_latex(code: str, listing_name: str) -> str:
     return "".join(parts)
 
 
+def parse_figure_captions(text: str) -> list[str]:
+    return [m.group(1).strip() for m in FIGURE_CAPTION_RE.finditer(text)]
+
+
+def escape_latex_caption(text: str) -> str:
+    out: list[str] = []
+    for ch in text:
+        if ch in "&%$#_{}":
+            out.append(f"\\{ch}" if ch != "}" else "\\}")
+        elif ch == "~":
+            out.append(r"\textasciitilde{}")
+        elif ch == "^":
+            out.append(r"\textasciicircum{}")
+        elif ch == "\\":
+            out.append(r"\textbackslash{}")
+        else:
+            out.append(ch)
+    return "".join(out)
+
+
 def extract_lean_titles(text: str) -> dict[str, str]:
     titles: dict[str, str] = {}
     lean_starts = [m.start() for m in re.finditer(r"^```lean\s*$", text, re.MULTILINE)]
@@ -191,14 +215,15 @@ def extract_lean_titles(text: str) -> dict[str, str]:
     return titles
 
 
-def replace_fences(text: str) -> tuple[str, dict[str, str]]:
+def replace_fences(text: str, figure_captions: list[str]) -> tuple[str, dict[str, str]]:
     lean_titles = extract_lean_titles(text)
     placeholders: dict[str, str] = {}
     lean_idx = 0
     other_idx = 0
+    figure_idx = 0
 
     def repl(match: re.Match[str]) -> str:
-        nonlocal lean_idx, other_idx
+        nonlocal lean_idx, other_idx, figure_idx
         lang = match.group(1).strip().lower()
         body = match.group(2)
         if lang == "lean":
@@ -217,13 +242,22 @@ def replace_fences(text: str) -> tuple[str, dict[str, str]]:
             return f"\n\n{key}\n\n"
         if lang == "mermaid":
             key = f"FIGINCLUDE{other_idx:03d}"
-            rel_path = render_mermaid(body, other_idx)
+            rel_path = render_mermaid(body, figure_idx)
+            if figure_idx < len(figure_captions):
+                caption = figure_captions[figure_idx]
+            else:
+                caption = f"Dependency diagram {figure_idx + 1}."
+            label = f"fig:scott2026-{figure_idx + 1:02d}"
+            figure_idx += 1
             other_idx += 1
+            cap = escape_latex_caption(caption)
             placeholders[key] = (
-                "\\begin{center}\n"
+                "\\begin{figure}[htbp]\n\\centering\n"
                 f"\\includegraphics[max width=\\linewidth,"
                 f"max totalheight=0.85\\textheight,keepaspectratio]{{{rel_path}}}\n"
-                "\\end{center}\n"
+                f"\\caption{{{cap}}}\n"
+                f"\\label{{{label}}}\n"
+                "\\end{figure}\n"
             )
             return f"\n\n{key}\n\n"
         key = f"CODEINCLUDE{other_idx:03d}"
@@ -272,9 +306,26 @@ def inject_placeholders(latex: str, placeholders: dict[str, str]) -> str:
     return out
 
 
+def break_texttt_paths(latex: str) -> str:
+    """Allow line breaks after `/` and `_` in \\texttt paths and identifiers."""
+
+    def fix(match: re.Match[str]) -> str:
+        inner = match.group(1)
+        inner = inner.replace("/", "/\\allowbreak{}")
+        inner = inner.replace(r"\_", r"\_\allowbreak{}")
+        inner = re.sub(r"(?<=[a-z])(?=[A-Z])", r"\\allowbreak{}", inner)
+        inner = re.sub(r"(?<=[A-Z])(?=[A-Z][a-z])", r"\\allowbreak{}", inner)
+        inner = inner.replace(".lean", ".\\allowbreak{}lean")
+        inner = re.sub(r"\.(?=[A-Za-z])", r".\\allowbreak{}", inner)
+        return "\\texttt{" + inner + "}"
+
+    return re.sub(r"\\texttt\{([^{}]*)\}", fix, latex)
+
+
 def cleanup_pandoc_latex(latex: str) -> str:
     latex = latex.replace("\\pandocbounded{", "{")
     latex = re.sub(r"\\tightlist\n?", "", latex)
+    latex = break_texttt_paths(latex)
     for cmd in ("section", "subsection", "subsubsection", "paragraph"):
         latex = re.sub(
             rf"(\\{cmd}\{{)\d+(?:\.\d+)*\.?\s+",
@@ -287,8 +338,13 @@ def cleanup_pandoc_latex(latex: str) -> str:
         latex,
     )
     latex = re.sub(
-        r"\\section\{Appendix A: Complete Lean source\}",
-        r"\\section{Complete Lean source}",
+        r"\\section\{Appendix A: (?:Complete Lean source|Lean module index)\}",
+        r"\\section{Lean module index}",
+        latex,
+    )
+    latex = re.sub(
+        r"\\section\{Appendix A\. Lean module index\}",
+        r"\\section{Lean module index}",
         latex,
     )
     latex = re.sub(r"\n{3,}", "\n\n", latex)
@@ -296,10 +352,22 @@ def cleanup_pandoc_latex(latex: str) -> str:
 
 
 def insert_appendix_command(latex: str) -> str:
-    marker = r"\section{Complete Lean source}"
+    marker = r"\section{Lean module index}"
     if marker not in latex:
         raise RuntimeError(f"missing {marker!r} in LaTeX output")
     return latex.replace(marker, r"\appendix" + "\n" + marker, 1)
+
+
+def insert_list_of_figures(latex: str) -> str:
+    """Insert \\listoffigures immediately before the References section."""
+    anchor = r"\hypertarget{references}{%"
+    if anchor not in latex:
+        anchor = r"\section{References}"
+    if anchor not in latex:
+        print("warning: missing References anchor; skipping \\listoffigures", file=sys.stderr)
+        return latex
+    block = "\\clearpage\n\\listoffigures\n\\clearpage\n\n"
+    return latex.replace(anchor, block + anchor, 1)
 
 
 def cleanup_abstract_latex(latex: str) -> str:
@@ -333,7 +401,7 @@ def build_title_page(abstract_latex: str) -> str:
           \\small
           \\textbf{{ORCID:}} {ORCID} \\\\
           \\textbf{{Primary Category:}} cs.LO (Logic in Computer Science) \\\\
-          \\textbf{{Secondary Category:}} math.LO (Logic)
+          \\textbf{{Secondary Categories:}} math.LO (Logic); cs.PL (Programming Languages)
         \\end{{center}}
 
         \\begin{{abstract}}
@@ -361,16 +429,18 @@ def main() -> int:
     raw = SRC.read_text(encoding="utf-8")
     body = drop_github_nav(raw)
     body = inject_model_cards(body)
+    figure_captions = parse_figure_captions(body)
     body = strip_html_comments(body)
     body = normalize_appendix_headings(body)
     abstract_md, body = extract_abstract(body)
     body = strip_manual_section_numbers(body)
     body = github_math_to_tex(body)
-    body, placeholders = replace_fences(body)
+    body, placeholders = replace_fences(body, figure_captions)
 
     latex_body = pandoc_to_latex(body, shift=True)
     latex_body = inject_placeholders(latex_body, placeholders)
     latex_body = cleanup_pandoc_latex(latex_body)
+    latex_body = insert_list_of_figures(latex_body)
     latex_body = insert_appendix_command(latex_body)
 
     abstract_latex = pandoc_to_latex(github_math_to_tex(abstract_md), shift=False) if abstract_md else ""
@@ -381,7 +451,7 @@ def main() -> int:
     document = preamble + "\n\n" + title_page + "\n\n" + latex_body + "\n\n\\end{document}\n"
     OUT.write_text(document, encoding="utf-8")
     n_listings = sum(1 for p in LISTINGS_DIR.iterdir() if p.is_file())
-    n_figures = sum(1 for p in FIGURES_DIR.glob("*.pdf"))
+    n_figures = sum(1 for p in FIGURES_DIR.glob("*.png"))
     print(
         f"wrote {OUT.relative_to(ROOT)} ({OUT.stat().st_size:,} bytes, "
         f"{n_listings} listings, {n_figures} mermaid figures)"
