@@ -30,4 +30,5 @@ dist/
 *.fls
 *.fdb_latexmk
 *.toc
+arxiv.lof
 texput.log
