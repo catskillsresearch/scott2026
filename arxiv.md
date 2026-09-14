@@ -1,4 +1,4 @@
-# A Lean 4 Certificate for Furber et al (CSL 2026) Interpreting Lambda Calculus in Domain-Valued Random Variables
+# A Lean 4 Certificate of Furber et al (CSL 2026) Interpreting Lambda Calculus in Domain-Valued Random Variables
 
 **Author.** Lars Warren Ericson (Catskills Research Company).
 **Source paper.** Robert Furber, Radu Mardare, Prakash Panangaden, and Dana Scott,
