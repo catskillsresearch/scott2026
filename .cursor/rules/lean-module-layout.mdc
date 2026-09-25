@@ -1,0 +1,51 @@
+---
+description: Scott2026 Lean module layout — one def per file, topic subfolders, size limits
+globs: Scott2026/**/*.lean
+alwaysApply: false
+---
+
+# Scott2026 module layout
+
+## Definitions (MATLAB-style)
+
+- **One `def` / `abbrev` / `noncomputable def` per file**, named after the definition (`rank.lean` → `def rank`).
+- Mutual defs (e.g. `memB` / `eqB`) share **one** file when they must be declared together.
+- `inductive`, `structure`, and `class` stay in self-named files (already done for structures).
+- Each def file: copyright header, **all `import`s first** (Lean requires imports at file top), then `namespace` … single def … `end`.
+
+## Theorems
+
+- **Group lemmas/theorems by topic** in descriptively named files (e.g. `MembershipLaws.lean`, `Fullness.lean`), not one theorem per file.
+- Keep topic files **well under 1000 lines**; split by subtopic if a bundle grows large.
+
+## Large modules → topic subfolders
+
+For monoliths (`VA`, `Random`, `Coin`, `InternalEval*`, `Lambda`, `Theorem30Internal`):
+
+- Use **scoped subfolders** under the module name, e.g. `Scott2026/VA/AName/rank.lean` → module `Scott2026.VA.AName.rank`.
+- The **hub** file (`VA.lean`, `Random.lean`, …) should be mostly module doc + `import` list of children (and re-exports if needed), not bulk definitions.
+- Prefer **`Scott2026/VA/...`** for VA-related topics rather than flat `Scott2026/AName/...`, so paths mirror the paper’s sections.
+
+### VA topic map (target)
+
+| Subfolder | Contents |
+|-----------|----------|
+| `VA/AName/` | `AName` inductive, `idx`, `child`, `val`, `rank`, `meas`, `memB`/`eqB`, `mix`, `check`, `subsetB`, `nameSetoid`, `homB`, … |
+| `VA/D0Formula/` | `consPSet`, `realize`, `consName`, Δ₀ invariance lemmas |
+| `VA/PSet/` | `pOpair`, `pfinEnum`, `pfin`, … |
+| `VA/SetFormula/` | `rename`, `lift`, `inst`, connectives |
+| `VA/Axioms/` | `extensionalityAxiom`, pairing, union, power, infinity, separation, collection, choice, … |
+| `VA/AName/*.lean` (theorem bundles) | e.g. substitution laws, fullness, mixing — **no new defs** unless extracted from a def file |
+
+Apply the same pattern for `Random/` (`AssociatedAlgebra`, `MeasureAlgebra`, `L0`, …), `Coin/`, `Lam/`, `InternalEval/`.
+
+## Size budget
+
+- **Hard target:** no file over **1000 lines**.
+- **Soft target:** most files **200–600 lines**; hubs and small def files often **&lt; 80 lines**.
+- When splitting, run `lake build` after each hub or namespace batch; keep the import graph acyclic.
+
+## Imports
+
+- Never place `universe`, `open`, `attribute`, or `namespace` before `import` lines.
+- Child modules import only what the def needs; hubs import all siblings in dependency order.

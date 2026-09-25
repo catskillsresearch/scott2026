@@ -50,6 +50,8 @@ This module re-exports the sorry-free development.
 
 namespace Scott2026
 
+open AName
+
 /-- Proposition 27: finite subsets of `T` are directed under inclusion.
 Mathlib-only Palomar wrapper (`Type u`, `Set.Subset`). -/
 theorem proposition_27_finite_directed {X : Type u} (T : Set X) :

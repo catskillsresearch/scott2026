@@ -6,6 +6,7 @@ Authors: Lars Warren Ericson.
 
 import Scott2026.EngelerVA
 import Scott2026.Interp
+import Scott2026.Interp.Valuation.update
 import Scott2026.LambdaVA
 
 /-!
@@ -639,9 +640,9 @@ theorem interpVA_agree (M : Lam Var)
     intro y hy
     by_cases hyx : y = x
     · subst hyx
-      simp
-    · simp [Valuation.update_toFun_of_ne _ _ hyx]
-      exact h y (Finset.mem_sdiff.mpr ⟨hy, mt Finset.mem_singleton.mp hyx⟩)
+      simp [interpVA, Valuation.update]
+    · simpa [Valuation.update_toFun_of_ne ρ d hyx, Valuation.update_toFun_of_ne σ d hyx] using
+        h y (Finset.mem_sdiff.mpr ⟨hy, mt Finset.mem_singleton.mp hyx⟩)
 
 /-- Updating a variable that is not free does not change the interpretation. -/
 theorem interpVA_update_fresh (M : Lam Var)
@@ -664,10 +665,10 @@ theorem interpVA_update_determined (M : Lam Var)
     · subst hyx
       convert determinedByFiniteVA_id (A := A) using 1
       funext d
-      simp [interpVA]
+      simp [interpVA, Valuation.update]
     · convert determinedByFiniteVA_const (A := A) (ρ.toFun y) using 1
       funext d
-      simp [interpVA, hyx]
+      simp [interpVA, Valuation.update, hyx]
   | app M N ihM ihN =>
     simp only [interpVA]
     exact determinedByFiniteVA_app (A := A) (ihM ρ x) (ihN ρ x)
@@ -700,8 +701,8 @@ theorem interpVA_subst (M N : Lam Var) (x : Var)
     simp only [Lam.subst, Lam.substNaive]
     by_cases hyx : y = x
     · subst hyx
-      simp [interpVA]
-    · simp [hyx, interpVA]
+      simp [interpVA, Valuation.update]
+    · simp [hyx, interpVA, Valuation.update]
   | app M₁ M₂ ih₁ ih₂ =>
     obtain ⟨h₁, h₂⟩ := hfree
     simp only [Lam.subst, Lam.substNaive, interpVA]
