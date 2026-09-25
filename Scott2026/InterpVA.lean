@@ -173,10 +173,10 @@ theorem memB_check_ofNat_finsetPSet (K : Finset ℕ) (n : ℕ) :
       if n ∈ K then ⊤ else ⊥ := by
   rw [finsetPSet, check_mk, memB_mk]
   by_cases hn : n ∈ K
-  · rw [if_pos hn]
+  · rw [ite_eq_left hn]
     refine top_unique (le_iSup_of_le ⟨⟨n, hn⟩⟩ ?_)
     rw [eqB_self (A := A), top_inf_eq]
-  · rw [if_neg hn]
+  · rw [ite_eq_right hn]
     refine le_antisymm ?_ bot_le
     refine iSup_le fun i => ?_
     rcases subsingleton_or_nontrivial A with hA | hA
@@ -218,11 +218,11 @@ theorem memB_finsetToCanonical (K : Finset ℕ) (n : ℕ) :
 
 theorem memB_finsetToCanonical_mem {K : Finset ℕ} {n : ℕ} (h : n ∈ K) :
     memOfNat (A := A) (finsetToCanonical (A := A) K) n = ⊤ := by
-  rw [memB_finsetToCanonical, if_pos h]
+  rw [memB_finsetToCanonical, ite_eq_left h]
 
 theorem memB_finsetToCanonical_not {K : Finset ℕ} {n : ℕ} (h : n ∉ K) :
     memOfNat (A := A) (finsetToCanonical (A := A) K) n = ⊥ := by
-  rw [memB_finsetToCanonical, if_neg h]
+  rw [memB_finsetToCanonical, ite_eq_right h]
 
 theorem subsetB_finset_canonical {K : Finset ℕ}
     (X : EngelerCarrier (A := A)) :
@@ -239,7 +239,7 @@ theorem subsetB_finset_canonical_of_subset {K L : Finset ℕ} (h : K ⊆ L) :
   rw [eqB_top_subsetB_right hL, subsetB_finsetPSet]
   refine iInf_eq_top.mpr fun n => ?_
   have hn : n.1 ∈ L := h n.2
-  rw [memB_check_ofNat_finsetPSet, if_pos hn]
+  rw [memB_check_ofNat_finsetPSet, ite_eq_left hn]
 
 /-!
 ## Membership in `·` and `lam`
@@ -828,15 +828,15 @@ theorem interpVA_subst_CA [Infinite Var] (M N : Lam Var) (x : Var)
     | .abs y M =>
       rw [Lam.substCA_abs]
       by_cases hyx : y = x
-      · rw [if_pos hyx]
+      · rw [ite_eq_left hyx]
         subst hyx
         simp only [interpVA]
         congr 1
         funext d
         rw [Valuation.update_overwrite]
-      · rw [if_neg hyx]
+      · rw [ite_eq_right hyx]
         by_cases hxM : x ∉ M.fv
-        · rw [if_pos hxM]
+        · rw [ite_eq_left hxM]
           simp only [interpVA]
           congr 1
           funext d
@@ -845,9 +845,9 @@ theorem interpVA_subst_CA [Infinite Var] (M N : Lam Var) (x : Var)
           rw [hcomm]
           exact (interpVA_update_fresh (A := A) M (ρ.update y d) x
             (interpVA (A := A) N ρ) hxM).symm
-        · rw [if_neg hxM]
+        · rw [ite_eq_right hxM]
           by_cases hyN : y ∉ N.fv
-          · rw [if_pos hyN]
+          · rw [ite_eq_left hyN]
             simp only [interpVA]
             congr 1
             funext d
@@ -858,7 +858,7 @@ theorem interpVA_subst_CA [Infinite Var] (M N : Lam Var) (x : Var)
                 interpVA (A := A) N ρ :=
               interpVA_update_fresh (A := A) N ρ y d hyN
             rw [hN, Valuation.update_comm hyx]
-          · rw [if_neg hyN]
+          · rw [ite_eq_right hyN]
             set z := Lam.pickFresh (M.vars ∪ N.fv ∪ {x, y}) y
             have hz : z ∉ M.vars ∪ N.fv ∪ {x, y} :=
               pickFresh_not_mem _ y

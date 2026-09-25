@@ -133,12 +133,13 @@ def churchNumN : ℕ → Lam ℕ
           (Lam.app (Lam.app (churchNumN n) (Lam.var 0)) (Lam.var 1))))
 
 /-- Closed `M` sending each Church numeral to a Church numeral. -/
-def MapsNumerals (M : Lam ℕ) : Prop :=
-  M.fv = ∅ ∧ ∀ n, ∃ m, LamEq (M.app (churchNumN n)) (churchNumN m)
+structure MapsNumerals (M : Lam ℕ) : Prop where
+  fv_empty : M.fv = ∅
+  maps : ∀ n, ∃ m, LamEq (M.app (churchNumN n)) (churchNumN m)
 
 /-- The numeral function computed by a numeral-to-numeral combinator. -/
 noncomputable def mapsNumeralsFun (M : Lam ℕ) (hM : MapsNumerals M) : ℕ → ℕ :=
-  fun n => Classical.choose (hM.2 n)
+  fun n => Classical.choose (hM.maps n)
 
 /-- Proposition 36(i), Challenge form: `S₁ ≤ₘ S₂` by a closed
 numeral-to-numeral combinator `M`. Membership is preserved along the
@@ -148,37 +149,38 @@ def proposition_36_i (S₁ S₂ : Set ℕ) : Prop :=
   ∃ M : Lam ℕ, ∃ hM : MapsNumerals M,
     ∀ n, n ∈ S₁ ↔ mapsNumeralsFun M hM n ∈ S₂
 
-/-- Mathlib-only face of Theorem 26 and Corollary 34. For every nontrivial
-complete Boolean algebra, the internal Engeler model supplies an `A`-valued
-interpretation of closed λ-terms: all equations in the paper's full λ-theory
-have Boolean value `⊤`, the Church Booleans have equality value `⊥`, and
-Church numerals are internally injective.
+/-- An `A`-valued internal interpretation of closed λ-terms (Theorem 26 / Corollary 34). -/
+structure InternalInterpretation (A : Type) [CompleteBooleanAlgebra A] where
+  D : Type
+  V : Type
+  eqA : D → D → A
+  app : D → D → D
+  lam : (D → D) → D
+  interp : Lam ℕ → V → D
+  lookup : V → ℕ → D
+  update : V → ℕ → D → V
+  empty : V
+  eq_refl : ∀ d, eqA d d = ⊤
+  eq_symm : ∀ d e, eqA d e = eqA e d
+  eq_trans : ∀ d e f, eqA d e ⊓ eqA e f ≤ eqA d f
+  interp_var : ∀ ρ x, interp (Lam.var x) ρ = lookup ρ x
+  interp_app : ∀ ρ M N, interp (M.app N) ρ = app (interp M ρ) (interp N ρ)
+  interp_abs :
+    ∀ ρ x M, interp (Lam.abs x M) ρ = lam (fun d => interp M (update ρ x d))
+  interp_sound :
+    ∀ ρ {M N : Lam ℕ}, LamEq M N → eqA (interp M ρ) (interp N ρ) = ⊤
+  church_bool_separate :
+    eqA (interp churchTrueN empty) (interp churchFalseN empty) = ⊥
+  church_num_inj :
+    ∀ n m,
+      eqA (interp (churchNumN n) empty) (interp (churchNumN m) empty) = ⊤ → n = m
 
-`D` is the external carrier, `V` is the valuation space, and `eqA` is the
-`A`-valued equality. The statement records reflexivity, symmetry, and
-transitivity of that equality; the variable, application, and abstraction
-clauses; full λ-equational soundness; and the Church separation properties.
-The Solution instantiates this interface with the formalized Engeler carrier
-in `V^A`; it is existential here so the Challenge remains auditable using only
-Mathlib. -/
+/-- Mathlib-only face of Theorem 26 and Corollary 34: every nontrivial complete
+Boolean algebra carries an internal interpretation. The Solution instantiates
+`InternalInterpretation` with the formalized Engeler model in `V^A`. -/
 def internal_interpretation_statement : Prop :=
-    ∀ (A : Type) [CompleteBooleanAlgebra A] [Nontrivial A],
-      ∃ (D V : Type) (eqA : D → D → A) (app : D → D → D)
-          (lam : (D → D) → D) (interp : Lam ℕ → V → D)
-          (lookup : V → ℕ → D) (update : V → ℕ → D → V) (empty : V),
-        (∀ d, eqA d d = ⊤) ∧
-        (∀ d e, eqA d e = eqA e d) ∧
-        (∀ d e f, eqA d e ⊓ eqA e f ≤ eqA d f) ∧
-        (∀ ρ x, interp (Lam.var x) ρ = lookup ρ x) ∧
-        (∀ ρ M N, interp (M.app N) ρ = app (interp M ρ) (interp N ρ)) ∧
-        (∀ ρ x M,
-          interp (Lam.abs x M) ρ = lam (fun d => interp M (update ρ x d))) ∧
-        (∀ ρ {M N : Lam ℕ},
-          LamEq M N → eqA (interp M ρ) (interp N ρ) = ⊤) ∧
-        eqA (interp churchTrueN empty) (interp churchFalseN empty) = ⊥ ∧
-        ∀ n m,
-          eqA (interp (churchNumN n) empty) (interp (churchNumN m) empty) = ⊤ →
-            n = m
+  ∀ (A : Type) [CompleteBooleanAlgebra A] [Nontrivial A],
+    Nonempty (InternalInterpretation A)
 
 /-- Theorem 26 and Corollary 34 through the auditable statement above. -/
 theorem csl2026_internal_interpretation :

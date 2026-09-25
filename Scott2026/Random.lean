@@ -5,11 +5,11 @@ Authors: Lars Warren Ericson.
 -/
 
 import Mathlib.MeasureTheory.MeasurableSpace.Basic
-import Mathlib.MeasureTheory.Measure.MeasureSpace
+import Mathlib.MeasureTheory.Measure.Basic
 import Mathlib.MeasureTheory.Measure.Typeclasses.Finite
 import Mathlib.Order.Atoms
-import Mathlib.Data.Countable.Defs
-import Mathlib.Data.Countable.Small
+import Mathlib.Basic.Countable.Defs
+import Mathlib.Basic.Countable.Small
 import Mathlib.Logic.Encodable.Basic
 import Mathlib.Order.CompleteLattice.Finset
 import Mathlib.Order.Hom.Basic
@@ -217,7 +217,7 @@ theorem ofMeasure_exists_max_countable_union (μ : Measure X) [IsFiniteMeasure �
   have happrox : ∀ n : ℕ, ∃ g : ℕ → ι, m ≤ μ (⋃ k, t (g k)) + (n + 1 : ℝ≥0∞)⁻¹ := by
     intro n
     by_contra h
-    push_neg at h
+    push Not at h
     have hε : (n + 1 : ℝ≥0∞)⁻¹ ≠ ∞ := by simp
     have hsup : m ≤ m - (n + 1 : ℝ≥0∞)⁻¹ :=
       iSup_le fun g =>
@@ -2323,7 +2323,7 @@ theorem exists_pos_atomless_of_not_isAtomic {A : Type*} [CompleteBooleanAlgebra 
         _ = sSup ((fun b => a ⊓ b) '' {b | IsAtom b}) := sSup_image.symm
     have hex : ∃ b, IsAtom b ∧ a ⊓ b ≠ ⊥ := by
       by_contra hempty
-      push_neg at hempty
+      push Not at hempty
       have hbot : sSup ((fun b : A => a ⊓ b) '' {b | IsAtom b}) = ⊥ :=
         sSup_eq_bot.mpr fun d hd => by
           obtain ⟨b, hb, rfl⟩ := hd
@@ -2347,7 +2347,7 @@ theorem exists_lt_atomless {A : Type*} [CompleteBooleanAlgebra A] {a : A}
   have hnot : ¬IsAtom a := fun ha => hna a ha le_rfl
   obtain ⟨c, hclt, hcne⟩ : ∃ c, c < a ∧ c ≠ ⊥ := by
     by_contra h
-    push_neg at h
+    push Not at h
     exact hnot ⟨hne, fun c hc => h c hc⟩
   exact ⟨c, hcne, hclt, fun b hb hle => hna b hb (hle.trans hclt.le)⟩
 

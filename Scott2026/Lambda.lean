@@ -655,14 +655,14 @@ theorem churchIter_var_not_mem (n a b z : ℕ) (ha : z ≠ a) (hb : z ≠ b) :
 theorem substCA_abs_of_fresh (y x : ℕ) (M N : Lam ℕ) (hne : y ≠ x)
     (hx : x ∉ M.fv) :
     Lam.substCA (Lam.abs y M) x N = Lam.abs y M := by
-  rw [Lam.substCA_abs, if_neg hne, if_pos hx]
+  rw [Lam.substCA_abs, ite_eq_right hne, ite_eq_left hx]
 
 theorem substCA_abs_of_no_capture (y x : ℕ) (M N : Lam ℕ) (hne : y ≠ x)
     (hx : x ∈ M.fv) (hy : y ∉ N.fv) :
     Lam.substCA (Lam.abs y M) x N = Lam.abs y (Lam.substCA M x N) := by
-  rw [Lam.substCA_abs, if_neg hne]
+  rw [Lam.substCA_abs, ite_eq_right hne]
   have hx' : ¬ x ∉ M.fv := fun h => h hx
-  rw [if_neg hx', if_pos hy]
+  rw [ite_eq_right hx', ite_eq_left hy]
 
 theorem substCA_abs_of_capture (y x : ℕ) (M N : Lam ℕ) (hne : y ≠ x)
     (hx : x ∈ M.fv) (hy : y ∈ N.fv) :
@@ -670,10 +670,10 @@ theorem substCA_abs_of_capture (y x : ℕ) (M N : Lam ℕ) (hne : y ≠ x)
       Lam.abs (Lam.pickFresh (M.vars ∪ N.fv ∪ {x, y}) y)
         (Lam.substCA (M.substNaive y (Lam.var (Lam.pickFresh (M.vars ∪ N.fv ∪ {x, y}) y)))
           x N) := by
-  rw [Lam.substCA_abs, if_neg hne]
+  rw [Lam.substCA_abs, ite_eq_right hne]
   have hx' : ¬ x ∉ M.fv := fun h => h hx
   have hy' : ¬ y ∉ N.fv := fun h => h hy
-  rw [if_neg hx', if_neg hy']
+  rw [ite_eq_right hx', ite_eq_right hy']
 
 /-!
 ## Definition 32(ii): Church `if`
@@ -686,11 +686,11 @@ theorem substCA_true_body (M : Lam ℕ) :
       else
         Lam.abs 1 M := by
   by_cases h1 : (1 : ℕ) ∈ M.fv
-  · rw [if_pos h1]
+  · rw [ite_eq_left h1]
     rw [substCA_abs_of_capture 1 0 (Lam.var 0) M Nat.one_ne_zero (by simp [Lam.fv]) h1]
     have h01 : (0 : ℕ) ≠ 1 := Nat.zero_ne_one
     simp [Lam.substNaive, h01, Lam.substCA_var]
-  · rw [if_neg h1]
+  · rw [ite_eq_right h1]
     rw [substCA_abs_of_no_capture 1 0 (Lam.var 0) M Nat.one_ne_zero (by simp [Lam.fv]) h1]
     simp [Lam.substCA_var]
 
@@ -701,7 +701,7 @@ theorem churchTrueN_app (M N : Lam ℕ) :
   refine (LamEq.app_left hβ).trans ?_
   rw [substCA_true_body]
   by_cases h1 : (1 : ℕ) ∈ M.fv
-  · rw [if_pos h1]
+  · rw [ite_eq_left h1]
     set z := Lam.pickFresh ((Lam.var 0).vars ∪ M.fv ∪ {0, 1}) 1
     have hz : z ∉ (Lam.var 0).vars ∪ M.fv ∪ {0, 1} :=
       Lam.pickFresh_not_mem _ 1
@@ -709,7 +709,7 @@ theorem churchTrueN_app (M N : Lam ℕ) :
     refine (LamEq.beta z M N).trans ?_
     rw [Lam.substCA_fresh N hzM]
     exact LamEq.refl M
-  · rw [if_neg h1]
+  · rw [ite_eq_right h1]
     refine (LamEq.beta 1 M N).trans ?_
     rw [Lam.substCA_fresh N h1]
     exact LamEq.refl M
@@ -723,7 +723,7 @@ theorem churchFalseN_app (M N : Lam ℕ) :
     · simp [Lam.fv]
   refine (LamEq.app_left hβ1).trans ?_
   refine (LamEq.beta 1 (Lam.var 1) N).trans ?_
-  rw [Lam.substCA_var, if_pos rfl]
+  rw [Lam.substCA_var, ite_eq_left rfl]
   exact LamEq.refl N
 
 theorem substCA_if_cont_no_capture (B M : Lam ℕ) (hB : B.fv = ∅)
@@ -818,12 +818,12 @@ theorem churchNumN_lamEq_iter (n : ℕ) :
         refine (LamEq.beta 0 _ (Lam.var 0)).trans ?_
         rw [Lam.substCA_abs]
         have hne : (1 : ℕ) ≠ 0 := Nat.one_ne_zero
-        rw [if_neg hne]
+        rw [ite_eq_right hne]
         by_cases hx : (0 : ℕ) ∉ (churchIter n (Lam.var 0) (Lam.var 1)).fv
-        · rw [if_pos hx]
+        · rw [ite_eq_left hx]
           exact LamEq.refl _
         · have hy : (1 : ℕ) ∉ (Lam.var 0).fv := by simp [Lam.fv]
-          rw [if_neg hx, if_pos hy, Lam.substCA_self]
+          rw [ite_eq_right hx, ite_eq_left hy, Lam.substCA_self]
           exact LamEq.refl _
       refine (LamEq.app_left h1).trans ?_
       refine (LamEq.beta 1 (churchIter n (Lam.var 0) (Lam.var 1)) (Lam.var 1)).trans ?_
@@ -903,7 +903,7 @@ theorem churchNumBind_iter (n : ℕ) (F X : Lam ℕ) (hF : 6 ∉ F.fv) :
       · simp [Lam.fv]
     refine (LamEq.app_left h1).trans ?_
     refine (LamEq.beta 6 (Lam.var 6) X).trans ?_
-    rw [Lam.substCA_var, if_pos rfl]
+    rw [Lam.substCA_var, ite_eq_left rfl]
     exact LamEq.refl _
   | succ n ih =>
     have hc : (churchNumBind 5 6 n).fv = ∅ := churchNumBind_fv 5 6 n
@@ -1018,7 +1018,7 @@ theorem churchIsZero_zero :
     · simp [Lam.fv]
   refine (LamEq.app_left h1).trans ?_
   refine (LamEq.beta 1 (Lam.var 1) churchTrueN').trans ?_
-  rw [Lam.substCA_var, if_pos rfl]
+  rw [Lam.substCA_var, ite_eq_left rfl]
   exact churchTrueN'_lamEq
 
 theorem churchIsZero_succ (n : ℕ) :
@@ -1145,15 +1145,15 @@ theorem churchNumN_renamed (n : ℕ) :
         Lam.abs 2 (churchIter n (Lam.var 0) (Lam.var 2)) := by
     rw [Lam.substCA_abs]
     have hne : (2 : ℕ) ≠ 1 := by decide
-    rw [if_neg hne]
+    rw [ite_eq_right hne]
     by_cases hx : (1 : ℕ) ∉ (churchIter n (Lam.var 1) (Lam.var 2)).fv
-    · rw [if_pos hx]
+    · rw [ite_eq_left hx]
       have h1 := Lam.substCA_fresh (N := Lam.var 0) hx
       have h2 := substCA_churchIter n (Lam.var 1) (Lam.var 2) 1 (Lam.var 0)
       simp [Lam.substCA_var] at h2
       exact congrArg (Lam.abs 2) (h1.symm.trans h2)
     · have hy : (2 : ℕ) ∉ (Lam.var 0).fv := by simp [Lam.fv]
-      rw [if_neg hx, if_pos hy, substCA_churchIter]
+      rw [ite_eq_right hx, ite_eq_left hy, substCA_churchIter]
       simp [Lam.substCA_var]
   rw [hsub1]
   have hα2 : (1 : ℕ) ∉ (churchIter n (Lam.var 0) (Lam.var 2)).fv :=

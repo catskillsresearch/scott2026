@@ -454,7 +454,7 @@ theorem stepMap_wayBelow {e : D} {e' : D'} {f : ScottMap D D'}
   · intro g g' hgg' hg
     exact hg.trans_le (hgg' e)
   · intro F hFne hFdir hmem
-    simp only [Set.mem_setOf_eq, ScottMap.sSup_apply] at hmem
+    simp only [Set.mem_ofPred_eq, ScottMap.sSup_apply] at hmem
     have hne : (Set.image (fun g : ScottMap D D' => (g : D → D') e) F).Nonempty := hFne.image _
     have hdir : DirectedOn (· ≤ ·) (Set.image (fun g : ScottMap D D' => (g : D → D') e) F) := by
       rintro _ ⟨a, ha, rfl⟩ _ ⟨b, hb, rfl⟩
@@ -573,7 +573,7 @@ theorem scottMapPointwiseTopology_eq_induced_pi :
 theorem pointwiseSubbasic_scottOpen (x : D) {U : Set D'} (hU : ScottOpen U) :
     ScottOpen {f : ScottMap D D' | (f : D → D') x ∈ U} := by
   refine ⟨fun f f' hff' hf => hU.1 (hff' x) hf, fun F hFne hFdir hmem => ?_⟩
-  simp only [Set.mem_setOf_eq, ScottMap.sSup_apply] at hmem
+  simp only [Set.mem_ofPred_eq, ScottMap.sSup_apply] at hmem
   have hne : (Set.image (fun g : ScottMap D D' => (g : D → D') x) F).Nonempty := hFne.image _
   have hdir : DirectedOn (· ≤ ·) (Set.image (fun g : ScottMap D D' => (g : D → D') x) F) := by
     rintro _ ⟨a, ha, rfl⟩ _ ⟨b, hb, rfl⟩
@@ -1241,7 +1241,7 @@ theorem converseRetr_incl (hi : ∀ S : Set D, i (sSup S) = sSup (i '' S))
     (hinj : Function.Injective i) (y : D) : converseRetr i (i y) = y := by
   have hset : {x | i x ≤ i y} = Set.Iic y := by
     ext x
-    simp only [Set.mem_setOf_eq, Set.mem_Iic]
+    simp only [Set.mem_ofPred_eq, Set.mem_Iic]
     exact ⟨le_of_incl_le hi hinj, fun hx => incl_mono_of_preservesSSup hi hx⟩
   show sSup {x | i x ≤ i y} = y
   rw [hset]
@@ -1424,7 +1424,7 @@ theorem scottSubspaceExtend_eq_of_ext {e : X → Y} {f g' : X → D} (h : ∀ x,
   unfold scottSubspaceExtend
   congr 1
   ext d
-  simp [Set.mem_setOf_eq, scottSubspaceExtendInf_eq_of_ext h]
+  simp [Set.mem_ofPred_eq, scottSubspaceExtendInf_eq_of_ext h]
 
 theorem scottSubspaceExtendInf_mono_retr {e : X → Y} {g : X → D'}
     (P : IsContinuousLatticeProjection D D') (U : Set Y) :

@@ -1451,7 +1451,7 @@ theorem interpDKRelVal_substNaive
     · subst hyx
       simp only [LamDK.ofLam, interpDKRelVal_var, RelFun.update_self]
       exact interpDKRelVal_ofLam_eq_oid 𝓜 V K hK hV η N d
-    · rw [if_neg hyx]
+    · rw [ite_eq_right hyx]
       simp only [LamDK.ofLam, interpDKRelVal_var]
       rw [RelFun.update_of_ne (hne := hVsep y x hyx)]
   | app M₁ M₂ ih₁ ih₂ =>
@@ -1541,7 +1541,7 @@ theorem interpDKRelVal_substCA
       · subst hyx
         simp only [LamDK.ofLam, interpDKRelVal_var, RelFun.update_self]
         exact interpDKRelVal_ofLam_eq_oid 𝓜 V K hK hV η N d
-      · rw [if_neg hyx]
+      · rw [ite_eq_right hyx]
         simp only [LamDK.ofLam, interpDKRelVal_var]
         rw [RelFun.update_of_ne (hne := hVsep y x hyx)]
     | .app M₁ M₂ =>
@@ -1556,7 +1556,7 @@ theorem interpDKRelVal_substCA
     | .abs y P =>
       rw [Lam.substCA_abs]
       by_cases hyx : y = x
-      · rw [if_pos hyx]
+      · rw [ite_eq_left hyx]
         simp only [LamDK.ofLam, interpDKRelVal_abs]
         have hval : lamDKVal V K (LamDK.ofLam (Lam.abs y P)) = ⊤ :=
           lamDKVal_ofLam V K hV (Lam.abs y P)
@@ -1567,9 +1567,9 @@ theorem interpDKRelVal_substCA
         intro q e
         cases hyx
         rw [RelFun.update_overwrite]
-      · rw [if_neg hyx]
+      · rw [ite_eq_right hyx]
         by_cases hxP : x ∉ P.fv
-        · rw [if_pos hxP]
+        · rw [ite_eq_left hxP]
           simp only [LamDK.ofLam, interpDKRelVal_abs]
           have hvalL : lamDKVal V K (LamDK.ofLam (Lam.abs y P)) = ⊤ :=
             lamDKVal_ofLam V K hV (Lam.abs y P)
@@ -1591,9 +1591,9 @@ theorem interpDKRelVal_substCA
           exact (interpDKRelVal_update_fresh 𝓜 V K hK hV hVsep
             (η.update hV 𝓜.total y q) P x hxP
             (interpDKName 𝓜 V K hK hV η (LamDK.ofLam N)) e).symm
-        · rw [if_neg hxP]
+        · rw [ite_eq_right hxP]
           by_cases hyN : y ∉ N.fv
-          · rw [if_pos hyN]
+          · rw [ite_eq_left hyN]
             simp only [LamDK.ofLam, interpDKRelVal_abs]
             have hvalL :
                 lamDKVal V K (LamDK.ofLam (Lam.abs y (P.substCA x N))) = ⊤ :=
@@ -1623,7 +1623,7 @@ theorem interpDKRelVal_substCA
             rw [hupd, RelFun.update_commute η hV 𝓜.total x y q
               (interpDKName 𝓜 V K hK hV η (LamDK.ofLam N))
               (hVsep x y (Ne.symm hyx))]
-          · rw [if_neg hyN]
+          · rw [ite_eq_right hyN]
             set z := Lam.pickFresh (P.vars ∪ N.fv ∪ {x, y}) y
             have hz : z ∉ P.vars ∪ N.fv ∪ {x, y} :=
               Lam.pickFresh_not_mem _ y

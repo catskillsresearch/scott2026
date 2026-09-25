@@ -26,10 +26,10 @@ noncomputable def checkSet (S : Set X) : ASubset A X :=
   fun x => @ite A (x ∈ S) (Classical.propDecidable _) ⊤ ⊥
 
 @[simp] theorem checkSet_mem {S : Set X} {x : X} (hx : x ∈ S) :
-    checkSet (A := A) S x = ⊤ := if_pos hx
+    checkSet (A := A) S x = ⊤ := ite_eq_left hx
 
 @[simp] theorem checkSet_not_mem {S : Set X} {x : X} (hx : x ∉ S) :
-    checkSet (A := A) S x = ⊥ := if_neg hx
+    checkSet (A := A) S x = ⊥ := ite_eq_right hx
 
 /-- Boolean-valued membership for an `A`-subset of a ground type. -/
 def memB (x : X) (u : ASubset A X) : A := u x

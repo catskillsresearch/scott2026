@@ -32,7 +32,7 @@ theorem engelerApp_lam [DecidableEq E] (pair : Finset E × E → E)
     (hpair : Function.Injective pair) (f : Set E → Set E) (X : Set E) :
     engelerApp pair (engelerLam pair f) X = {q | ∃ K : Finset E, (↑K : Set E) ⊆ X ∧ q ∈ f (↑K)} := by
   ext q
-  simp only [engelerApp, engelerLam, Set.mem_setOf_eq]
+  simp only [engelerApp, engelerLam, Set.mem_ofPred_eq]
   constructor
   · intro ⟨K, hK, hx⟩
     obtain ⟨K', q', hq', heq⟩ := hx

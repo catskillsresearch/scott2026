@@ -186,14 +186,14 @@ theorem setToCanonical_injective [Nontrivial A] :
       memOfNat (setToCanonical T) n := by rw [hST]
   rw [memOfNat_setToCanonical, memOfNat_setToCanonical] at hmem
   by_cases hS : n ∈ S
-  · rw [if_pos hS] at hmem
+  · rw [ite_eq_left hS] at hmem
     by_cases hT : n ∈ T
     · exact iff_of_true hS hT
-    · rw [if_neg hT] at hmem
+    · rw [ite_eq_right hT] at hmem
       exact (top_ne_bot hmem).elim
-  · rw [if_neg hS] at hmem
+  · rw [ite_eq_right hS] at hmem
     by_cases hT : n ∈ T
-    · rw [if_pos hT] at hmem
+    · rw [ite_eq_left hT] at hmem
       exact (bot_ne_top hmem).elim
     · exact iff_of_false hS hT
 

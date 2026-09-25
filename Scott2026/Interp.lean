@@ -455,24 +455,24 @@ theorem interp_subst_CA [Infinite Var] (R : ReflexiveDcpo D) (M N : Lam Var)
     | .abs y M =>
       rw [Lam.substCA_abs]
       by_cases hyx : y = x
-      · rw [if_pos hyx]
+      · rw [ite_eq_left hyx]
         subst hyx
         simp only [interp]
         congr 1
         funext d
         rw [Valuation.update_overwrite]
-      · rw [if_neg hyx]
+      · rw [ite_eq_right hyx]
         by_cases hxM : x ∉ M.fv
-        · rw [if_pos hxM]
+        · rw [ite_eq_left hxM]
           simp only [interp]
           congr 1
           funext d
           have hcomm := Valuation.update_comm (Ne.symm hyx) ρ (interp R N ρ) d
           rw [hcomm]
           exact (interp_update_fresh R M (ρ.update y d) x (interp R N ρ) hxM).symm
-        · rw [if_neg hxM]
+        · rw [ite_eq_right hxM]
           by_cases hyN : y ∉ N.fv
-          · rw [if_pos hyN]
+          · rw [ite_eq_left hyN]
             simp only [interp]
             congr 1
             funext d
@@ -482,7 +482,7 @@ theorem interp_subst_CA [Infinite Var] (R : ReflexiveDcpo D) (M N : Lam Var)
             have hN : interp R N (ρ.update y d) = interp R N ρ :=
               interp_update_fresh R N ρ y d hyN
             rw [hN, Valuation.update_comm hyx]
-          · rw [if_neg hyN]
+          · rw [ite_eq_right hyN]
             set z := Lam.pickFresh (M.vars ∪ N.fv ∪ {x, y}) y
             have hz : z ∉ M.vars ∪ N.fv ∪ {x, y} :=
               pickFresh_not_mem _ y

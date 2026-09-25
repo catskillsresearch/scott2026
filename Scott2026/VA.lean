@@ -3129,11 +3129,11 @@ noncomputable def wellOrderB (X : AName.{u} A) : AName.{u} A :=
 
 omit [CompleteBooleanAlgebra A] in
 theorem worITE_pos {p : Prop} {t e : A} (hp : p) : worITE p t e = t :=
-  if_pos hp
+  ite_eq_left hp
 
 omit [CompleteBooleanAlgebra A] in
 theorem worITE_neg {p : Prop} {t e : A} (hp : ¬p) : worITE p t e = e :=
-  if_neg hp
+  ite_eq_right hp
 
 theorem worLe_refl {α : Type u} (i : α) : worLe (A := A) i i = ⊤ :=
   worITE_pos (Or.inr rfl)

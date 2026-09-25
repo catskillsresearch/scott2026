@@ -97,11 +97,11 @@ theorem lemma_35_numeral_discrete_general {D : Type u} [CompleteLattice D]
     scottOpen_preimage (R.fun_scott_pt (H.test m)) hU
   refine ⟨W, hW, ?_, ?_⟩
   · change R.app (H.test m) (R.numeral m) ∈ U
-    rw [H.test_spec, if_pos rfl]
+    rw [H.test_spec, ite_eq_left rfl]
     exact htop
   · intro n hnm hn
     change R.app (H.test m) (R.numeral n) ∈ U at hn
-    rw [H.test_spec, if_neg hnm] at hn
+    rw [H.test_spec, ite_eq_right hnm] at hn
     exact hbot hn
 
 /-- Lemma 35(i) at the paper's arbitrary-domain type. -/
@@ -293,11 +293,11 @@ theorem numeral_inj_of_churchTest {D : Type u} [CompleteLattice D]
   have hm :
       R.app (interpClosed R (churchTest m)) (interpClosed R (churchNumN m)) =
         interpClosed R churchTrueN := by
-    rw [interpClosed_churchTest_num, if_pos rfl]
+    rw [interpClosed_churchTest_num, ite_eq_left rfl]
   have hn :
       R.app (interpClosed R (churchTest m)) (interpClosed R (churchNumN n)) =
         interpClosed R churchFalseN := by
-    rw [interpClosed_churchTest_num, if_neg (Ne.symm hne)]
+    rw [interpClosed_churchTest_num, ite_eq_right (Ne.symm hne)]
   have happ :
       R.app (interpClosed R (churchTest m)) (interpClosed R (churchNumN m)) =
         R.app (interpClosed R (churchTest m)) (interpClosed R (churchNumN n)) :=

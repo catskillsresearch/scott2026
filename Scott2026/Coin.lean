@@ -218,7 +218,7 @@ theorem measurableSet_agreeSet (f : ℕ → ℕ) : MeasurableSet (agreeSet f) :=
   have : agreeSet f =
       ⋂ n, (D1 n true ∩ D2 (f n) true) ∪ (D1 n false ∩ D2 (f n) false) := by
     ext p
-    simp only [agreeSet, mem_iInter, mem_union, mem_inter_iff, D1, D2, mem_setOf]
+    simp only [agreeSet, mem_iInter, mem_union, mem_inter_iff, D1, D2, mem_ofPred]
     refine forall_congr' fun n => ?_
     cases p.1 n <;> cases p.2 (f n) <;> simp
   rw [this]
@@ -231,7 +231,7 @@ theorem agreeSet_of_finite_image {f : ℕ → ℕ} (hf : (Set.range f).Finite) :
   intro p hp
   let K := hf.toFinset.filter (fun m => p.2 m = true)
   refine mem_iUnion.mpr ⟨K, ?_⟩
-  simp only [finitePreimageSet, mem_iInter, D1, mem_setOf]
+  simp only [finitePreimageSet, mem_iInter, D1, mem_ofPred]
   intro n
   have hiff : p.1 n = true ↔ p.2 (f n) = true := hp n
   have hmem : f n ∈ hf.toFinset := hf.mem_toFinset.mpr (mem_range_self n)
@@ -313,7 +313,7 @@ def agreeSlice (f : ℕ → ℕ) (K : Finset ℕ) : Set CoinSpace :=
 theorem agreeSet_subset_slice (f : ℕ → ℕ) (K : Finset ℕ) :
     agreeSet f ⊆ agreeSlice f K := by
   intro p hp
-  simp only [agreeSlice, mem_iInter, mem_union, agreeBit, D1, D2, mem_inter_iff, mem_setOf]
+  simp only [agreeSlice, mem_iInter, mem_union, agreeBit, D1, D2, mem_inter_iff, mem_ofPred]
   intro n _hn
   have hiff : p.1 n = true ↔ p.2 (f n) = true := hp n
   cases h1 : p.1 n <;> cases h2 : p.2 (f n) <;> simp_all
@@ -344,7 +344,7 @@ theorem mixedCyl_eq_prod (f : ℕ → ℕ) (K : Finset ℕ) (g : ℕ → Bool)
       (Set.pi (K : Set ℕ) (fun n => ({g n} : Set Bool))) ×ˢ
         (Set.pi (K.image f : Set ℕ) (fun m => ({imageBit f K g m} : Set Bool))) := by
   ext p
-  simp only [mixedCyl, agreeBit, D1, D2, mem_iInter, mem_inter_iff, mem_setOf,
+  simp only [mixedCyl, agreeBit, D1, D2, mem_iInter, mem_inter_iff, mem_ofPred,
     mem_prod, mem_pi, imageBit]
   constructor
   · intro hp
@@ -416,13 +416,13 @@ theorem agreeSlice_eq_iUnion (f : ℕ → ℕ) (K : Finset ℕ) :
   · intro hp
     let g : {n // n ∈ K} → Bool := fun n => p.1 n.val
     refine mem_iUnion.mpr ⟨g, ?_⟩
-    simp only [mixedCylSub, mem_iInter, agreeBit, D1, D2, mem_inter_iff, mem_setOf]
+    simp only [mixedCylSub, mem_iInter, agreeBit, D1, D2, mem_inter_iff, mem_ofPred]
     intro n
     refine ⟨rfl, ?_⟩
     have hslice : p ∈ agreeBit f n.val true ∪ agreeBit f n.val false := by
       simp only [agreeSlice, mem_iInter] at hp
       exact hp n.val n.property
-    simp only [mem_union, agreeBit, D1, D2, mem_inter_iff, mem_setOf] at hslice
+    simp only [mem_union, agreeBit, D1, D2, mem_inter_iff, mem_ofPred] at hslice
     cases hbit : p.1 n.val
     · rcases hslice with h | h
       · exact absurd (hbit.symm.trans h.1) Bool.false_ne_true
@@ -546,7 +546,7 @@ theorem agreeSet_eq_iInter (f : ℕ → ℕ) :
     agreeSet f = ⋂ n, agreeBit f n true ∪ agreeBit f n false := by
   ext p
   simp only [agreeSet, agreeBit, mem_iInter, mem_union, mem_inter_iff, D1, D2,
-    mem_setOf]
+    mem_ofPred]
   refine forall_congr' fun n => ?_
   cases p.1 n <;> cases p.2 (f n) <;> simp
 
@@ -555,7 +555,7 @@ theorem agreeSet_swap_eq_iInter (f : ℕ → ℕ) :
       ⋂ n, (D2 n true ∩ D1 (f n) true) ∪ (D2 n false ∩ D1 (f n) false) := by
   ext p
   simp only [agreeSet_swap, mem_iInter, mem_union, mem_inter_iff, D1, D2,
-    mem_setOf]
+    mem_ofPred]
   refine forall_congr' fun n => ?_
   cases p.2 n <;> cases p.1 (f n) <;> simp
 
@@ -758,7 +758,7 @@ theorem reductionNullSet_null : coinMeasure reductionNullSet = 0 := by
 
 theorem exists_mem_reductionNullSet_compl : ∃ p : CoinSpace, p ∉ reductionNullSet := by
   by_contra h
-  push_neg at h
+  push Not at h
   have heq : reductionNullSet = (Set.univ : Set CoinSpace) := eq_univ_iff_forall.mpr h
   have : coinMeasure (Set.univ : Set CoinSpace) = 0 := heq ▸ reductionNullSet_null
   exact zero_ne_one (this.symm.trans measure_univ)
@@ -895,7 +895,7 @@ theorem mem_chiNum_bits1 (p : CoinSpace) (n r : ℕ) :
     r ∈ chiNum engelerWithNumerals (bits1 p) n ↔
       (p.1 n = true ∧ r ∈ engelerWithNumerals.boolTop) ∨
       (p.1 n = false ∧ r ∈ engelerWithNumerals.boolBot) := by
-  simp only [chiNum, bits1, mem_setOf]
+  simp only [chiNum, bits1, mem_ofPred]
   cases hp : p.1 n
   · simp [hp]
   · simp [hp]
@@ -904,7 +904,7 @@ theorem mem_chiNum_bits2 (p : CoinSpace) (n r : ℕ) :
     r ∈ chiNum engelerWithNumerals (bits2 p) n ↔
       (p.2 n = true ∧ r ∈ engelerWithNumerals.boolTop) ∨
       (p.2 n = false ∧ r ∈ engelerWithNumerals.boolBot) := by
-  simp only [chiNum, bits2, mem_setOf]
+  simp only [chiNum, bits2, mem_ofPred]
   cases hp : p.2 n
   · simp [hp]
   · simp [hp]
@@ -916,7 +916,7 @@ theorem measurableSet_mem_chiNum_bits1 (n r : ℕ) :
         (if r ∈ engelerWithNumerals.boolTop then D1 n true else (∅ : Set CoinSpace)) ∪
         (if r ∈ engelerWithNumerals.boolBot then D1 n false else (∅ : Set CoinSpace)) := by
     ext p
-    simp only [mem_union, mem_ite, mem_empty_iff_false, mem_setOf, D1]
+    simp only [mem_union, mem_ite, mem_empty_iff_false, mem_ofPred, D1]
     rw [mem_chiNum_bits1]
     tauto
   rw [hset]
@@ -935,7 +935,7 @@ theorem measurableSet_mem_chiNum_bits2 (n r : ℕ) :
         (if r ∈ engelerWithNumerals.boolTop then D2 n true else (∅ : Set CoinSpace)) ∪
         (if r ∈ engelerWithNumerals.boolBot then D2 n false else (∅ : Set CoinSpace)) := by
     ext p
-    simp only [mem_union, mem_ite, mem_empty_iff_false, mem_setOf, D2]
+    simp only [mem_union, mem_ite, mem_empty_iff_false, mem_ofPred, D2]
     rw [mem_chiNum_bits2]
     tauto
   rw [hset]
@@ -955,7 +955,7 @@ theorem measurableSet_mem_gbar_bits1 (r : ℕ) (K : Finset ℕ) :
           {p : CoinSpace | r ∈ chiNum engelerWithNumerals (bits1 p) n}
         else (∅ : Set CoinSpace) := by
     ext p
-    simp only [mem_iUnion, mem_ite, mem_empty_iff_false, mem_setOf]
+    simp only [mem_iUnion, mem_ite, mem_empty_iff_false, mem_ofPred]
     constructor
     · intro hr
       obtain ⟨n, hn, hrmem⟩ := (mem_gbar_iff (bits1 p) (K : Set ℕ) r).mp hr
@@ -979,7 +979,7 @@ theorem measurableSet_mem_gbar_bits2 (r : ℕ) (K : Finset ℕ) :
           {p : CoinSpace | r ∈ chiNum engelerWithNumerals (bits2 p) n}
         else (∅ : Set CoinSpace) := by
     ext p
-    simp only [mem_iUnion, mem_ite, mem_empty_iff_false, mem_setOf]
+    simp only [mem_iUnion, mem_ite, mem_empty_iff_false, mem_ofPred]
     constructor
     · intro hr
       obtain ⟨n, hn, hrmem⟩ := (mem_gbar_iff (bits2 p) (K : Set ℕ) r).mp hr
@@ -1004,7 +1004,7 @@ theorem measurableSet_chiOracle_bits1 (q : ℕ) :
             {p : CoinSpace | r ∈ gbar (bits1 p) (K : Set ℕ)}
           else (∅ : Set CoinSpace) := by
     ext p
-    simp only [mem_iUnion, mem_ite, mem_empty_iff_false, mem_setOf]
+    simp only [mem_iUnion, mem_ite, mem_empty_iff_false, mem_ofPred]
     constructor
     · intro hq
       obtain ⟨K, r, heq, hr⟩ := (mem_chiOracle_iff (bits1 p) q).mp hq
@@ -1029,7 +1029,7 @@ theorem measurableSet_chiOracle_bits2 (q : ℕ) :
             {p : CoinSpace | r ∈ gbar (bits2 p) (K : Set ℕ)}
           else (∅ : Set CoinSpace) := by
     ext p
-    simp only [mem_iUnion, mem_ite, mem_empty_iff_false, mem_setOf]
+    simp only [mem_iUnion, mem_ite, mem_empty_iff_false, mem_ofPred]
     constructor
     · intro hq
       obtain ⟨K, r, heq, hr⟩ := (mem_chiOracle_iff (bits2 p) q).mp hq
@@ -1189,7 +1189,7 @@ theorem coinD1_eqB_true (n : ℕ) :
         (constL0 engelerWithNumerals.boolTop).val =
       D1 n true := by
     ext p
-    simp only [l0Eq, mem_setOf, D1, appChi1L0, constL0, constRV]
+    simp only [l0Eq, mem_ofPred, D1, appChi1L0, constL0, constRV]
     rw [l0App_coinChi1_numeral]
     exact chiNum_eq_boolTop (bits1 p) n
   simp [hset, coinS1, D1, bits1, symmDiff_self]
@@ -1203,7 +1203,7 @@ theorem coinD1_eqB_false (n : ℕ) :
         (constL0 engelerWithNumerals.boolBot).val =
       (D1 n true)ᶜ := by
     ext p
-    simp only [l0Eq, mem_setOf, D1, appChi1L0, constL0, constRV, mem_compl_iff]
+    simp only [l0Eq, mem_ofPred, D1, appChi1L0, constL0, constRV, mem_compl_iff]
     rw [l0App_coinChi1_numeral, chiNum_eq_boolBot]
     simp [bits1]
   rw [memB_coinS1, MeasureAlgebra.compl_mk]
@@ -1219,7 +1219,7 @@ theorem coinD2_eqB_true (n : ℕ) :
         (constL0 engelerWithNumerals.boolTop).val =
       D2 n true := by
     ext p
-    simp only [l0Eq, mem_setOf, D2, appChi2L0, constL0, constRV]
+    simp only [l0Eq, mem_ofPred, D2, appChi2L0, constL0, constRV]
     rw [l0App_coinChi2_numeral]
     exact chiNum_eq_boolTop (bits2 p) n
   simp [hset, coinS2, D2, bits2, symmDiff_self]
@@ -1233,7 +1233,7 @@ theorem coinD2_eqB_false (n : ℕ) :
         (constL0 engelerWithNumerals.boolBot).val =
       (D2 n true)ᶜ := by
     ext p
-    simp only [l0Eq, mem_setOf, D2, appChi2L0, constL0, constRV, mem_compl_iff]
+    simp only [l0Eq, mem_ofPred, D2, appChi2L0, constL0, constRV, mem_compl_iff]
     rw [l0App_coinChi2_numeral, chiNum_eq_boolBot]
     simp [bits2]
   rw [memB_coinS2, MeasureAlgebra.compl_mk]
@@ -1359,8 +1359,8 @@ theorem coinD2_app_maps_eqB (M : Lam ℕ) (hM : MapsNumerals M) (n : ℕ) :
         (appChi1L0 (engelerWithNumerals.numeral n)).val =
       (agreeBit f n true ∪ agreeBit f n false) := by
     ext p
-    simp only [l0Eq, mem_setOf, mem_union, agreeBit, D1, D2, mem_inter_iff,
-      mem_setOf_eq, appChi2L0, appChi1L0]
+    simp only [l0Eq, mem_ofPred, mem_union, agreeBit, D1, D2, mem_inter_iff,
+      mem_ofPred_eq, appChi2L0, appChi1L0]
     rw [l0App_coinChi2_interp M hM n, l0App_coinChi1_numeral]
     have hiff :
         chiNum engelerWithNumerals (bits2 p) (f n) =
@@ -1393,7 +1393,7 @@ theorem coinD2_app_maps_eqB_va (M : Lam ℕ) (hM : MapsNumerals M) (n : ℕ) :
       (coinS2 (mapsNumeralsFun M hM n) ⇨ coinS1 n) ⊓
         (coinS1 n ⇨ coinS2 (mapsNumeralsFun M hM n)) := by
   have hMcl : (M.app (churchNumN n)).fv = ∅ := by
-    simp [Lam.fv, hM.1, churchNumN_fv]
+    simp [Lam.fv, hM.fv_empty, churchNumN_fv]
   have hMc := vaSubset_interpClosedVA (A := coinAlgebra) (M.app (churchNumN n)) hMcl
   have hcn := vaSubset_interpClosedVA (A := coinAlgebra) (churchNumN n)
     (churchNumN_fv n)
@@ -1436,7 +1436,7 @@ theorem coinD1_app_maps_eqB (M : Lam ℕ) (hM : MapsNumerals M) (n : ℕ) :
         (appChi2L0 (engelerWithNumerals.numeral n)).val =
       ((D2 n true ∩ D1 (f n) true) ∪ (D2 n false ∩ D1 (f n) false)) := by
     ext p
-    simp only [l0Eq, mem_setOf, mem_union, D1, D2, mem_inter_iff, mem_setOf_eq,
+    simp only [l0Eq, mem_ofPred, mem_union, D1, D2, mem_inter_iff, mem_ofPred_eq,
       appChi1L0, appChi2L0]
     rw [l0App_coinChi1_interp M hM n, l0App_coinChi2_numeral]
     have hiff :
@@ -1521,7 +1521,7 @@ theorem mapsAgreeSet_eq_iInter (M : Lam ℕ) (hM : MapsNumerals M) :
             (M.app (churchNumN n)))).val
         (invAppFun coinD1 (engelerWithNumerals.numeral n)).val := by
   ext x
-  simp only [mapsAgreeSet, mem_iInter, mem_setOf, l0Eq, invAppFun, l0App, constRV]
+  simp only [mapsAgreeSet, mem_iInter, mem_ofPred, l0Eq, invAppFun, l0App, constRV]
   rfl
 
 theorem measurableSet_mapsAgreeSet (M : Lam ℕ) (hM : MapsNumerals M) :
@@ -1582,7 +1582,7 @@ theorem mapsAgreeSet_swap_eq_iInter (M : Lam ℕ) (hM : MapsNumerals M) :
             (M.app (churchNumN n)))).val
         (invAppFun coinD2 (engelerWithNumerals.numeral n)).val := by
   ext x
-  simp only [mapsAgreeSet_swap, mem_iInter, mem_setOf, l0Eq, invAppFun, l0App,
+  simp only [mapsAgreeSet_swap, mem_iInter, mem_ofPred, l0Eq, invAppFun, l0App,
     constRV]
   rfl
 
@@ -1831,7 +1831,7 @@ theorem paperGoodSet_conull : coinMeasure paperGoodSetᶜ = 0 := by
 
 theorem exists_mem_paperGoodSet : ∃ x : CoinSpace, x ∈ paperGoodSet := by
   by_contra h
-  push_neg at h
+  push Not at h
   have heq : paperGoodSet = (∅ : Set CoinSpace) := eq_empty_iff_forall_notMem.mpr h
   have : coinMeasure (Set.univ : Set CoinSpace) = 0 := by
     have h1 : coinMeasure paperGoodSetᶜ = 0 := paperGoodSet_conull

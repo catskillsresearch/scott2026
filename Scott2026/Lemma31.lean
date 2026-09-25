@@ -102,10 +102,10 @@ theorem memB_check_ofNat_setPSet (S : Set ℕ) (n : ℕ) :
       if n ∈ S then ⊤ else ⊥ := by
   rw [setPSet, check_mk, memB_mk]
   by_cases hn : n ∈ S
-  · rw [if_pos hn]
+  · rw [ite_eq_left hn]
     refine top_unique (le_iSup_of_le ⟨⟨n, hn⟩⟩ ?_)
     rw [eqB_self (A := A), top_inf_eq]
-  · rw [if_neg hn]
+  · rw [ite_eq_right hn]
     refine le_antisymm ?_ bot_le
     refine iSup_le fun i => ?_
     rcases subsingleton_or_nontrivial A with hA | hA
@@ -162,8 +162,8 @@ theorem setToCanonical_coe (K : Finset ℕ) :
       memOfNat (A := A) (finsetToCanonical (A := A) K) n
     rw [memOfNat_setToCanonical, memB_finsetToCanonical]
     by_cases hn : n ∈ K
-    · rw [if_pos (Finset.mem_coe.mpr hn), if_pos hn]
-    · rw [if_neg (mt Finset.mem_coe.mp hn), if_neg hn]
+    · rw [ite_eq_left (Finset.mem_coe.mpr hn), ite_eq_left hn]
+    · rw [ite_eq_right (mt Finset.mem_coe.mp hn), ite_eq_right hn]
   have heq : eqB (childΩ (A := A) (setToCanonical (A := A) (↑K : Set ℕ)))
       (childΩ (finsetToCanonical (A := A) K)) = ⊤ :=
     eqB_canonical_of_memB_ofNat (A := A) hmem
@@ -194,17 +194,17 @@ theorem subsetB_finsetPSet_setPSet_eq (K : Finset ℕ) (S : Set ℕ) :
   · exact Subsingleton.elim _ _
   · clear hA
     by_cases hKS : (↑K : Set ℕ) ⊆ S
-    · rw [if_pos hKS]
+    · rw [ite_eq_left hKS]
       refine iInf_eq_top.mpr fun k => ?_
       have hk : k.1 ∈ S := hKS (Finset.mem_coe.mpr k.2)
-      rw [if_pos hk]
-    · rw [if_neg hKS]
+      rw [ite_eq_left hk]
+    · rw [ite_eq_right hKS]
       obtain ⟨k, hkK, hkS⟩ := Set.not_subset.mp hKS
       have hkK' : k ∈ K := Finset.mem_coe.mp hkK
       refine le_antisymm ?_ bot_le
       have hle := iInf_le (fun k : {k // k ∈ K} =>
           if k.1 ∈ S then (⊤ : A) else ⊥) ⟨k, hkK'⟩
-      rw [if_neg hkS] at hle
+      rw [ite_eq_right hkS] at hle
       exact hle
 
 theorem eqB_ofNat_pairApplyB (n : ℕ) (K : Finset ℕ) (m : ℕ) :
@@ -214,8 +214,8 @@ theorem eqB_ofNat_pairApplyB (n : ℕ) (K : Finset ℕ) (m : ℕ) :
   · exact Subsingleton.elim _ _
   · have : Nontrivial A := hA
     by_cases h : n = engelerPair (K, m)
-    · rw [if_pos h, h, pairApplyB, eqB_self (A := A)]
-    · rw [if_neg h, pairApplyB, eqB_check_ofNat_bot (A := A) h]
+    · rw [ite_eq_left h, h, pairApplyB, eqB_self (A := A)]
+    · rw [ite_eq_right h, pairApplyB, eqB_check_ofNat_bot (A := A) h]
 
 theorem iSup_indicator_engelerApp (S_M S_N : Set ℕ) (n : ℕ) :
     (⨆ K : Finset ℕ,
@@ -226,22 +226,22 @@ theorem iSup_indicator_engelerApp (S_M S_N : Set ℕ) (n : ℕ) :
   · exact Subsingleton.elim _ _
   · have : Nontrivial A := hA
     by_cases hn : n ∈ engelerApp engelerPair S_M S_N
-    · rw [if_pos hn]
-      rw [engelerApp, Set.mem_setOf_eq] at hn
+    · rw [ite_eq_left hn]
+      rw [engelerApp, Set.mem_ofPred_eq] at hn
       obtain ⟨K, hK, hp⟩ := hn
       refine top_unique (le_iSup_of_le K ?_)
-      rw [if_pos hK, if_pos hp, top_inf_eq]
-    · rw [if_neg hn]
+      rw [ite_eq_left hK, ite_eq_left hp, top_inf_eq]
+    · rw [ite_eq_right hn]
       refine le_antisymm ?_ bot_le
       refine iSup_le fun K => ?_
       by_cases hK : (↑K : Set ℕ) ⊆ S_N
       · by_cases hp : engelerPair (K, n) ∈ S_M
         · have : n ∈ engelerApp engelerPair S_M S_N := by
-            rw [engelerApp, Set.mem_setOf_eq]
+            rw [engelerApp, Set.mem_ofPred_eq]
             exact ⟨K, hK, hp⟩
           exact (hn this).elim
-        · rw [if_pos hK, if_neg hp, inf_bot_eq]
-      · rw [if_neg hK, bot_inf_eq]
+        · rw [ite_eq_left hK, ite_eq_right hp, inf_bot_eq]
+      · rw [ite_eq_right hK, bot_inf_eq]
 
 theorem iSup_indicator_engelerLam (f : Set ℕ → Set ℕ) (n : ℕ) :
     (⨆ K : Finset ℕ, ⨆ m : ℕ,
@@ -252,22 +252,22 @@ theorem iSup_indicator_engelerLam (f : Set ℕ → Set ℕ) (n : ℕ) :
   · exact Subsingleton.elim _ _
   · have : Nontrivial A := hA
     by_cases hn : n ∈ engelerLam engelerPair f
-    · rw [if_pos hn]
-      rw [engelerLam, Set.mem_setOf_eq] at hn
+    · rw [ite_eq_left hn]
+      rw [engelerLam, Set.mem_ofPred_eq] at hn
       obtain ⟨K, m, hm, heq⟩ := hn
       refine top_unique (le_iSup_of_le K (le_iSup_of_le m ?_))
-      rw [if_pos heq, if_pos hm, top_inf_eq]
-    · rw [if_neg hn]
+      rw [ite_eq_left heq, ite_eq_left hm, top_inf_eq]
+    · rw [ite_eq_right hn]
       refine le_antisymm ?_ bot_le
       refine iSup_le fun K => iSup_le fun m => ?_
       by_cases heq : n = engelerPair (K, m)
       · by_cases hm : m ∈ f (↑K)
         · have : n ∈ engelerLam engelerPair f := by
-            rw [engelerLam, Set.mem_setOf_eq]
+            rw [engelerLam, Set.mem_ofPred_eq]
             exact ⟨K, m, hm, heq⟩
           exact (hn this).elim
-        · rw [if_pos heq, if_neg hm, inf_bot_eq]
-      · rw [if_neg heq, bot_inf_eq]
+        · rw [ite_eq_left heq, ite_eq_right hm, inf_bot_eq]
+      · rw [ite_eq_right heq, bot_inf_eq]
 
 /-!
 ## Check of a valuation

@@ -47,8 +47,9 @@ Church `Fin 2`/`ℕ` closed-interpretation agreement lives in
 -/
 
 /-- Closed `M` sending each Church numeral to a Church numeral. -/
-def MapsNumerals (M : Lam ℕ) : Prop :=
-  M.fv = ∅ ∧ ∀ n, ∃ m, LamEq (M.app (churchNumN n)) (churchNumN m)
+structure MapsNumerals (M : Lam ℕ) : Prop where
+  fv_empty : M.fv = ∅
+  maps : ∀ n, ∃ m, LamEq (M.app (churchNumN n)) (churchNumN m)
 
 theorem churchSucc_mapsNumerals : MapsNumerals churchSucc :=
   ⟨churchSucc_fv, fun n => ⟨n + 1, churchSucc_num n⟩⟩
@@ -86,11 +87,11 @@ theorem mapsNumerals_unique {M : Lam ℕ} (_hM : MapsNumerals M) {n m m' : ℕ}
 
 /-- Classically extracted reduction `f` of a `MapsNumerals` witness. -/
 def mapsNumeralsFun (M : Lam ℕ) (hM : MapsNumerals M) : ℕ → ℕ :=
-  fun n => Classical.choose (hM.2 n)
+  fun n => Classical.choose (hM.maps n)
 
 theorem mapsNumeralsFun_spec (M : Lam ℕ) (hM : MapsNumerals M) (n : ℕ) :
     LamEq (M.app (churchNumN n)) (churchNumN (mapsNumeralsFun M hM n)) :=
-  Classical.choose_spec (hM.2 n)
+  Classical.choose_spec (hM.maps n)
 
 theorem mapsNumeralsFun_unique {M : Lam ℕ} (hM : MapsNumerals M) {n m : ℕ}
     (hm : LamEq (M.app (churchNumN n)) (churchNumN m)) :
@@ -137,10 +138,10 @@ theorem chiNum_eq_iff {D : Type*} [CompleteLattice D]
   by_cases hn : n ∈ S
   · by_cases hm : m ∈ T
     · simp [hn, hm]
-    · rw [if_pos hn, if_neg hm]
+    · rw [ite_eq_left hn, ite_eq_right hm]
       exact iff_of_false R.bool_ne.symm (fun hiff => hm (hiff.mp hn))
   · by_cases hm : m ∈ T
-    · rw [if_neg hn, if_pos hm]
+    · rw [ite_eq_right hn, ite_eq_left hm]
       exact iff_of_false R.bool_ne (fun hiff => hn (hiff.mpr hm))
     · simp [hn, hm]
 
@@ -503,7 +504,7 @@ def lamOfCode (n : ℕ) : Lam ℕ :=
 
 theorem lamOfCode_encode (M : Lam ℕ) : lamOfCode (lamEncode M) = M := by
   have h : ∃ N, lamEncode N = lamEncode M := ⟨M, rfl⟩
-  simp only [lamOfCode, dif_pos h]
+  simp only [lamOfCode, dite_eq_left h]
   exact lamEncode_injective (Classical.choose_spec h)
 
 /-- A witness `m` for `M c_n = c_m`, or `0` if none exists. -/
@@ -515,7 +516,7 @@ theorem representedAt_eq {M : Lam ℕ} {n m : ℕ}
     (h : LamEq (M.app (churchNumN n)) (churchNumN m)) :
     representedAt M n = m := by
   have hex : ∃ k, LamEq (M.app (churchNumN n)) (churchNumN k) := ⟨m, h⟩
-  simp only [representedAt, dif_pos hex]
+  simp only [representedAt, dite_eq_left hex]
   exact churchNumN_lamEq_injective ((Classical.choose_spec hex).symm.trans h)
 
 /-- Not every `f : ℕ → ℕ` is represented by a closed λ-term. A “Church

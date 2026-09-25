@@ -20,27 +20,38 @@ Corollary 34 in the proof without putting those types in Challenge.
 
 namespace Scott2026
 
+/-- An `A`-valued internal interpretation of closed λ-terms (Theorem 26 / Corollary 34). -/
+structure InternalInterpretation (A : Type) [CompleteBooleanAlgebra A] where
+  D : Type
+  V : Type
+  eqA : D → D → A
+  app : D → D → D
+  lam : (D → D) → D
+  interp : Lam ℕ → V → D
+  lookup : V → ℕ → D
+  update : V → ℕ → D → V
+  empty : V
+  eq_refl : ∀ d, eqA d d = ⊤
+  eq_symm : ∀ d e, eqA d e = eqA e d
+  eq_trans : ∀ d e f, eqA d e ⊓ eqA e f ≤ eqA d f
+  interp_var : ∀ ρ x, interp (Lam.var x) ρ = lookup ρ x
+  interp_app : ∀ ρ M N, interp (M.app N) ρ = app (interp M ρ) (interp N ρ)
+  interp_abs :
+    ∀ ρ x M, interp (Lam.abs x M) ρ = lam (fun d => interp M (update ρ x d))
+  interp_sound :
+    ∀ ρ {M N : Lam ℕ}, LamEq M N → eqA (interp M ρ) (interp N ρ) = ⊤
+  church_bool_separate :
+    eqA (interp churchTrueN empty) (interp churchFalseN empty) = ⊥
+  church_num_inj :
+    ∀ n m,
+      eqA (interp (churchNumN n) empty) (interp (churchNumN m) empty) = ⊤ → n = m
+
 /-- Statement of the Mathlib-facing substantive consequence of Theorem 26 and
 Corollary 34, kept as a named definition for Palomar's Challenge/Solution
 boundary. -/
 def internal_interpretation_statement : Prop :=
-    ∀ (A : Type) [CompleteBooleanAlgebra A] [Nontrivial A],
-      ∃ (D V : Type) (eqA : D → D → A) (app : D → D → D)
-          (lam : (D → D) → D) (interp : Lam ℕ → V → D)
-          (lookup : V → ℕ → D) (update : V → ℕ → D → V) (empty : V),
-        (∀ d, eqA d d = ⊤) ∧
-        (∀ d e, eqA d e = eqA e d) ∧
-        (∀ d e f, eqA d e ⊓ eqA e f ≤ eqA d f) ∧
-        (∀ ρ x, interp (Lam.var x) ρ = lookup ρ x) ∧
-        (∀ ρ M N, interp (M.app N) ρ = app (interp M ρ) (interp N ρ)) ∧
-        (∀ ρ x M,
-          interp (Lam.abs x M) ρ = lam (fun d => interp M (update ρ x d))) ∧
-        (∀ ρ {M N : Lam ℕ},
-          LamEq M N → eqA (interp M ρ) (interp N ρ) = ⊤) ∧
-        eqA (interp churchTrueN empty) (interp churchFalseN empty) = ⊥ ∧
-        ∀ n m,
-          eqA (interp (churchNumN n) empty) (interp (churchNumN m) empty) = ⊤ →
-            n = m
+  ∀ (A : Type) [CompleteBooleanAlgebra A] [Nontrivial A],
+    Nonempty (InternalInterpretation A)
 
 /-- Mathlib-facing substantive consequence of Theorem 26 and Corollary 34.
 For every nontrivial complete Boolean algebra, the internal Engeler
@@ -49,45 +60,43 @@ and numerals. This is Comparator-locked alongside Theorem 43. -/
 theorem csl2026_internal_interpretation :
     internal_interpretation_statement := by
   intro A _ _
-  refine ⟨EngelerCarrier (A := A),
-    Valuation ℕ (EngelerCarrier (A := A)),
-    fun X Y => AName.eqB (childΩ X) (childΩ Y),
-    engelerAppVA (A := A), engelerLamVA (A := A), interpVA (A := A),
-    fun ρ x => ρ.toFun x, Valuation.update,
-    Valuation.default (finsetToCanonical (A := A) ∅),
-    ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-  · intro d
-    exact AName.eqB_self _
-  · intro d e
-    exact AName.eqB_comm _ _
-  · intro d e f
-    exact AName.eqB_trans _ _ _
-  · intro ρ x
-    rfl
-  · intro ρ M N
-    rfl
-  · intro ρ x M
-    rfl
-  · intro ρ M N h
-    rw [interpVA_sound_full h ρ]
-    exact AName.eqB_self _
-  · exact eqB_interpClosedVA_churchTrue_churchFalse (A := A)
-  · intro n m h
-    have hn :
-        interpClosedVA (A := A) (churchNumN n) =
-          interpClosedVA (churchNum n) := by
-      rw [interpClosedVA_churchNumN, interpClosedVA_churchNum,
-        churchNum_interpClosed_eq_churchNumN]
-    have hm :
-        interpClosedVA (A := A) (churchNumN m) =
-          interpClosedVA (churchNum m) := by
-      rw [interpClosedVA_churchNumN, interpClosedVA_churchNum,
-        churchNum_interpClosed_eq_churchNumN]
-    change AName.eqB
-      (childΩ (interpClosedVA (A := A) (churchNumN n)))
-      (childΩ (interpClosedVA (A := A) (churchNumN m))) = ⊤ at h
-    rw [hn, hm] at h
-    exact churchNum_interpClosedVA_injective (A := A) h
+  refine ⟨{
+    D := EngelerCarrier (A := A)
+    V := Valuation ℕ (EngelerCarrier (A := A))
+    eqA := fun X Y => AName.eqB (childΩ X) (childΩ Y)
+    app := engelerAppVA (A := A)
+    lam := engelerLamVA (A := A)
+    interp := interpVA (A := A)
+    lookup := fun ρ x => ρ.toFun x
+    update := Valuation.update
+    empty := Valuation.default (finsetToCanonical (A := A) ∅)
+    eq_refl := fun _ => AName.eqB_self _
+    eq_symm := fun _ _ => AName.eqB_comm _ _
+    eq_trans := fun _ _ _ => AName.eqB_trans _ _ _
+    interp_var := fun _ _ => rfl
+    interp_app := fun _ _ _ => rfl
+    interp_abs := fun _ _ _ => rfl
+    interp_sound := fun ρ M N h => by
+      rw [interpVA_sound_full h ρ]
+      exact AName.eqB_self _
+    church_bool_separate := eqB_interpClosedVA_churchTrue_churchFalse (A := A)
+    church_num_inj := fun n m h => by
+      have hn :
+          interpClosedVA (A := A) (churchNumN n) =
+            interpClosedVA (churchNum n) := by
+        rw [interpClosedVA_churchNumN, interpClosedVA_churchNum,
+          churchNum_interpClosed_eq_churchNumN]
+      have hm :
+          interpClosedVA (A := A) (churchNumN m) =
+            interpClosedVA (churchNum m) := by
+        rw [interpClosedVA_churchNumN, interpClosedVA_churchNum,
+          churchNum_interpClosed_eq_churchNumN]
+      change AName.eqB
+        (childΩ (interpClosedVA (A := A) (churchNumN n)))
+        (childΩ (interpClosedVA (A := A) (churchNumN m))) = ⊤ at h
+      rw [hn, hm] at h
+      exact churchNum_interpClosedVA_injective (A := A) h
+  }⟩
 
 /-- Identity combinator `λx. x`, used to show `≤ₘ` is reflexive. -/
 def lamId : Lam ℕ :=

@@ -82,7 +82,7 @@ theorem proposition_2_9_a {ι : Type*} (E : ι → Type*) [∀ i, CompleteLattic
     obtain ⟨U, hU, hyiU, hUsub⟩ := ha
     refine ⟨{z : ∀ j, E j | z i ∈ U}, ?_, hyiU, ?_⟩
     · refine ⟨fun z w hzw hz => hU.1 (hzw i) hz, fun S hSne hSdir hmem => ?_⟩
-      rw [Set.mem_setOf_eq, sSup_apply_eq_sSup_image] at hmem
+      rw [Set.mem_ofPred_eq, sSup_apply_eq_sSup_image] at hmem
       have hdir' : DirectedOn (· ≤ ·) (Function.eval i '' S) := by
         rintro _ ⟨f, hf, rfl⟩ _ ⟨g, hg, rfl⟩
         obtain ⟨h, hhS, hfh, hgh⟩ := hSdir f hf g hg
@@ -166,8 +166,8 @@ theorem wayBelow_finite_support {ι : Type*} {E : ι → Type*} [∀ i, Complete
     rw [Pi.le_def]; intro j
     simp only [hZ]
     by_cases hjF : j ∈ F
-    · rw [if_pos hjF, if_pos (hFG hjF)]
-    · rw [if_neg hjF]; exact bot_le
+    · rw [ite_eq_left hjF, ite_eq_left (hFG hjF)]
+    · rw [ite_eq_right hjF]; exact bot_le
   have h𝒵ne : 𝒵.Nonempty := ⟨Z ∅, ∅, rfl⟩
   have h𝒵dir : DirectedOn (· ≤ ·) 𝒵 := by
     rintro _ ⟨F, rfl⟩ _ ⟨G, rfl⟩
@@ -180,8 +180,8 @@ theorem wayBelow_finite_support {ι : Type*} {E : ι → Type*} [∀ i, Complete
       rw [Pi.le_def]; intro j
       simp only [hZ]
       by_cases hjF : j ∈ F
-      · rw [if_pos hjF]
-      · rw [if_neg hjF]; exact bot_le
+      · rw [ite_eq_left hjF]
+      · rw [ite_eq_right hjF]; exact bot_le
     · rw [Pi.le_def]; intro j
       rw [sSup_apply_eq_sSup_image]
       refine le_sSup ⟨Z {j}, ⟨{j}, rfl⟩, ?_⟩
@@ -191,7 +191,7 @@ theorem wayBelow_finite_support {ι : Type*} {E : ι → Type*} [∀ i, Complete
   obtain ⟨F, rfl⟩ := hd𝒵
   refine ⟨F, fun j hjF => ?_⟩
   have hj := had.le j
-  simp only [hZ, if_neg hjF] at hj
+  simp only [hZ, ite_eq_right hjF] at hj
   exact le_bot_iff.1 hj
 
 /-- **Scott 1972, Proposition 2.9(b).** For a family of continuous lattices, the Scott topology of
