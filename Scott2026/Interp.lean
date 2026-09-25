@@ -15,6 +15,7 @@ import Scott2026.Domain
 import Scott2026.Engeler
 import Scott2026.EngelerVA
 import Scott2026.Lambda
+import Scott2026.Valuation
 
 /-!
 # Interpretation of pure λ-terms in a reflexive dcpo (Definition 25)
@@ -55,12 +56,6 @@ variable {Var : Type*} {D : Type*}
 /-!
 ## Valuations
 -/
-
-/-- Definition 25: a valuation is a partial function `Var → D`, represented
-as a Finset-supported total map. Only values on `domain` are used. -/
-structure Valuation (Var : Type*) (D : Type*) where
-  domain : Finset Var
-  toFun : Var → D
 
 namespace Valuation
 

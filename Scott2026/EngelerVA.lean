@@ -6,6 +6,7 @@ Authors: Lars Warren Ericson.
 
 import Mathlib.Data.Finset.Sort
 import Mathlib.Data.Nat.Pairing
+import Scott2026.AValuedReflexiveDcpo
 import Scott2026.Engeler
 import Scott2026.Oid
 
@@ -742,17 +743,6 @@ theorem engelerPair_prop29_retract {f : Set ℕ → Set ℕ}
 /-!
 ## Theorem 30 package
 -/
-
-/-- Theorem 30 data: an `A`-valued reflexive dcpo recorded as the poset
-`‖⊆‖`, application, abstraction, and the retract at Boolean value `⊤` for
-maps determined by finite sets. This is not Definition 19 inside `V^A`. -/
-structure AValuedReflexiveDcpo (A : Type u) [CompleteBooleanAlgebra A]
-    (X : Type u) where
-  poset : APoset (A := A) X
-  app : X → X → X
-  lam : (X → X) → X
-  determined : (X → X) → Prop
-  retract : ∀ f x, determined f → poset.eq (app (lam f) x) (f x) = ⊤
 
 /-- Theorem 30: `(P^A(check E), ‖⊆‖, ·, lam)` is an `A`-valued reflexive dcpo
 on the canonical carrier (operations and retract at `⊤`). Strictness is the

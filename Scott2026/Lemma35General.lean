@@ -5,6 +5,7 @@ Authors: Lars Warren Ericson.
 -/
 
 import Scott2026.Interp
+import Scott2026.NumeralSeparators
 import Scott1972.ContinuousLattice.Constructions
 
 /-!
@@ -23,18 +24,6 @@ universe u
 namespace Scott2026
 
 open Set
-
-/-- Denotations of negation and the derived `m?` tests used in the proof of
-Lemma 35(i). -/
-structure NumeralSeparators (D : Type u) [CompleteLattice D]
-    (R : ReflexiveDcpoWithNumerals D) where
-  neg : D
-  neg_top : R.app neg R.boolTop = R.boolBot
-  neg_bot : R.app neg R.boolBot = R.boolTop
-  test : ℕ → D
-  test_spec : ∀ m n,
-    R.app (test m) (R.numeral n) =
-      if n = m then R.boolTop else R.boolBot
 
 /-- The two Boolean denotations can be separated by Scott opens in both
 directions, using denotational negation exactly as in the paper. -/

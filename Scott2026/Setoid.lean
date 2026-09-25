@@ -6,6 +6,11 @@ Authors: Lars Warren Ericson.
 
 import Mathlib.Order.CompleteBooleanAlgebra
 import Mathlib.Order.Zorn
+import Scott2026.APoset
+import Scott2026.APoset.StrictIso
+import Scott2026.ASetoid
+import Scott2026.ASetoid.Predicate
+import Scott2026.ASetoid.StrictIso
 import Scott2026.BooleanLogic
 
 universe v
@@ -39,19 +44,9 @@ theorem sSup_inf_sSup_eq_bot {s t : Set A}
   rw [inf_sSup_eq]
   exact iSup_eq_bot.mpr fun d => iSup_eq_bot.mpr fun hd => h c hc d hd
 
-/-- An `A`-valued setoid: a set with a symmetric, transitive `A`-valued equality
-(paper §3, before Definition 4). Reflexivity is not assumed. -/
-structure ASetoid (X : Type*) where
-  eq : X → X → A
-  symm : ∀ x y, eq x y = eq y x
-  trans : ∀ x y z, eq x y ⊓ eq y z ≤ eq x z
-
 namespace ASetoid
 
 variable {X Y : Type*} (S : ASetoid (A := A) X) (T : ASetoid (A := A) Y)
-
-/-- `ε_X(x) = ‖x = x‖_X`, the degree to which `x ∈ X`. -/
-def eps (x : X) : A := S.eq x x
 
 theorem eq_le_eps_left (x y : X) : S.eq x y ≤ S.eps x := by
   have h : S.eq x y ⊓ S.eq y x ≤ S.eq x x := S.trans x y x
@@ -172,14 +167,6 @@ theorem IsComplete.nonempty (h : IsComplete.{v} S) : Nonempty X := by
   obtain ⟨y, _⟩ := h PEmpty.{v + 1} a x fun i => nomatch i
   exact ⟨y⟩
 
-/-- Definition 5: a bijection strictly preserving `A`-valued equality. -/
-structure StrictIso (S : ASetoid (A := A) X) (T : ASetoid (A := A) Y) where
-  toFun : X → Y
-  invFun : Y → X
-  left_inv : ∀ x, invFun (toFun x) = x
-  right_inv : ∀ y, toFun (invFun y) = y
-  preserve_eq : ∀ x₁ x₂, T.eq (toFun x₁) (toFun x₂) = S.eq x₁ x₂
-
 namespace StrictIso
 
 variable {S : ASetoid (A := A) X} {T : ASetoid (A := A) Y}
@@ -273,12 +260,6 @@ theorem definition_6 (p q : X × Y) :
     (S.prod T).eq p q = S.eq p.1 q.1 ⊓ T.eq p.2 q.2 :=
   prod_eq S T p q
 
-/-- Definition 7: a predicate on an `A`-setoid. -/
-structure Predicate (S : ASetoid (A := A) X) where
-  val : X → A
-  respects : ∀ x₁ x₂, S.eq x₁ x₂ ≤ himp (val x₁) (val x₂) ⊓ himp (val x₂) (val x₁)
-  le_eps : ∀ x, val x ≤ S.eps x
-
 /-- A binary relation `X → Y` is a predicate on the product (Definition 7). -/
 abbrev Rel (S : ASetoid (A := A) X) (T : ASetoid (A := A) Y) :=
   Predicate (S.prod T)
@@ -296,18 +277,9 @@ theorem Predicate.respects_left (P : Predicate S) (x₁ x₂ : X) :
 
 end ASetoid
 
-/-- Definition 11: an `A`-poset. Equality is recovered as the symmetrization of `≤`. -/
-structure APoset (X : Type*) where
-  le : X → X → A
-  trans : ∀ x y z, le x y ⊓ le y z ≤ le x z
-  le_le_refl : ∀ x y, le x y ≤ le x x ⊓ le y y
-
 namespace APoset
 
 variable {X Y : Type*} (P : APoset (A := A) X) (Q : APoset (A := A) Y)
-
-/-- Equation (1): `‖x = y‖ = ‖x ≤ y‖ ⊓ ‖y ≤ x‖`. -/
-def eq (x y : X) : A := P.le x y ⊓ P.le y x
 
 /-- The underlying `A`-setoid of an `A`-poset (Definition 11). -/
 def toASetoid : ASetoid (A := A) X where
@@ -382,14 +354,6 @@ theorem lemma_12_converse {f : X → Y}
     (hmono : InternallyMonotone P Q f) : AMonotone P Q f :=
   let _ := hf
   (internallyMonotone_iff_aMonotone (P := P) (Q := Q)).mp hmono
-
-/-- Strict isomorphism of `A`-posets: a bijection strictly preserving `≤`. -/
-structure StrictIso (P : APoset (A := A) X) (Q : APoset (A := A) Y) where
-  toFun : X → Y
-  invFun : Y → X
-  left_inv : ∀ x, invFun (toFun x) = x
-  right_inv : ∀ y, toFun (invFun y) = y
-  preserve_le : ∀ x₁ x₂, Q.le (toFun x₁) (toFun x₂) = P.le x₁ x₂
 
 namespace StrictIso
 

@@ -6,6 +6,8 @@ Authors: Lars Warren Ericson.
 
 import Mathlib.CategoryTheory.Category.Basic
 import Scott2026.RelFun
+import Scott2026.SetoidFObj
+import Scott2026.SetoidRObj
 
 /-!
 # Categories of Boolean-valued setoids
@@ -21,11 +23,6 @@ namespace Scott2026
 open CategoryTheory
 
 variable (A : Type u) [CompleteBooleanAlgebra A]
-
-/-- A bundled `A`-setoid, used as an object of `SetoidR_A`. -/
-structure SetoidRObj where
-  carrier : Type u
-  setoid : ASetoid (A := A) carrier
 
 namespace SetoidRObj
 
@@ -52,11 +49,6 @@ instance : Category (SetoidRObj A) where
   rfl
 
 end SetoidRObj
-
-/-- A separately bundled `A`-setoid, used as an object of `SetoidF_A`. -/
-structure SetoidFObj where
-  carrier : Type u
-  setoid : ASetoid (A := A) carrier
 
 namespace SetoidFObj
 

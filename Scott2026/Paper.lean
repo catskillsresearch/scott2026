@@ -6,6 +6,7 @@ Authors: Lars Warren Ericson.
 
 import Scott2026.Coin
 import Scott2026.Corollary34
+import Scott2026.InternalInterpretation
 import Scott2026.Theorem26
 
 /-!
@@ -19,32 +20,6 @@ Corollary 34 in the proof without putting those types in Challenge.
 -/
 
 namespace Scott2026
-
-/-- An `A`-valued internal interpretation of closed λ-terms (Theorem 26 / Corollary 34). -/
-structure InternalInterpretation (A : Type) [CompleteBooleanAlgebra A] where
-  D : Type
-  V : Type
-  eqA : D → D → A
-  app : D → D → D
-  lam : (D → D) → D
-  interp : Lam ℕ → V → D
-  lookup : V → ℕ → D
-  update : V → ℕ → D → V
-  empty : V
-  eq_refl : ∀ d, eqA d d = ⊤
-  eq_symm : ∀ d e, eqA d e = eqA e d
-  eq_trans : ∀ d e f, eqA d e ⊓ eqA e f ≤ eqA d f
-  interp_var : ∀ ρ x, interp (Lam.var x) ρ = lookup ρ x
-  interp_app : ∀ ρ M N, interp (M.app N) ρ = app (interp M ρ) (interp N ρ)
-  interp_abs :
-    ∀ ρ x M, interp (Lam.abs x M) ρ = lam (fun d => interp M (update ρ x d))
-  interp_sound :
-    ∀ ρ {M N : Lam ℕ}, LamEq M N → eqA (interp M ρ) (interp N ρ) = ⊤
-  church_bool_separate :
-    eqA (interp churchTrueN empty) (interp churchFalseN empty) = ⊥
-  church_num_inj :
-    ∀ n m,
-      eqA (interp (churchNumN n) empty) (interp (churchNumN m) empty) = ⊤ → n = m
 
 /-- Statement of the Mathlib-facing substantive consequence of Theorem 26 and
 Corollary 34, kept as a named definition for Palomar's Challenge/Solution

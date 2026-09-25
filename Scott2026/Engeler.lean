@@ -7,6 +7,7 @@ Authors: Lars Warren Ericson.
 import Mathlib.Data.Finset.Basic
 import Mathlib.Order.ScottContinuity
 import Scott2026.Domain
+import Scott2026.ReflexiveDcpoWithNumerals
 
 /-!
 # The Engeler model (Proposition 29) and numerals (Definition 32)
@@ -235,17 +236,6 @@ theorem proposition_29_full [DecidableEq E] (pair : Finset E × E → E)
     (engelerReflexiveDcpo pair hpair).lam_scott,
     (engelerReflexiveDcpo pair hpair).fun_scott_pt,
     (engelerReflexiveDcpo pair hpair).retract⟩
-
-/-- Definition 32: a reflexive dcpo with numerals. We record the algebraic
-interface (distinct Booleans, `if`/`succ`/`pred`/`0?`) without a particular
-encoding of closed terms as domain elements. -/
-structure ReflexiveDcpoWithNumerals (D : Type*) [CompleteLattice D]
-    extends ReflexiveDcpo D where
-  boolBot : D
-  boolTop : D
-  numeral : ℕ → D
-  bool_ne : boolBot ≠ boolTop
-  numeral_inj : Function.Injective numeral
 
 /-- Characteristic function of a set of numerals, valued in `{⊥, ⊤}` (before Lemma 35). -/
 noncomputable def chiNum {D : Type*} [CompleteLattice D] (R : ReflexiveDcpoWithNumerals D)

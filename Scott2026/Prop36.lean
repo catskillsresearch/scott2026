@@ -8,6 +8,7 @@ import Mathlib.Data.Fintype.EquivFin
 import Mathlib.Data.Nat.Pairing
 import Scott2026.Interp
 import Scott2026.Lemma35General
+import Scott2026.MapsNumerals
 
 -- `Lemma35General` pulls in Scott 1972 `specializationPreorder`, which
 -- diamonds with `ENNReal`'s order in `Coin`. Keep the lattice/order
@@ -45,11 +46,6 @@ noncomputable section
 Church `Fin 2`/`ℕ` closed-interpretation agreement lives in
 `Lemma35General` (`churchNum_interpClosed_eq_churchNumN`).
 -/
-
-/-- Closed `M` sending each Church numeral to a Church numeral. -/
-structure MapsNumerals (M : Lam ℕ) : Prop where
-  fv_empty : M.fv = ∅
-  maps : ∀ n, ∃ m, LamEq (M.app (churchNumN n)) (churchNumN m)
 
 theorem churchSucc_mapsNumerals : MapsNumerals churchSucc :=
   ⟨churchSucc_fv, fun n => ⟨n + 1, churchSucc_num n⟩⟩

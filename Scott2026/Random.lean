@@ -13,6 +13,7 @@ import Mathlib.Basic.Countable.Small
 import Mathlib.Logic.Encodable.Basic
 import Mathlib.Order.CompleteLattice.Finset
 import Mathlib.Order.Hom.Basic
+import Scott2026.NegligibilitySpace
 import Scott2026.Setoid
 import Scott2026.PowerSet
 import Scott2026.Engeler
@@ -100,21 +101,6 @@ def l0APoset : APoset (A := Set X) (X → Set Y) where
   le_le_refl := fun a b => by
     intro x _hx
     exact ⟨by simp [l0Le], by simp [l0Le]⟩
-
-/-- A negligibility space (paper §5): a measurable space with a σ-ideal `N`
-such that `Σ / N` is complete, not merely σ-complete. Completeness is
-packaged as existence of essential suprema. -/
-structure NegligibilitySpace (X : Type*) [MeasurableSpace X] where
-  negligible : Set X → Prop
-  empty : negligible ∅
-  mono : ∀ {s t}, s ⊆ t → negligible t → negligible s
-  union : ∀ s : ℕ → Set X, (∀ n, negligible (s n)) → negligible (⋃ n, s n)
-  essentialSup : ∀ {ι : Type*} (s : ι → Set X),
-    ∃ u : Set X,
-      (∀ i, negligible (s i \ u)) ∧
-        ∀ v : Set X, (∀ i, negligible (s i \ v)) → negligible (u \ v)
-  /-- Every set is a.e. equal to a measurable representative (`A(X) = Σ/𝒩`). -/
-  measurableRep : ∀ s : Set X, ∃ t : Set X, MeasurableSet t ∧ negligible (symmDiff s t)
 
 namespace NegligibilitySpace
 

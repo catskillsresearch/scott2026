@@ -28,6 +28,7 @@ name = "Scott2026"
 
 [[lean_lib]]
 name = "Challenge"
+roots = ["Challenge", "Challenge.Lambda", "Challenge.MapsNumerals", "Challenge.InternalInterpretation"]
 
 [[lean_lib]]
 name = "Solution"

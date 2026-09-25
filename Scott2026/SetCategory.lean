@@ -8,6 +8,7 @@ import Mathlib.CategoryTheory.Category.Basic
 import Mathlib.CategoryTheory.Functor.FullyFaithful
 import Scott2026.Categories
 import Scott2026.Oid
+import Scott2026.SetAObj
 
 /-!
 # The category of Boolean-valued sets
@@ -314,10 +315,6 @@ theorem oidHomQ_comp {X Y Z : AName.{u} A}
         oidRel_comp
           (by rw [← memB_funsB]; exact f.2)
           (by rw [← memB_funsB]; exact g.2) i j
-
-/-- Bundled objects of `Set_A`. -/
-structure SetAObj (A : Type u) [CompleteBooleanAlgebra A] where
-  name : AName.{u} A
 
 namespace SetAObj
 
