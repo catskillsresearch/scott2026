@@ -516,6 +516,136 @@ def tex_path(rel: str, hide: str = "") -> str:
     return rf"\href{{{url}}}{{\texttt{{{shown}}}}}"
 
 
+# Short English names for submodule directories. The directory name itself is the link.
+ENGLISH: dict[str, str] = {
+    "Scott2026/BooleanValuedSetTheory/VA": "The Boolean-valued universe",
+    "Scott2026/BooleanValuedSetTheory/VA/AName": "Boolean names",
+    "Scott2026/BooleanValuedSetTheory/VA/D0Formula": "Bounded formulas",
+    "Scott2026/BooleanValuedSetTheory/VA/Proofs": "Proofs",
+    "Scott2026/BooleanValuedSetTheory/VA/SetFormula": "Set-theoretic formulas",
+    "Scott2026/Setoids/APoset": "A-posets",
+    "Scott2026/Setoids/ASetoid": "A-setoids",
+    "Scott2026/LambdaModels/DomainTheory": "Domain theory (section 4.1)",
+    "Scott2026/LambdaModels/DomainTheory/InternalDomain": "Internal domain",
+    "Scott2026/LambdaModels/DomainTheory/InternalDomain/Proofs": "Proofs",
+    "Scott2026/LambdaModels/DomainTheory/InternalEval": "Internal evaluation",
+    "Scott2026/LambdaModels/DomainTheory/InternalEval/InternalReflexiveModel": "Internal reflexive model",
+    "Scott2026/LambdaModels/DomainTheory/InternalEval/Proofs": "Proofs",
+    "Scott2026/LambdaModels/DomainTheory/InternalEvalComplete": "Completed internal evaluation",
+    "Scott2026/LambdaModels/DomainTheory/InternalEvalComplete/InternalReflexiveModel": "Internal reflexive model",
+    "Scott2026/LambdaModels/DomainTheory/InternalEvalComplete/Proofs": "Proofs",
+    "Scott2026/LambdaModels/DomainTheory/InternalEvalPack": "Packed internal evaluation",
+    "Scott2026/LambdaModels/DomainTheory/InternalEvalPack/InternalReflexiveModel": "Internal reflexive model",
+    "Scott2026/LambdaModels/DomainTheory/InternalEvalPack/LamDK": "de Bruijn terms",
+    "Scott2026/LambdaModels/DomainTheory/InternalEvalPack/Proofs": "Proofs",
+    "Scott2026/LambdaModels/DomainTheory/Interp": "Interpretation of $\\lambda$-terms",
+    "Scott2026/LambdaModels/DomainTheory/Interp/Proofs": "Proofs",
+    "Scott2026/LambdaModels/DomainTheory/Interp/Valuation": "Valuations",
+    "Scott2026/LambdaModels/DomainTheory/Lambda": "Untyped $\\lambda$-calculus",
+    "Scott2026/LambdaModels/DomainTheory/Lambda/Lam": "$\\lambda$-terms",
+    "Scott2026/LambdaModels/DomainTheory/Lambda/Proofs": "Proofs",
+    "Scott2026/LambdaModels/Engeler": "The Engeler model (section 4.2)",
+    "Scott2026/LambdaModels/Engeler/Theorem30Internal": "Internal Theorem 30",
+    "Scott2026/LambdaModels/Engeler/Theorem30Internal/Proofs": "Proofs",
+    "Scott2026/LambdaModels/Oracles": "Injective spaces and oracles (section 4.3)",
+    "Scott2026/RandomVariables/Coin": "Coin space",
+    "Scott2026/RandomVariables/Coin/Proofs": "Proofs",
+    "Scott2026/RandomVariables/NegligibilitySpace": "Negligibility spaces",
+    "Scott2026/RandomVariables/Random": "Domain-valued random variables",
+    "Scott2026/RandomVariables/Random/AssociatedAlgebra": "Associated Boolean algebra",
+    "Scott2026/RandomVariables/Random/L0": "$L^0$ equivalence",
+    "Scott2026/RandomVariables/Random/MeasureAlgebra": "Measure algebra",
+    "Scott2026/RandomVariables/Random/NegligibilitySpace": "Negligibility ideal",
+    "Scott2026/RandomVariables/Random/Proofs": "Proofs",
+}
+
+
+def english_name(directory: str) -> str:
+    if directory in ENGLISH:
+        return ENGLISH[directory]
+    parts = re.findall(r"[A-Z]+(?![a-z])|[A-Z]?[a-z]+|\d+", Path(directory).name)
+    return " ".join(parts) if parts else Path(directory).name
+
+
+def split_tree(directory: str, ordered: list[str]) -> tuple[list[str], list[tuple[str, list[str]]]]:
+    """Direct files first, in `ordered`, then each immediate submodule and its files."""
+    prefix = directory.rstrip("/") + "/"
+    direct: list[str] = []
+    buckets: dict[str, list[str]] = {}
+    order: list[str] = []
+    for rel in ordered:
+        if not rel.startswith(prefix):
+            continue
+        rest = rel[len(prefix) :]
+        if "/" not in rest:
+            direct.append(rel)
+            continue
+        head = rest.split("/", 1)[0]
+        sub = prefix + head
+        if sub not in buckets:
+            order.append(sub)
+            buckets[sub] = []
+        buckets[sub].append(rel)
+    return direct, [(sub, buckets[sub]) for sub in order]
+
+
+def hide_prefix(directory: str) -> str:
+    prefix = "Scott2026/"
+    if directory.startswith(prefix):
+        return directory[len(prefix) :] + "/"
+    return ""
+
+
+def submodule_link(directory: str) -> str:
+    return f"[`{Path(directory).name}`]({github_tree(directory)})"
+
+
+def preferred_children(directory: str, seeds: list[str]) -> list[str]:
+    found: list[str] = []
+    prefix = directory.rstrip("/") + "/"
+    for seed in seeds:
+        if not seed.startswith(prefix):
+            continue
+        head = seed[len(prefix) :].split("/", 1)[0]
+        sub = prefix + head
+        if head and (ROOT / sub).is_dir() and sub not in found:
+            found.append(sub)
+    return found
+
+
+def render_module(
+    parts: list[str],
+    directory: str,
+    ordered: list[str],
+    level: int,
+    heading: str | None = None,
+    blurb: str | None = None,
+    child_order: list[str] | None = None,
+) -> None:
+    direct, kids = split_tree(directory, ordered)
+    if child_order:
+        rank = {sub: i for i, sub in enumerate(child_order)}
+        kids.sort(key=lambda item: rank.get(item[0], len(rank)))
+    marks = "#" * min(level, 6)
+    if heading:
+        parts.append(f"{marks} {heading} {submodule_link(directory)}\n\n")
+        if blurb:
+            parts.append(f"{blurb}\n\n")
+    else:
+        parts.append(f"{marks} {english_name(directory)} {submodule_link(directory)}\n\n")
+    if kids:
+        parts.append("This module has submodules\n\n")
+        for sub, _files in kids:
+            parts.append(f"- {english_name(sub)} {submodule_link(sub)}\n")
+        parts.append("\n")
+    if direct:
+        rows = [(summarize(rel), rel) for rel in direct]
+        parts.append(longtable([("", rows)], hide_prefix(directory)))
+        parts.append("\n\n")
+    for sub, files in kids:
+        render_module(parts, sub, files, level + 1)
+
+
 def longtable(groups: list[tuple[str, list[tuple[str, str]]]], hide: str) -> str:
     lines = [
         r"\begingroup",
@@ -563,22 +693,12 @@ A.4 Random variables & \S5 & Every module under \texttt{RandomVariables/}, then 
 """
 
 
-def section_rows() -> list[tuple[str, str, list[tuple[str, list[tuple[str, str]]]]]]:
-    built = []
-    for title, blurb, groups in SECTIONS:
-        rendered = []
-        for label, seeds in groups:
-            directory = str(Path(seeds[0]).parent)
-            # Walk only inside the seed directory (DomainTheory, Engeler, ...).
-            rows = [(summarize(rel), rel) for rel in order_group(directory, seeds)]
-            rendered.append((label, rows))
-        built.append((title, blurb, rendered))
-    return built
-
-
 def main() -> None:
-    sections = section_rows()
-    indexed = [rel for _t, _b, groups in sections for _label, rows in groups for _s, rel in rows]
+    section_orders = [
+        order_group(folder, [seed for _label, seeds in groups for seed in seeds])
+        for (_title, _blurb, groups), folder in zip(SECTIONS, SECTION_FOLDERS)
+    ]
+    indexed = [rel for ordered in section_orders for rel in ordered]
     entry_ok = [rel for rel in ENTRY_POINTS if (ROOT / rel).is_file()]
     missing_entries = [rel for rel in ENTRY_POINTS if rel not in entry_ok]
     if missing_entries:
@@ -633,26 +753,29 @@ def main() -> None:
         f"and underneath that is [`Basic.lean`]({github_blob('Scott2026/Basic.lean')}). "
         "The folder name is in the section header. "
         "That folder is omitted from the printed module name; the link still opens the full path. "
+        "When a module has submodules, they are listed and then each is given its own subsection. "
         f"Sources: [{GITHUB}]({GITHUB}).\n\n"
     )
 
-    sections[-1][2].append(
-        (
-            "Whole-paper capstone",
-            [(summarize(ENTRY_POINTS[2]), ENTRY_POINTS[2])],
-        ),
-    )
-
-    if len(sections) != len(SECTION_FOLDERS):
+    if len(SECTIONS) != len(SECTION_FOLDERS):
         raise SystemExit("section folders do not match the four appendix sections")
 
-    for (title_s, blurb, groups), folder in zip(sections, SECTION_FOLDERS):
-        name = Path(folder).name
-        hide = f"{name}/"
-        parts.append(f"### {title_s} [`{name}`]({github_tree(folder)})\n\n")
-        parts.append(f"{blurb}\n\n")
-        parts.append(longtable(groups, hide))
-        parts.append("\n\n")
+    for (title_s, blurb, groups), folder, ordered in zip(SECTIONS, SECTION_FOLDERS, section_orders):
+        seeds = [seed for _label, group_seeds in groups for seed in group_seeds]
+        render_module(
+            parts,
+            folder,
+            ordered,
+            level=3,
+            heading=title_s,
+            blurb=blurb,
+            child_order=preferred_children(folder, seeds),
+        )
+
+    capstone = ENTRY_POINTS[2]
+    parts.append(f"#### Whole-paper capstone [`Paper.lean`]({github_blob(capstone)})\n\n")
+    parts.append(longtable([("", [(summarize(capstone), capstone)])], ""))
+    parts.append("\n\n")
 
     all_rows = entry_ok + indexed
     total_lines = sum(len((ROOT / rel).read_text(encoding="utf-8").splitlines()) for rel in all_rows)
