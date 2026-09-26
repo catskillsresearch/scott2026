@@ -1,0 +1,42 @@
+/-
+Copyright (c) 2026  Lars Warren Ericson.  All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Lars Warren Ericson.
+-/
+
+
+
+import Scott2026.BooleanValuedSetTheory.VA
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.directedDownB
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.directedDownF
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.existsMemB
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.inWayBelowDownB
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.inWayBelowDownF
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.isBaseSubsetB
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.isBaseSubsetF
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.isCompleteLatticeSubsetB
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.isCompleteLatticeSubsetF
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.isContinuousAtSubsetB
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.isContinuousAtSubsetF
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.isContinuousLatticeSubsetB
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.isContinuousLatticeSubsetF
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.isDirectedSubsetB
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.isDirectedSubsetF
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.isSupSubsetB
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.isSupSubsetF
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.isUpperBoundSubsetB
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.isUpperBoundSubsetF
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.joinsDownB
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.joinsDownF
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.nonemptyB
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.nonemptyF
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.sUnionB
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.subsetF
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.subsetUnionB
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.subsetUnionF
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.union2B
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.wayBelowSubsetB
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.wayBelowSubsetF
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.wayBelow_le_formula
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.Proofs.Core
+import Scott2026.LambdaModels.DomainTheory.InternalDomain.Proofs.CoreCont

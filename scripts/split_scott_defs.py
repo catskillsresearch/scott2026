@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Split defs into Scott2026/<root>/... and chunk large theorem bodies."""
+"""Split defs into Scott2026/<root>/... and chunk large theorem bodies.
+
+The paths below are the pre-section layout. Paper sections now live under
+BooleanValuedSetTheory, Setoids, LambdaModels, and RandomVariables.
+Do not re-run this script against the current tree.
+"""
 
 from __future__ import annotations
 

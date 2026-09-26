@@ -18,26 +18,37 @@ alwaysApply: false
 - **Group lemmas/theorems by topic** in descriptively named files (e.g. `MembershipLaws.lean`, `Fullness.lean`), not one theorem per file.
 - Keep topic files **well under 1000 lines**; split by subtopic if a bundle grows large.
 
+## Top level is the paper
+
+`Scott2026/` has two entry files (`Basic.lean`, `Paper.lean`) and four section directories, matching the mathematical sections of the LIPIcs paper. Introduction and Conclusions are not modules. Do not add new siblings at `Scott2026/*.lean`.
+
+| Directory | Paper |
+| --- | --- |
+| `BooleanValuedSetTheory/` | §2 Boolean-valued set theory |
+| `Setoids/` | §3 Boolean-valued setoids |
+| `LambdaModels/DomainTheory/` | §4.1 Domain theory and internal interpretation |
+| `LambdaModels/Engeler/` | §4.2 The Engeler model |
+| `LambdaModels/Oracles/` | §4.3 Injective spaces and oracles |
+| `RandomVariables/` | §5 Random variables |
+
 ## Large modules → topic subfolders
 
-For monoliths (`VA`, `Random`, `Coin`, `InternalEval*`, `Lambda`, `Theorem30Internal`):
+Inside a section, keep a thin hub plus topic folders. Example: `Scott2026/BooleanValuedSetTheory/VA/AName/rank.lean` → module `Scott2026.BooleanValuedSetTheory.VA.AName.rank`.
 
-- Use **scoped subfolders** under the module name, e.g. `Scott2026/VA/AName/rank.lean` → module `Scott2026.VA.AName.rank`.
-- The **hub** file (`VA.lean`, `Random.lean`, …) should be mostly module doc + `import` list of children (and re-exports if needed), not bulk definitions.
-- Prefer **`Scott2026/VA/...`** for VA-related topics rather than flat `Scott2026/AName/...`, so paths mirror the paper’s sections.
+- The hub (`VA.lean`, `Random.lean`, …) is a module doc and an import list, not a pile of definitions.
 
 ### VA topic map (target)
 
 | Subfolder | Contents |
 |-----------|----------|
-| `VA/AName/` | `AName` inductive, `idx`, `child`, `val`, `rank`, `meas`, `memB`/`eqB`, `mix`, `check`, `subsetB`, `nameSetoid`, `homB`, … |
-| `VA/D0Formula/` | `consPSet`, `realize`, `consName`, Δ₀ invariance lemmas |
-| `VA/PSet/` | `pOpair`, `pfinEnum`, `pfin`, … |
-| `VA/SetFormula/` | `rename`, `lift`, `inst`, connectives |
-| `VA/Axioms/` | `extensionalityAxiom`, pairing, union, power, infinity, separation, collection, choice, … |
-| `VA/AName/*.lean` (theorem bundles) | e.g. substitution laws, fullness, mixing — **no new defs** unless extracted from a def file |
+| `BooleanValuedSetTheory/VA/AName/` | `AName` inductive, `idx`, `child`, `val`, `rank`, `meas`, `memB`/`eqB`, `mix`, `check`, `subsetB`, `nameSetoid`, `homB`, … |
+| `BooleanValuedSetTheory/VA/D0Formula/` | `consPSet`, `realize`, `consName`, Δ₀ invariance lemmas |
+| `BooleanValuedSetTheory/VA/PSet/` | `pOpair`, `pfinEnum`, `pfin`, … |
+| `BooleanValuedSetTheory/VA/SetFormula/` | `rename`, `lift`, `inst`, connectives |
+| `BooleanValuedSetTheory/VA/Axioms/` | `extensionalityAxiom`, pairing, union, power, infinity, separation, collection, choice, … |
+| `BooleanValuedSetTheory/VA/AName/*.lean` (theorem bundles) | e.g. substitution laws, fullness, mixing — **no new defs** unless extracted from a def file |
 
-Apply the same pattern for `Random/` (`AssociatedAlgebra`, `MeasureAlgebra`, `L0`, …), `Coin/`, `Lam/`, `InternalEval/`.
+Apply the same pattern under the section directories: `RandomVariables/Random/` (`AssociatedAlgebra`, `MeasureAlgebra`, `L0`, …), `RandomVariables/Coin/`, `LambdaModels/DomainTheory/Lambda/`, `LambdaModels/DomainTheory/InternalEval/`.
 
 ## Size budget
 

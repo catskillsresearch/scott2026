@@ -4,10 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lars Warren Ericson.
 -/
 
-import Scott2026.Coin
-import Scott2026.Corollary34
-import Scott2026.InternalInterpretation
-import Scott2026.Theorem26
+import Scott2026.RandomVariables.Coin
+import Scott2026.LambdaModels.Engeler.Corollary34
+import Scott2026.LambdaModels.DomainTheory.InternalInterpretation
+import Scott2026.LambdaModels.DomainTheory.Theorem26
 
 /-!
 # Whole-paper capstone (`csl2026`)

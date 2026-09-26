@@ -4,37 +4,37 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lars Warren Ericson.
 -/
 
-import Scott2026.BooleanLogic
-import Scott2026.Setoid
-import Scott2026.RelFun
-import Scott2026.Categories
-import Scott2026.PowerSet
-import Scott2026.Oid
-import Scott2026.SetCategory
-import Scott2026.OidEssential
-import Scott2026.RawPowerStrict
-import Scott2026.Domain
-import Scott2026.Lambda
-import Scott2026.Interp
-import Scott2026.Lemma35General
-import Scott2026.InterpConst
-import Scott2026.InterpVA
-import Scott2026.InterpConstVA
-import Scott2026.Lemma31
-import Scott2026.Corollary34
-import Scott2026.Prop36
-import Scott2026.LambdaVA
-import Scott2026.LambdaConstVA
-import Scott2026.Engeler
-import Scott2026.EngelerVA
-import Scott2026.Random
-import Scott2026.Coin
-import Scott2026.VA
-import Scott2026.ExtensionalVA
-import Scott2026.InternalDomain
-import Scott2026.Proposition28
-import Scott2026.ReflexiveVA
-import Scott2026.Theorem26
+import Scott2026.BooleanValuedSetTheory.BooleanLogic
+import Scott2026.Setoids.Setoid
+import Scott2026.Setoids.RelFun
+import Scott2026.Setoids.Categories
+import Scott2026.Setoids.PowerSet
+import Scott2026.Setoids.Oid
+import Scott2026.Setoids.SetCategory
+import Scott2026.Setoids.OidEssential
+import Scott2026.BooleanValuedSetTheory.RawPowerStrict
+import Scott2026.LambdaModels.DomainTheory.Domain
+import Scott2026.LambdaModels.DomainTheory.Lambda
+import Scott2026.LambdaModels.DomainTheory.Interp
+import Scott2026.LambdaModels.Oracles.Lemma35General
+import Scott2026.LambdaModels.DomainTheory.InterpConst
+import Scott2026.LambdaModels.DomainTheory.InterpVA
+import Scott2026.LambdaModels.DomainTheory.InterpConstVA
+import Scott2026.LambdaModels.Engeler.Lemma31
+import Scott2026.LambdaModels.Engeler.Corollary34
+import Scott2026.LambdaModels.Oracles.Prop36
+import Scott2026.LambdaModels.Engeler.LambdaVA
+import Scott2026.LambdaModels.Engeler.LambdaConstVA
+import Scott2026.LambdaModels.Engeler.Engeler
+import Scott2026.LambdaModels.Engeler.EngelerVA
+import Scott2026.RandomVariables.Random
+import Scott2026.RandomVariables.Coin
+import Scott2026.BooleanValuedSetTheory.VA
+import Scott2026.BooleanValuedSetTheory.ExtensionalVA
+import Scott2026.LambdaModels.DomainTheory.InternalDomain
+import Scott2026.LambdaModels.DomainTheory.Proposition28
+import Scott2026.LambdaModels.DomainTheory.ReflexiveVA
+import Scott2026.LambdaModels.DomainTheory.Theorem26
 import Scott2026.Paper
 
 universe u v
@@ -44,6 +44,10 @@ universe u v
 
 Primary source: Furber, Mardare, Panangaden, and Scott, LIPIcs CSL 2026, Article 48.
 Working transcription: `sources/Scott2026_vision.md`.
+
+The library root is this file and `Paper`. The other directories are the paper's
+mathematical sections: `BooleanValuedSetTheory` (§2), `Setoids` (§3),
+`LambdaModels` (§4: `DomainTheory`, `Engeler`, `Oracles`), and `RandomVariables` (§5).
 
 This module re-exports the sorry-free development.
 -/
@@ -369,7 +373,7 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
   engelerVA (A := A)
 
 -- Jech 14.19, CSL Theorem 1(iii), and Jech 14.21 are `jech_lemma_14_19`,
--- `theorem_1_iii`, and `jech_lemma_14_21` from `Scott2026.VA`.
+-- `theorem_1_iii`, and `jech_lemma_14_21` from `Scott2026.BooleanValuedSetTheory.VA`.
 -- CSL Theorem 1(ii) is `theorem_1_ii` (FOL MP, `∀`-intro/elim, equality
 -- congruence on `SetFormula` / `𝔏_Set(V^A)`). CSL Theorem 1(i) is
 -- `theorem_1_i`: a ZFC theorem has Boolean value `1` at every assignment.
@@ -383,13 +387,13 @@ theorem theorem_30 {A : Type u} [CompleteBooleanAlgebra A] :
 -- leastness of `check ω` (`check_omega_inductive`, `check_omega_least`),
 -- CSL Proposition 3 (`proposition_3`), and the internal function object
 -- (`isFunctionB`, `funsB`, `homB`, `idB`, `compB`, `isFunctionB_id`,
--- `isFunctionB_comp`, `compB_congr`) are from `Scott2026.VA`.
+-- `isFunctionB_comp`, `compB_congr`) are from `Scott2026.BooleanValuedSetTheory.VA`.
 -- This is not Theorem 1(i) or 1(ii).
 --
 -- §3 through Corollary 18 (CSL p.4–7): `oid` / `oid_eq` / `oid_eps` (Definition 14),
 -- `ePred` / `ePredPowerB` (Definition 15), `oidRel` / `oidRel_id` / `oidRel_comp`
--- (Definition 16) from `Scott2026.Oid`, with `RelFun.comp` (Definition 8 composition)
--- and `functionalOfRel` (Definition 13) from `Scott2026.RelFun`. `SetCategory`
+-- (Definition 16) from `Scott2026.Setoids.Oid`, with `RelFun.comp` (Definition 8 composition)
+-- and `functionalOfRel` (Definition 13) from `Scott2026.Setoids.RelFun`. `SetCategory`
 -- lifts the quotient morphisms and proves fullness and faithfulness;
 -- `OidEssential` reconstructs essential surjectivity and packages
 -- `setAEquivSetoidR : Set_A ≃ SetoidR_A`. Theorem 17 / Corollary 18 at
