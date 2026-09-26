@@ -1,7 +1,7 @@
 # Vendored PalomarPolicy snapshot
 
 Source: https://github.com/PalomarRegistry/PalomarPolicy
-Commit: `42cc43f70b1b019d20d4b64e9016396e666a6bc7`
+Commit: `792c7c0b9e798bd02719e795ef11fa2b5929e067`
 
 This directory is a plain-file copy of the Palomar editorial contract
 (prompts, rubric, CONTRIBUTING, classification guide, review schema).

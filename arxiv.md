@@ -515,7 +515,7 @@ intended meaning.
 
 ## Build
 
-The repository pins Lean / mathlib **v4.33.0** (`lean-toolchain`).
+The repository pins Lean **v4.35.0-rc3** (`lean-toolchain`) and Mathlib **v4.35.0-rc3** (`lakefile.toml`).
 
 ```bash
 lake exe cache get

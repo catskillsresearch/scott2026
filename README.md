@@ -19,8 +19,8 @@ This repo is still submitted to
 [Palomar](https://palomar-registry.org/about) on its own for the 2026 paper
 (see `PROVENANCE.md`).
 
-The pin is `leanprover/lean4:v4.33.0` (same as
-[`scott1976`](../scott1976) and [`scott1964`](../scott1964)).
+The pin is `leanprover/lean4:v4.35.0-rc3` (`lean-toolchain`). Mathlib is
+required at `v4.35.0-rc3` (`lakefile.toml`).
 
 Original Lean and author-written docs are Apache-2.0. The source PDF
 `sources/Scott2026.pdf` is **not** under that license; see
