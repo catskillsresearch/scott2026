@@ -26,10 +26,9 @@ TOOLKIT="$(find_toolkit "$ROOT")"
 SORRY_PATHS="Scott2026 Solution.lean"
 
 # The pinned checker allowlists only Init/Std/Lean/Mathlib on Challenge.lean.
-# This Challenge is a Mathlib-only module tree (Challenge.Lambda,
-# Challenge.MapsNumerals, Challenge.InternalInterpretation). Those imports are
-# the Challenge itself. Patch a copy so the pin stays intact and Scott2026
-# remains forbidden.
+# Challenge.lean is a single Mathlib import. Patch a copy so a future
+# Challenge.* import of this module is still accepted, the pin stays intact,
+# and Scott2026 remains forbidden.
 PATCHED="$(mktemp -d)"
 cp -a "$TOOLKIT/." "$PATCHED/"
 python3 - "$PATCHED/palomar_preflight.sh" <<'PATCHPY'
