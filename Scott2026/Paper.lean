@@ -13,10 +13,10 @@ import Scott2026.LambdaModels.DomainTheory.Theorem26
 # Whole-paper capstone (`csl2026`)
 
 `csl2026` is the Palomar-compared theorem: Theorem 43 as incomparability
-under `proposition_36_i`. Challenge defines that relation with a
-Mathlib-only λ-combinator; this module uses the paper's Engeler-oracle
-form. The conjunction `csl2026_capstones` keeps Theorem 26 and
-Corollary 34 in the proof without putting those types in Challenge.
+under `proposition_36_i` on `engelerWithNumerals`. Challenge states that
+same oracle relation with `engelerApp` and `engelerLam`. The conjunction
+`csl2026_capstones` keeps Theorem 26 and Corollary 34 in the proof without
+putting those types in Challenge.
 -/
 
 namespace Scott2026
@@ -28,10 +28,9 @@ def internal_interpretation_statement : Prop :=
   ∀ (A : Type) [CompleteBooleanAlgebra A] [Nontrivial A],
     Nonempty (InternalInterpretation A)
 
-/-- Mathlib-facing substantive consequence of Theorem 26 and Corollary 34.
-For every nontrivial complete Boolean algebra, the internal Engeler
-interpretation validates the full λ-theory and separates the Church Booleans
-and numerals. This is Comparator-locked alongside Theorem 43. -/
+/-- Compared `A`-valued interpretation: soundness, Church Boolean separation,
+and Church numeral injectivity. The proof constructs the internal Engeler
+model in `V^A`. Comparator-locked alongside Theorem 43. -/
 theorem csl2026_internal_interpretation :
     internal_interpretation_statement := by
   intro A _ _
@@ -54,9 +53,6 @@ theorem csl2026_internal_interpretation :
     interp_sound := fun ρ M N h => by
       rw [interpVA_sound_full h ρ]
       exact AName.eqB_self _
-    ground := engelerWithNumerals
-    ground_app := rfl
-    ground_lam := rfl
     church_bool_separate := eqB_interpClosedVA_churchTrue_churchFalse (A := A)
     church_num_inj := fun n m h => by
       have hn :
@@ -74,29 +70,6 @@ theorem csl2026_internal_interpretation :
         (childΩ (interpClosedVA (A := A) (churchNumN m))) = ⊤ at h
       rw [hn, hm] at h
       exact churchNum_interpClosedVA_injective (A := A) h
-    numeral_link := fun n m => by
-      constructor
-      · intro h
-        have hn :
-            interpClosedVA (A := A) (churchNumN n) =
-              interpClosedVA (churchNum n) := by
-          rw [interpClosedVA_churchNumN, interpClosedVA_churchNum,
-            churchNum_interpClosed_eq_churchNumN]
-        have hm :
-            interpClosedVA (A := A) (churchNumN m) =
-              interpClosedVA (churchNum m) := by
-          rw [interpClosedVA_churchNumN, interpClosedVA_churchNum,
-            churchNum_interpClosed_eq_churchNumN]
-        change AName.eqB
-            (childΩ (interpClosedVA (A := A) (churchNumN n)))
-            (childΩ (interpClosedVA (A := A) (churchNumN m))) = ⊤ at h
-        rw [hn, hm] at h
-        exact congrArg engelerWithNumerals.numeral
-          (churchNum_interpClosedVA_injective (A := A) h)
-      · intro h
-        have hnm := engelerWithNumerals.numeral_inj h
-        subst hnm
-        exact AName.eqB_self _
   }⟩
 
 /-- Identity combinator `λx. x`, used to show `≤ₘ` is reflexive. -/

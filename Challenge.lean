@@ -11,14 +11,15 @@ import Mathlib
 
 Palomar compares this module to `Solution.lean` using `comparator.json`.
 
-The compared theorems are `csl2026_internal_interpretation`, a Mathlib-only
-face of the Boolean-valued λ-interpretation of Theorem 26 and the internal
-Engeler consequences of Corollary 34, and `csl2026`: Theorem 43, two subsets
-of `ℕ` incomparable under the λ-definable many-one preorder of Proposition 36.
-`proposition_36_i` is oracle agreement in every reflexive dcpo whose
-application and abstraction are the Engeler graph operations of
-`engelerPair`. `InternalInterpretation` likewise requires that ground
-retract, not only equational soundness. The `sorry`s are the proof holes.
+The compared theorems are `csl2026_internal_interpretation` and `csl2026`.
+`csl2026_internal_interpretation` is an `A`-valued λ-interpretation with
+equational soundness, separation of the Church Booleans, and injectivity of
+the Church numerals. That statement does not identify the carrier with `V^A`;
+the Solution witness is the internal Engeler model. `csl2026` is Theorem 43:
+two subsets of `ℕ` incomparable under Proposition 36(i). `proposition_36_i`
+is oracle agreement in one Engeler graph model on `Set ℕ`, whose Booleans
+and numerals are the interpretations of the Church Booleans and Church
+numerals. The `sorry`s are the proof holes.
 
 The paper's authors were not contacted and did not participate in, review,
 or endorse this formalization.
@@ -133,50 +134,6 @@ def churchNumN : ℕ → Lam ℕ
         (Lam.app (Lam.var 0)
           (Lam.app (Lam.app (churchNumN n) (Lam.var 0)) (Lam.var 1))))
 
-/-- Definition 25: a valuation is a partial map `Var → D`. -/
-structure Valuation (Var : Type*) (D : Type*) where
-  domain : Finset Var
-  toFun : Var → D
-
-namespace Valuation
-
-def default {Var : Type*} {D : Type*} (d : D) : Valuation Var D where
-  domain := ∅
-  toFun := fun _ => d
-
-def empty {Var : Type*} {D : Type*} [CompleteLattice D] : Valuation Var D :=
-  default (⊥ : D)
-
-def update {Var : Type*} {D : Type*} [DecidableEq Var] (ρ : Valuation Var D) (x : Var) (d : D) :
-    Valuation Var D where
-  domain := insert x ρ.domain
-  toFun := Function.update ρ.toFun x d
-
-end Valuation
-
-/-- Definition 19: a reflexive dcpo on a complete lattice. `fun` and `lam`
-are Scott-continuous and `fun ∘ lam = id` on Scott-continuous endomaps. -/
-structure ReflexiveDcpo (D : Type*) [CompleteLattice D] where
-  funMap : D → (D → D)
-  lam : (D → D) → D
-  fun_scott : ScottContinuous funMap
-  lam_scott : ScottContinuous lam
-  fun_scott_pt : ∀ d, ScottContinuous (funMap d)
-  retract : ∀ f : D → D, ScottContinuous f → funMap (lam f) = f
-
-def ReflexiveDcpo.app {D : Type*} [CompleteLattice D] (R : ReflexiveDcpo D)
-    (d e : D) : D :=
-  R.funMap d e
-
-/-- Definition 32: a reflexive dcpo with distinct Booleans and injective numerals. -/
-structure ReflexiveDcpoWithNumerals (D : Type*) [CompleteLattice D]
-    extends ReflexiveDcpo D where
-  boolBot : D
-  boolTop : D
-  numeral : ℕ → D
-  bool_ne : boolBot ≠ boolTop
-  numeral_inj : Function.Injective numeral
-
 /-- Application in the Engeler graph model (Proposition 29). -/
 def engelerApp {E : Type*} [DecidableEq E] (pair : Finset E × E → E)
     (F X : Set E) : Set E :=
@@ -196,39 +153,46 @@ def listNatCode : List ℕ → ℕ
 def engelerPair (p : Finset ℕ × ℕ) : ℕ :=
   Nat.pair (listNatCode (p.1.sort (· ≤ ·))) p.2
 
-/-- Closed-term interpretation `⟦M⟧_ρ` in a reflexive dcpo. -/
-def interp {Var : Type*} {D : Type*} [DecidableEq Var] [CompleteLattice D]
-    (R : ReflexiveDcpo D) : Lam Var → Valuation Var D → D
-  | .var x, ρ => ρ.toFun x
-  | .app M N, ρ => R.app (interp R M ρ) (interp R N ρ)
-  | .abs x M, ρ => R.lam fun d => interp R M (Valuation.update ρ x d)
+/-- Interpretation `⟦M⟧_ρ` by `engelerApp` and `engelerLam` on `engelerPair`. -/
+def engelerInterp (M : Lam ℕ) (ρ : ℕ → Set ℕ) : Set ℕ :=
+  match M with
+  | .var x => ρ x
+  | .app M N => engelerApp engelerPair (engelerInterp M ρ) (engelerInterp N ρ)
+  | .abs x M =>
+      engelerLam engelerPair fun d => engelerInterp M (Function.update ρ x d)
 
-/-- Closed-term interpretation `⟦M⟧ := ⟦M⟧_∅`. -/
-def interpClosed {Var : Type*} {D : Type*} [DecidableEq Var] [CompleteLattice D]
-    (R : ReflexiveDcpo D) (M : Lam Var) : D :=
-  interp R M Valuation.empty
+/-- Closed-term interpretation at the empty valuation `⊥ = ∅`. -/
+def engelerInterpClosed (M : Lam ℕ) : Set ℕ :=
+  engelerInterp M fun _ => ∅
 
-/-- Characteristic value of a numeral, in `{boolBot, boolTop}`. -/
-noncomputable def chiNum {D : Type*} [CompleteLattice D]
-    (R : ReflexiveDcpoWithNumerals D) (S : Set ℕ) (n : ℕ) : D :=
-  @ite D (n ∈ S) (Classical.propDecidable _) R.boolTop R.boolBot
+/-- Church falsity and truth as elements of the Engeler graph model. -/
+def engelerBoolBot : Set ℕ :=
+  engelerInterpClosed churchFalseN
 
-/-- An oracle for `S` represents `χ_S` on numerals (Lemma 35(ii)). -/
-def IsOracle {D : Type*} [CompleteLattice D]
-    (R : ReflexiveDcpoWithNumerals D) (d : D) (S : Set ℕ) : Prop :=
-  ∀ n, R.toReflexiveDcpo.app d (R.numeral n) = chiNum R S n
+def engelerBoolTop : Set ℕ :=
+  engelerInterpClosed churchTrueN
+
+/-- Church numeral `n` as an element of the Engeler graph model. -/
+def engelerNumeral (n : ℕ) : Set ℕ :=
+  engelerInterpClosed (churchNumN n)
+
+/-- Characteristic value of a numeral, in `{engelerBoolBot, engelerBoolTop}`. -/
+noncomputable def engelerChi (S : Set ℕ) (n : ℕ) : Set ℕ :=
+  @ite _ (n ∈ S) (Classical.propDecidable _) engelerBoolTop engelerBoolBot
+
+/-- An oracle for `S` represents `χ_S` on the Church numerals (Lemma 35(ii)). -/
+def engelerIsOracle (d : Set ℕ) (S : Set ℕ) : Prop :=
+  ∀ n, engelerApp engelerPair d (engelerNumeral n) = engelerChi S n
 
 /-- Closed `M` sending each Church numeral to a Church numeral. -/
 structure MapsNumerals (M : Lam ℕ) : Prop where
   fv_empty : M.fv = ∅
   maps : ∀ n, ∃ m, LamEq (M.app (churchNumN n)) (churchNumN m)
 
-/-- An `A`-valued internal interpretation whose ground model is the Engeler
-graph retract (Proposition 29) with Church numerals (Definition 32).
-Soundness, Boolean separation, and numeral injectivity are not enough:
-`ground_app` and `ground_lam` force application and abstraction to be
-`engelerApp` and `engelerLam` on `engelerPair`, and `numeral_link` ties
-the Boolean-valued Church numerals to those ground numerals. -/
+/-- An `A`-valued interpretation of the equational λ-theory: soundness,
+separation of the Church Booleans, and injectivity of the Church numerals.
+This structure does not require the carrier to be the internal Engeler
+model in `V^A`. -/
 structure InternalInterpretation (A : Type) [CompleteBooleanAlgebra A] where
   D : Type
   V : Type
@@ -239,9 +203,6 @@ structure InternalInterpretation (A : Type) [CompleteBooleanAlgebra A] where
   lookup : V → ℕ → D
   update : V → ℕ → D → V
   empty : V
-  ground : ReflexiveDcpoWithNumerals (Set ℕ)
-  ground_app : ground.toReflexiveDcpo.funMap = engelerApp engelerPair
-  ground_lam : ground.toReflexiveDcpo.lam = engelerLam engelerPair
   eq_refl : ∀ d, eqA d d = ⊤
   eq_symm : ∀ d e, eqA d e = eqA e d
   eq_trans : ∀ d e f, eqA d e ⊓ eqA e f ≤ eqA d f
@@ -256,36 +217,23 @@ structure InternalInterpretation (A : Type) [CompleteBooleanAlgebra A] where
   church_num_inj :
     ∀ n m,
       eqA (interp (churchNumN n) empty) (interp (churchNumN m) empty) = ⊤ → n = m
-  numeral_link :
-    ∀ n m,
-      eqA (interp (churchNumN n) empty) (interp (churchNumN m) empty) = ⊤ ↔
-        ground.numeral n = ground.numeral m
 
-/-- The numeral function computed by a numeral-to-numeral combinator. -/
-noncomputable def mapsNumeralsFun (M : Lam ℕ) (hM : MapsNumerals M) : ℕ → ℕ :=
-  fun n => Classical.choose (hM.maps n)
-
-/-- Proposition 36(i): `S₁ ≤ₘ S₂` by a closed numeral-to-numeral combinator
-whose oracle agreement is computed in the Engeler graph model. Every
-reflexive dcpo with numerals whose application and abstraction are
-`engelerApp engelerPair` and `engelerLam engelerPair` must carry oracles
-`d₁`, `d₂` agreeing on `⟦M cₙ⟧`. -/
+/-- Proposition 36(i) on the Engeler graph model. Booleans and numerals are
+`⟦churchFalseN⟧`, `⟦churchTrueN⟧`, and `⟦churchNumN n⟧` under `engelerApp`
+and `engelerLam` at `engelerPair`. `S₁ ≤ₘ S₂` when one closed
+numeral-to-numeral combinator has oracles agreeing on `⟦M cₙ⟧`. -/
 def proposition_36_i (S₁ S₂ : Set ℕ) : Prop :=
   ∃ M : Lam ℕ, MapsNumerals M ∧
-    ∀ R : ReflexiveDcpoWithNumerals (Set ℕ),
-      R.toReflexiveDcpo.funMap = engelerApp engelerPair →
-      R.toReflexiveDcpo.lam = engelerLam engelerPair →
-      ∃ d₁ d₂ : Set ℕ,
-        IsOracle R d₁ S₁ ∧
-        IsOracle R d₂ S₂ ∧
-        ∀ n,
-          R.toReflexiveDcpo.app d₂
-              (interpClosed R.toReflexiveDcpo (M.app (churchNumN n))) =
-            R.toReflexiveDcpo.app d₁ (R.numeral n)
+    ∃ d₁ d₂ : Set ℕ,
+      engelerIsOracle d₁ S₁ ∧
+      engelerIsOracle d₂ S₂ ∧
+      ∀ n,
+        engelerApp engelerPair d₂ (engelerInterpClosed (M.app (churchNumN n))) =
+          engelerApp engelerPair d₁ (engelerNumeral n)
 
-/-- Mathlib-only face of Theorem 26 and Corollary 34: every nontrivial complete
-Boolean algebra carries an internal interpretation. The Solution instantiates
-`InternalInterpretation` with the formalized Engeler model in `V^A`. -/
+/-- Every nontrivial complete Boolean algebra carries an `A`-valued
+interpretation in the sense of `InternalInterpretation`. The Solution
+witness is the internal Engeler model in `V^A`. -/
 def internal_interpretation_statement : Prop :=
   ∀ (A : Type) [CompleteBooleanAlgebra A] [Nontrivial A],
     Nonempty (InternalInterpretation A)

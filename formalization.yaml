@@ -14,10 +14,11 @@ project:
     SetoidF_A), Corollary 34 (the Engeler model with numerals in V^A), and
     Theorem 43 (two fair-coin subsets of ℕ that are incomparable under the
     λ-definable many-one preorder). Domain-theory background is imported from
-    a vendored copy of scott1972. The Palomar Challenge locks both the
-    Boolean-valued internal-interpretation consequence of Theorem 26 and
-    Corollary 34 as csl2026_internal_interpretation and Theorem 43 as csl2026,
-    together with the definition proposition_36_i. Lean is written by AI agents
+    a vendored copy of scott1972. The Palomar Challenge locks
+    csl2026_internal_interpretation (equational soundness, Boolean separation,
+    and numeral injectivity of an A-valued interpretation, witnessed by
+    Theorem 26 and Corollary 34), Theorem 43 as csl2026, and proposition_36_i
+    on the Engeler graph model. Lean is written by AI agents
     under the direction and review of the author. The paper's authors were
     not contacted and did not participate in or endorse this formalization.
     There is no sorry outside the deliberate holes in Challenge.lean, no
@@ -56,7 +57,7 @@ status:
       note: "Theorem 43: incomparable ≤ₘ degrees; Comparator target."
     - declaration: "Scott2026.proposition_36_i"
       file: "Scott2026/LambdaModels/Oracles/Prop36.lean"
-      note: "Proposition 36(i); Challenge uses the λ-combinator form."
+      note: "Proposition 36(i) on engelerWithNumerals; Challenge states the same oracle relation with engelerApp and engelerLam."
     - paper: "theorem26Full"
       file: "Scott2026/LambdaModels/DomainTheory/Theorem26.lean"
       note: "Theorem 26: internal SetoidF_A interpretation (uses Definitions 19–25, Theorem 17)."
@@ -179,13 +180,14 @@ review:
 
 known_gaps:
   - >-
-    Challenge proposition_36_i is the λ-combinator form of Proposition 36(i);
-    the library definition is the Engeler-oracle form. Comparator treats
-    the definition as a hole (types only). The exact project-internal types of
-    theorem26Full and corollary_34 are not copied into the Mathlib-only
-    Challenge; their substantive Boolean-valued soundness, Boolean separation,
-    and numeral-injectivity consequences are Comparator-locked as
-    csl2026_internal_interpretation.
+    Challenge proposition_36_i is oracle agreement in the Engeler graph model
+    on Set ℕ, with numerals defined as the interpretations of the Church
+    numerals. The library definition is that relation on engelerWithNumerals.
+    Comparator treats the definition as a hole (types only). The exact
+    project-internal types of theorem26Full and corollary_34 are not copied
+    into the Mathlib-only Challenge. csl2026_internal_interpretation locks
+    equational soundness, Boolean separation, and numeral injectivity; it
+    does not require the carrier to be V^A.
   - >-
     proposition_42_algebra finite-K is a Finset join; the paper’s fuzzy
     pfinB exists-quantifier over P_fin^A(check ω) is not fully internalized
@@ -230,4 +232,4 @@ alignment:
       lean: "proposition_36_i"
       module: "Scott2026.LambdaModels.Oracles.Prop36"
       status: proved
-      note: "Compared definition; Challenge body is the λ-combinator form."
+      note: "Compared definition. Challenge and the library both use one Engeler model: oracles for engelerApp and engelerLam, numerals the interpretations of the Church numerals."

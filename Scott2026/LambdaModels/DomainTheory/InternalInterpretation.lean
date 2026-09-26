@@ -6,13 +6,13 @@ Authors: Lars Warren Ericson.
 
 import Mathlib.Order.CompleteBooleanAlgebra
 import Scott2026.LambdaModels.DomainTheory.Lambda
-import Scott2026.LambdaModels.DomainTheory.Interp.engelerWithNumerals
-import Scott2026.LambdaModels.Engeler.Engeler
 
 namespace Scott2026
 
-/-- An `A`-valued internal interpretation whose ground model is the Engeler
-graph retract (Proposition 29) with Church numerals (Definition 32). -/
+/-- An `A`-valued interpretation of the equational λ-theory: soundness,
+separation of the Church Booleans, and injectivity of the Church numerals.
+This structure does not require the carrier to be the internal Engeler
+model in `V^A`. -/
 structure InternalInterpretation (A : Type) [CompleteBooleanAlgebra A] where
   D : Type
   V : Type
@@ -23,9 +23,6 @@ structure InternalInterpretation (A : Type) [CompleteBooleanAlgebra A] where
   lookup : V → ℕ → D
   update : V → ℕ → D → V
   empty : V
-  ground : ReflexiveDcpoWithNumerals (Set ℕ)
-  ground_app : ground.toReflexiveDcpo.funMap = engelerApp engelerPair
-  ground_lam : ground.toReflexiveDcpo.lam = engelerLam engelerPair
   eq_refl : ∀ d, eqA d d = ⊤
   eq_symm : ∀ d e, eqA d e = eqA e d
   eq_trans : ∀ d e f, eqA d e ⊓ eqA e f ≤ eqA d f
@@ -40,9 +37,5 @@ structure InternalInterpretation (A : Type) [CompleteBooleanAlgebra A] where
   church_num_inj :
     ∀ n m,
       eqA (interp (churchNumN n) empty) (interp (churchNumN m) empty) = ⊤ → n = m
-  numeral_link :
-    ∀ n m,
-      eqA (interp (churchNumN n) empty) (interp (churchNumN m) empty) = ⊤ ↔
-        ground.numeral n = ground.numeral m
 
 end Scott2026
