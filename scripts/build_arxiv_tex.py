@@ -240,6 +240,11 @@ def replace_fences(text: str, figure_captions: list[str]) -> tuple[str, dict[str
             other_idx += 1
             placeholders[key] = f"\\[\n{body.strip()}\n\\]\n"
             return f"\n\n{key}\n\n"
+        if lang == "latex":
+            key = f"LATEXINCLUDE{other_idx:03d}"
+            other_idx += 1
+            placeholders[key] = body.strip() + "\n"
+            return f"\n\n{key}\n\n"
         if lang == "mermaid":
             key = f"FIGINCLUDE{other_idx:03d}"
             rel_path = render_mermaid(body, figure_idx)

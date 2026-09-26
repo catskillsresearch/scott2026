@@ -55,16 +55,16 @@ status:
       file: "Scott2026/Paper.lean"
       note: "Theorem 43: incomparable ≤ₘ degrees; Comparator target."
     - declaration: "Scott2026.proposition_36_i"
-      file: "Scott2026/Prop36.lean"
+      file: "Scott2026/LambdaModels/Oracles/Prop36.lean"
       note: "Proposition 36(i); Challenge uses the λ-combinator form."
     - paper: "theorem26Full"
-      file: "Scott2026/Theorem26.lean"
+      file: "Scott2026/LambdaModels/DomainTheory/Theorem26.lean"
       note: "Theorem 26: internal SetoidF_A interpretation (uses Definitions 19–25, Theorem 17)."
     - paper: "corollary_34"
-      file: "Scott2026/Corollary34.lean"
+      file: "Scott2026/LambdaModels/Engeler/Corollary34.lean"
       note: "Corollary 34: Engeler model with numerals in V^A (uses Theorems 26 and 30)."
     - paper: "theorem_43_paper"
-      file: "Scott2026/Coin.lean"
+      file: "Scott2026/RandomVariables/Coin/Proofs/CoreCont.lean"
       note: "Theorem 43: incomparable λ-degrees (uses Corollary 34, Lemma 35, Propositions 36 and 39–42)."
 
 fidelity:
@@ -228,6 +228,6 @@ alignment:
       note: "Comparator target; Solution proof uses csl2026_capstones."
     - source: "Proposition 36(i) (λ-definable many-one preorder)"
       lean: "proposition_36_i"
-      module: "Scott2026.Prop36"
+      module: "Scott2026.LambdaModels.Oracles.Prop36"
       status: proved
       note: "Compared definition; Challenge body is the λ-combinator form."

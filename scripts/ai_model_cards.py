@@ -104,12 +104,17 @@ REFERENCES_END = "<!-- /AI_MODEL_REFERENCES -->"
 
 def render_tool_bullets() -> str:
     return "\n".join(
-        f"- **{card.label}** **[{card.cite_key}]** — {card.tool_note}" for card in MODEL_CARDS
+        f"- **{card.label}** \\cite{{{card.cite_key}}} — {card.tool_note}" for card in MODEL_CARDS
     )
 
 
 def render_model_references() -> str:
-    return "\n".join(f"- **[{card.cite_key}]** {card.reference}" for card in MODEL_CARDS)
+    return "\n".join(
+        [
+            r"\bibliographystyle{unsrtnat}",
+            r"\bibliography{references}",
+        ]
+    )
 
 
 def inject_model_cards(text: str) -> str:

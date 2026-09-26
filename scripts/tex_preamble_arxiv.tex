@@ -13,12 +13,16 @@
 \usepackage{xcolor}
 \usepackage{graphicx}
 \usepackage[export]{adjustbox}
+\usepackage{float}
 \usepackage{longtable}
 \usepackage{calc}
 \usepackage{newunicodechar}
 \usepackage{listings}
 \usepackage{xurl}
+\usepackage[numbers]{natbib}
 \usepackage[colorlinks=true,linkcolor=blue!40!black,citecolor=blue!40!black,urlcolor=blue!40!black]{hyperref}
+% The narrative already has a References heading; do not add a second one.
+\renewcommand{\bibsection}{}
 \emergencystretch=2em
 
 % Pandoc emits this on compact lists (including the AI model-card bullets in the abstract).

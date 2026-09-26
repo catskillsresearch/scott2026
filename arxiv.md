@@ -308,8 +308,8 @@ $\beta$, $\alpha$). The extra hypothesis actually needed is
 `OidSeparated V` (distinct variable keys are Boolean-unequal), together
 with `[Infinite V.idx]` for `Lam.substCA`. The Engeler-only
 `theorem_26` on `Set ℕ` is kept as a weaker packaging. Full proof:
-`Scott2026/InternalEvalComplete.lean`, `InternalEvalPack.lean`,
-`Theorem26.lean`.
+`Scott2026/LambdaModels/DomainTheory/InternalEvalComplete.lean`,
+`InternalEvalPack.lean`, `Theorem26.lean`.
 
 ### 6.3 Theorem 30 and Corollary 34 — Engeler in $V^A$
 
@@ -341,7 +341,7 @@ theorem corollary_34 [Nontrivial A] :
 ```
 
 (`[Nontrivial A]` is required for `checkExt` and for the last two
-conjuncts.) Full proof: `Scott2026/Theorem30Internal.lean`,
+conjuncts.) Full proof: `Scott2026/LambdaModels/Engeler/Theorem30Internal.lean`,
 `Corollary34.lean`.
 
 ### 6.4 Lemma 35 — discrete numerals and oracles
@@ -369,7 +369,8 @@ numeral subspace, notes that discreteness makes
 $g(\llbracket c_n\rrbracket)=\chi_A^D(n)$ continuous, and extends by
 `scottExtend` (Scott 1972). The retract identity
 `lemma_35_ii_of_extension` turns $\mathbf{lam}\,\bar g$ into the
-oracle. Full proof: `Scott2026/Lambda.lean`, `Lemma35General.lean`.
+oracle. Full proof: `Scott2026/LambdaModels/DomainTheory/Lambda.lean`,
+`Scott2026/LambdaModels/Oracles/Lemma35General.lean`.
 
 ### 6.5 Proposition 36 — $\lambda$-definable many-one comparison
 
@@ -430,7 +431,7 @@ theorem proposition_42_algebra (f : ℕ → ℕ) :
 
 The finite-$K$ join is over `Finset ℕ`, not the full internal
 $\mathcal{P}_{\mathrm{fin}}^A(\check\omega)$. Full proof:
-`Scott2026/Random.lean`, `Coin.lean`.
+`Scott2026/RandomVariables/Random.lean`, `Coin.lean`.
 
 ### 6.7 Theorem 43 — incomparable $\lambda$-degrees
 
@@ -457,7 +458,8 @@ theorem theorem_43_paper :
 
 After `exists_mem_paperGoodSet` the library defines $T_i$ as the set of $n$ with
 $a_i(x)\cdot\llbracket c_n\rrbracket=\llbracket\top\rrbracket$ and
-finishes with `proposition_36_i` in `Scott2026/Coin.lean`. The
+finishes with `proposition_36_i` in
+`Scott2026/RandomVariables/Coin/Proofs/CoreCont.lean`. The
 external-oracle theorem `theorem_43` is unchanged and has the same type.
 
 ### 6.8 Proposition 44 — $L^0$ is not a continuous dcpo

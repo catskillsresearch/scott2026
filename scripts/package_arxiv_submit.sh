@@ -59,7 +59,10 @@ python3 - <<'PY'
 import json
 from pathlib import Path
 
-sources = [{"filename": "arxiv.tex", "usage": "toplevel"}]
+sources = [
+    {"filename": "arxiv.tex", "usage": "toplevel"},
+    {"filename": "references.bib", "usage": "include"},
+]
 for path in sorted(p for p in Path("lean-listings").iterdir() if p.is_file()):
     sources.append({"filename": path.as_posix(), "usage": "include"})
 for path in sorted(Path("figures").glob("*.png")):
@@ -79,13 +82,14 @@ echo "==> Packaging"
 zip -r "$ZIP" \
   00README.json \
   "$TEX" \
+  references.bib \
   "$LISTINGS_DIR" \
   "${LEAN_FILES[@]}" \
   "${FIGURE_PNGS[@]}"
 
 echo "wrote $ZIP ($(du -h "$ZIP" | cut -f1))"
 echo "Contents:"
-zipinfo -1 "$ZIP" | sed 's/^/  /' | head -50
+zipinfo -1 "$ZIP" | awk 'NR<=50 { print "  " $0 }'
 echo
 echo "Upload $ZIP to arXiv (pdfLaTeX; UTF-8 Lean listings render via the listings literate"
 echo "table; mermaid diagrams ship as pre-rendered figures/*.png since AutoTeX cannot run mmdc)."
