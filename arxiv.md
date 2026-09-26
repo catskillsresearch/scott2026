@@ -22,8 +22,9 @@ vendored from scott1972 (`vendor/scott1972`). Deliberate `sorry`s appear only
 in the Mathlib-only `Challenge.lean` (`csl2026_internal_interpretation`,
 `csl2026`, `proposition_36_i`); `Solution.lean` re-exports kernel-checked
 proofs. There
-are no project axioms beyond Mathlib's classical footprint. The paper's authors
-were not involved in or endorsing this work. Lean was written by AI agents
+are no project axioms beyond Mathlib's classical footprint. Dana Scott gave
+the author the paper; this formalization does not claim the paper's authors'
+participation or endorsement. Lean was written by AI agents
 under the author's direction and review. Proof summaries include short Lean
 fragments; the full library is indexed with links to
 https://github.com/catskillsresearch/scott2026.
@@ -528,9 +529,8 @@ Regenerate `arxiv_with_code.md` when `arxiv.md` or listed sources change:
 
 ## Acknowledgments
 
-Thanks to **Prof. Dana Scott** (Carnegie Mellon University) for bringing the
-CSL 2026 paper to the author's attention. Scott did not participate in this
-work and does not endorse it.
+Thanks to **Prof. Dana Scott** (Carnegie Mellon University) for giving the
+author the CSL 2026 paper.
 
 ### AI-assisted development
 

@@ -8,9 +8,9 @@ of $\lambda$-calculus in domain-valued random variables. The capstones are
 Theorem 26, Corollary 34, and Theorem 43. It is not a thin wrapper and
 not a reimplementation of an independent formalization.
 
-The paper's authors did not participate in, review, or endorse this
-formalization. The formalization is produced by Lars Warren Ericson without
-input from the authors. The source paper is cited as literature only.
+Dana Scott gave the author the paper. The formalization is produced by
+Lars Warren Ericson. It does not claim that the paper's authors participated
+in it or endorsed it. The source paper is cited as literature.
 
 Sibling formalizations of related Scott papers:
 

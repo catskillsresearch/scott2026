@@ -19,8 +19,9 @@ project:
     and numeral injectivity of an A-valued interpretation, witnessed by
     Theorem 26 and Corollary 34), Theorem 43 as csl2026, and proposition_36_i
     on the Engeler graph model. Lean is written by AI agents
-    under the direction and review of the author. The paper's authors were
-    not contacted and did not participate in or endorse this formalization.
+    under the direction and review of the author. Dana Scott gave the author
+    the paper. This formalization does not claim that the paper's authors
+    participated in it or endorsed it.
     There is no sorry outside the deliberate holes in Challenge.lean, no
     project-defined axiom, and Mathlib is the only Lake require.
   authors:
@@ -93,11 +94,12 @@ sources:
       31st EACSL Annual Conference on Computer Science Logic (CSL 2026),
       LIPIcs, Vol. 363, Article 48.
     relationship: formalizes
-    author_endorsement: not-contacted
+    author_endorsement: other
     note: >-
-      Primary source. The paper's authors were not contacted and did not
-      participate in or endorse this formalization. Working PDF:
-      sources/Scott2026.pdf. Related full version: arXiv:2112.06339.
+      Primary source. Dana Scott gave the author the paper. This formalization
+      does not claim that the paper's authors participated in it or endorsed
+      it. Working PDF: sources/Scott2026.pdf. Related full version:
+      arXiv:2112.06339.
 
   - title: "Continuous Lattices"
     authors:
@@ -164,7 +166,7 @@ automation:
       role: >-
         The author chose the formalization route, reviewed every definition
         and claim, and takes sole responsibility for the mathematical content.
-        The paper's authors were not consulted.
+        Dana Scott gave the author the paper.
   notes: >-
     Palomar Challenge / Solution / comparator / formalization.yaml packaging
     follows the scott1964 / scott1982 template.
@@ -174,8 +176,8 @@ review:
   reviewers:
     - "Lars Warren Ericson"
   notes: >-
-    The author directed and reviewed the development. No external review of
-    the Lean source, and no review or endorsement by the paper's authors. Every
+    The author directed and reviewed the development. Dana Scott gave the
+    author the paper. No external review of the Lean source is claimed. Every
     proof step is checked by the Lean kernel.
 
 known_gaps:

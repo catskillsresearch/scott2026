@@ -21,8 +21,8 @@ is oracle agreement in one Engeler graph model on `Set ℕ`, whose Booleans
 and numerals are the interpretations of the Church Booleans and Church
 numerals. The `sorry`s are the proof holes.
 
-The paper's authors were not contacted and did not participate in, review,
-or endorse this formalization.
+Dana Scott gave the author the paper. This formalization does not claim
+that the paper's authors participated in it or endorsed it.
 -/
 
 open Set
