@@ -31,9 +31,10 @@ Original Lean and author-written docs are Apache-2.0. The source PDF
 **Library complete; Palomar Challenge is a Mathlib-only face.** Three
 capstones sit on top of the paper: `theorem26Full` (Theorem 26),
 `corollary_34` (Corollary 34), and `theorem_43_paper` (Theorem 43). The
-Comparator locks their Boolean-valued interpretation and internal Engeler
-consequences as `csl2026_internal_interpretation`, Theorem 43 as `csl2026`
-(incomparable `≤ₘ` degrees), and the relation `proposition_36_i`.
+Comparator locks Theorem 43 as `csl2026` (incomparable `≤ₘ` degrees) and
+its exact Engeler-oracle relation `proposition_36_i`. Corollary 34 remains
+kernel-checked as `corollary_34`; it is not replaced by a weaker
+Mathlib-only Comparator proxy.
 `[Nontrivial A]` makes the paper’s
 implicit `⊥ ≠ ⊤` convention explicit.
 

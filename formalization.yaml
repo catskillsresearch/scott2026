@@ -14,11 +14,10 @@ project:
     SetoidF_A), Corollary 34 (the Engeler model with numerals in V^A), and
     Theorem 43 (two fair-coin subsets of ℕ that are incomparable under the
     λ-definable many-one preorder). Domain-theory background is imported from
-    a vendored copy of scott1972. The Palomar Challenge locks
-    csl2026_internal_interpretation (equational soundness, Boolean separation,
-    and numeral injectivity of an A-valued interpretation, witnessed by
-    Theorem 26 and Corollary 34), Theorem 43 as csl2026, and proposition_36_i
-    on the Engeler graph model. Lean is written by AI agents
+    a vendored copy of scott1972. The Palomar Challenge locks Theorem 43 as
+    csl2026 and proposition_36_i on the Engeler graph model. Full Corollary
+    34 remains kernel-checked in the library and is not represented by a
+    weaker Mathlib-only proxy. Lean is written by AI agents
     under the direction and review of the author. Dana Scott gave the author
     the paper. This formalization does not claim that the paper's authors
     participated in it or endorsed it.
@@ -39,20 +38,13 @@ status:
     Sorry-free formalization of the existing CSL 2026 paper in Scott2026/,
     packaged around three capstones: theorem26Full (Theorem 26),
     corollary_34 (Corollary 34), and theorem_43_paper (Theorem 43). The
-    compared inventory matches comparator.json:
-    csl2026_internal_interpretation (the Boolean-valued λ-interpretation,
-    Boolean separation, and numeral injectivity supplied by Theorem 26 and
-    Corollary 34), csl2026 (Theorem 43), and proposition_36_i.
-  sorry_count: 2
+    compared inventory matches comparator.json: csl2026 (Theorem 43) and
+    proposition_36_i. Full Corollary 34 remains kernel-checked in the
+    library rather than being represented by a weaker Mathlib-only proxy.
+  sorry_count: 1
   sorry_in_definitions: 0
   axioms: ["propext", "Classical.choice", "Quot.sound"]
   main_results:
-    - declaration: "Scott2026.csl2026_internal_interpretation"
-      file: "Scott2026/Paper.lean"
-      note: "Comparator target: Mathlib-only face of Theorem 26 and Corollary 34, instantiated by the internal Engeler model in V^A."
-    - declaration: "Scott2026.internal_interpretation_statement"
-      file: "Scott2026/Paper.lean"
-      note: "Compared statement definition for the Boolean-valued interpretation capstone."
     - declaration: "Scott2026.csl2026"
       file: "Scott2026/Paper.lean"
       note: "Theorem 43: incomparable ≤ₘ degrees; Comparator target."
@@ -185,11 +177,10 @@ known_gaps:
     Challenge proposition_36_i is oracle agreement in the Engeler graph model
     on Set ℕ, with numerals defined as the interpretations of the Church
     numerals. The library definition is that relation on engelerWithNumerals.
-    Comparator treats the definition as a hole (types only). The exact
-    project-internal types of theorem26Full and corollary_34 are not copied
-    into the Mathlib-only Challenge. csl2026_internal_interpretation locks
-    equational soundness, Boolean separation, and numeral injectivity; it
-    does not require the carrier to be V^A.
+    Comparator treats the definition as a hole (types only). The
+    project-internal A-name interfaces required by full Corollary 34 cannot
+    be copied faithfully into the Mathlib-only Challenge without a large
+    duplicate development, so no weaker interpretation proxy is selected.
   - >-
     proposition_42_algebra finite-K is a Finset join; the paper’s fuzzy
     pfinB exists-quantifier over P_fin^A(check ω) is not fully internalized
@@ -213,18 +204,17 @@ limitations:
     Challenge.lean may contain deliberate sorries; Solution.lean and
     Scott2026/* must not.
   - >-
-    Challenge/Solution comparison covers csl2026_internal_interpretation,
-    csl2026, and proposition_36_i. It does not copy the large project-specific
-    A-name and SetoidF_A interfaces into the Mathlib-only Challenge.
+    Challenge/Solution comparison covers csl2026 and proposition_36_i.
+    Corollary 34 and its A-name interfaces remain unselected library results.
 
 alignment:
   namespace: "Scott2026"
   statements:
-    - source: "Theorem 26 and Corollary 34 (Boolean-valued internal Engeler interpretation)"
+    - source: "Corollary 34 (the internal Engeler model in V^A)"
       lean: "csl2026_internal_interpretation"
       module: "Scott2026.Paper"
       status: proved
-      note: "Comparator target; existential Mathlib-only face instantiated by interpClosedVA on the internal Engeler carrier."
+      note: "Unselected library theorem; its statement definition is the exact full type of corollary_34."
     - source: "Theorem 43 (incomparable λ-degrees)"
       lean: "csl2026"
       module: "Scott2026.Paper"

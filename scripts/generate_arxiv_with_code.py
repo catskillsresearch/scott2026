@@ -79,7 +79,6 @@ SECTIONS: list[tuple[str, str, list[tuple[str, list[str]]]]] = [
                     "Scott2026/LambdaModels/DomainTheory/InternalEvalFamily.lean",
                     "Scott2026/LambdaModels/DomainTheory/InternalEvalComplete.lean",
                     "Scott2026/LambdaModels/DomainTheory/InternalEvalPack.lean",
-                    "Scott2026/LambdaModels/DomainTheory/InternalInterpretation.lean",
                     "Scott2026/LambdaModels/DomainTheory/InternalReflexiveModel.lean",
                     "Scott2026/LambdaModels/DomainTheory/Theorem26.lean",
                 ],

@@ -11,15 +11,12 @@ import Mathlib
 
 Palomar compares this module to `Solution.lean` using `comparator.json`.
 
-The compared theorems are `csl2026_internal_interpretation` and `csl2026`.
-`csl2026_internal_interpretation` is an `A`-valued λ-interpretation with
-equational soundness, separation of the Church Booleans, and injectivity of
-the Church numerals. That statement does not identify the carrier with `V^A`;
-the Solution witness is the internal Engeler model. `csl2026` is Theorem 43:
-two subsets of `ℕ` incomparable under Proposition 36(i). `proposition_36_i`
-is oracle agreement in one Engeler graph model on `Set ℕ`, whose Booleans
-and numerals are the interpretations of the Church Booleans and Church
-numerals. The `sorry`s are the proof holes.
+The compared theorem is `csl2026`, and its compared statement definition is
+`proposition_36_i`. It is Theorem 43: two subsets of `ℕ` incomparable under
+Proposition 36(i), whose relation is oracle agreement in one ordinary Engeler
+graph model. The full internal Corollary 34 remains a kernel-checked library
+capstone, but is not represented by a weaker Mathlib-only proxy here.
+Only the compared theorem uses `sorry`.
 
 Dana Scott gave the author the paper. This formalization does not claim
 that the paper's authors participated in it or endorsed it.
@@ -189,35 +186,6 @@ structure MapsNumerals (M : Lam ℕ) : Prop where
   fv_empty : M.fv = ∅
   maps : ∀ n, ∃ m, LamEq (M.app (churchNumN n)) (churchNumN m)
 
-/-- An `A`-valued interpretation of the equational λ-theory: soundness,
-separation of the Church Booleans, and injectivity of the Church numerals.
-This structure does not require the carrier to be the internal Engeler
-model in `V^A`. -/
-structure InternalInterpretation (A : Type) [CompleteBooleanAlgebra A] where
-  D : Type
-  V : Type
-  eqA : D → D → A
-  app : D → D → D
-  lam : (D → D) → D
-  interp : Lam ℕ → V → D
-  lookup : V → ℕ → D
-  update : V → ℕ → D → V
-  empty : V
-  eq_refl : ∀ d, eqA d d = ⊤
-  eq_symm : ∀ d e, eqA d e = eqA e d
-  eq_trans : ∀ d e f, eqA d e ⊓ eqA e f ≤ eqA d f
-  interp_var : ∀ ρ x, interp (Lam.var x) ρ = lookup ρ x
-  interp_app : ∀ ρ M N, interp (M.app N) ρ = app (interp M ρ) (interp N ρ)
-  interp_abs :
-    ∀ ρ x M, interp (Lam.abs x M) ρ = lam (fun d => interp M (update ρ x d))
-  interp_sound :
-    ∀ ρ {M N : Lam ℕ}, LamEq M N → eqA (interp M ρ) (interp N ρ) = ⊤
-  church_bool_separate :
-    eqA (interp churchTrueN empty) (interp churchFalseN empty) = ⊥
-  church_num_inj :
-    ∀ n m,
-      eqA (interp (churchNumN n) empty) (interp (churchNumN m) empty) = ⊤ → n = m
-
 /-- Proposition 36(i) on the Engeler graph model. Booleans and numerals are
 `⟦churchFalseN⟧`, `⟦churchTrueN⟧`, and `⟦churchNumN n⟧` under `engelerApp`
 and `engelerLam` at `engelerPair`. `S₁ ≤ₘ S₂` when one closed
@@ -231,17 +199,161 @@ def proposition_36_i (S₁ S₂ : Set ℕ) : Prop :=
         engelerApp engelerPair d₂ (engelerInterpClosed (M.app (churchNumN n))) =
           engelerApp engelerPair d₁ (engelerNumeral n)
 
-/-- Every nontrivial complete Boolean algebra carries an `A`-valued
-interpretation in the sense of `InternalInterpretation`. The Solution
-witness is the internal Engeler model in `V^A`. -/
-def internal_interpretation_statement : Prop :=
-  ∀ (A : Type) [CompleteBooleanAlgebra A] [Nontrivial A],
-    Nonempty (InternalInterpretation A)
+/-- The external presentation of the elements of the internal power object
+`P^A(check ℕ)`: an element assigns a Boolean membership value to each natural. -/
+abbrev EngelerVA (A : Type) := ℕ → A
 
-/-- Theorem 26 and Corollary 34 through the auditable statement above. -/
-theorem csl2026_internal_interpretation :
-    internal_interpretation_statement := by
-  sorry
+/-- Canonical checked copy of an ordinary Engeler element. -/
+noncomputable def checkedEngeler {A : Type} [CompleteBooleanAlgebra A]
+    (X : Set ℕ) : EngelerVA A := by
+  classical
+  exact fun n => if n ∈ X then ⊤ else ⊥
+
+/-- Boolean-valued inclusion in `P^A(check ℕ)`. -/
+noncomputable def engelerSubsetB {A : Type} [CompleteBooleanAlgebra A]
+    (X Y : EngelerVA A) : A :=
+  ⨅ n, X n ⇨ Y n
+
+/-- Boolean-valued equality in `P^A(check ℕ)`. -/
+noncomputable def engelerEqB {A : Type} [CompleteBooleanAlgebra A]
+    (X Y : EngelerVA A) : A :=
+  engelerSubsetB X Y ⊓ engelerSubsetB Y X
+
+/-- The truth value that a finite set is included in an `A`-valued subset. -/
+noncomputable def finiteSubsetB {A : Type} [CompleteBooleanAlgebra A]
+    (K : Finset ℕ) (X : EngelerVA A) : A :=
+  ⨅ n : {n // n ∈ K}, X n
+
+/-- Internal Engeler application on `P^A(check ℕ)`. -/
+noncomputable def engelerAppB {A : Type} [CompleteBooleanAlgebra A]
+    (F X : EngelerVA A) : EngelerVA A :=
+  fun q => ⨆ K : Finset ℕ, finiteSubsetB K X ⊓ F (engelerPair (K, q))
+
+/-- The checked finite subset used by internal Engeler abstraction. -/
+def checkedFinsetB {A : Type} [CompleteBooleanAlgebra A]
+    (K : Finset ℕ) : EngelerVA A :=
+  fun n => if n ∈ K then ⊤ else ⊥
+
+/-- Internal Engeler abstraction on `P^A(check ℕ)`. -/
+noncomputable def engelerLamB {A : Type} [CompleteBooleanAlgebra A]
+    (f : EngelerVA A → EngelerVA A) : EngelerVA A :=
+  fun p =>
+    ⨆ (K : Finset ℕ) (q : ℕ),
+      if p = engelerPair (K, q) then f (checkedFinsetB K) q else ⊥
+
+/-- Interpretation of λ-terms in the internal Engeler power object. -/
+noncomputable def interpEngelerVA {A : Type} [CompleteBooleanAlgebra A] :
+    Lam ℕ → (ℕ → EngelerVA A) → EngelerVA A
+  | .var x, ρ => ρ x
+  | .app M N, ρ => engelerAppB (interpEngelerVA M ρ) (interpEngelerVA N ρ)
+  | .abs x M, ρ =>
+      engelerLamB fun d => interpEngelerVA M (Function.update ρ x d)
+
+/-- Closed interpretation in the internal Engeler power object. -/
+noncomputable def interpClosedEngelerVA {A : Type} [CompleteBooleanAlgebra A]
+    (M : Lam ℕ) : EngelerVA A :=
+  interpEngelerVA M fun _ => ⊥
+
+/-- An internal family of Engeler elements, presented by its Boolean
+membership value on every `A`-valued subset of `check ℕ`. -/
+abbrev EngelerFamily (A : Type) := EngelerVA A → A
+
+/-- Pointwise supremum of a Boolean-valued internal family. -/
+noncomputable def engelerSupB {A : Type} [CompleteBooleanAlgebra A]
+    (S : EngelerFamily A) : EngelerVA A :=
+  fun n => ⨆ X : EngelerVA A, S X ⊓ X n
+
+/-- Truth value that an internal family is inhabited and directed for
+Boolean-valued inclusion. -/
+noncomputable def engelerDirectedB {A : Type} [CompleteBooleanAlgebra A]
+    (S : EngelerFamily A) : A :=
+  (⨆ X : EngelerVA A, S X) ⊓
+    ⨅ X : EngelerVA A, ⨅ Y : EngelerVA A,
+      S X ⇨ S Y ⇨
+        ⨆ Z : EngelerVA A,
+          S Z ⊓ engelerSubsetB X Z ⊓ engelerSubsetB Y Z
+
+/-- The order-theoretic internal way-below truth value. It tests `Y` against
+every directed family whose supremum lies above `X`; no finite-basis
+characterization is built into this definition. -/
+noncomputable def engelerWayBelowB {A : Type} [CompleteBooleanAlgebra A]
+    (Y X : EngelerVA A) : A :=
+  ⨅ S : EngelerFamily A,
+    engelerDirectedB S ⇨
+      engelerSubsetB X (engelerSupB S) ⇨
+        ⨆ Z : EngelerVA A, S Z ⊓ engelerSubsetB Y Z
+
+/-- Membership in the internal checked-finite power object. The join over
+checked finite sets gives mixed finite names their appropriate truth values. -/
+noncomputable def engelerPfinB {A : Type} [CompleteBooleanAlgebra A]
+    (Y : EngelerVA A) : A :=
+  ⨆ K : Finset ℕ, engelerEqB Y (checkedFinsetB K)
+
+/-- Supremum of all internally finite way-below elements, at coordinate `n`. -/
+noncomputable def engelerBaseSup {A : Type} [CompleteBooleanAlgebra A]
+    (X : EngelerVA A) (n : ℕ) : A :=
+  ⨆ Y : EngelerVA A,
+    engelerPfinB Y ⊓ engelerWayBelowB Y X ⊓ Y n
+
+/-- Supremum of all internally way-below elements, evaluated at `n`. -/
+noncomputable def engelerContinuousSup {A : Type} [CompleteBooleanAlgebra A]
+    (X : EngelerVA A) (n : ℕ) : A :=
+  ⨆ Y : EngelerVA A, engelerWayBelowB Y X ⊓ Y n
+
+/-- Internal Scott continuity on the algebraic Engeler power object. This is
+the locality/basis law for an internal map: its value is reconstructed from
+its values on checked finite approximants with their Boolean inclusion
+weights. It excludes arbitrary external transformations of the truth-value
+algebra. -/
+noncomputable def engelerInternallyContinuousB
+    {A : Type} [CompleteBooleanAlgebra A]
+    (f : EngelerVA A → EngelerVA A) : Prop :=
+  ∀ (X : EngelerVA A) (q : ℕ),
+    f X q =
+      ⨆ K : Finset ℕ, finiteSubsetB K X ⊓ f (checkedFinsetB K) q
+
+/-- A compact Mathlib presentation of Corollary 34. The carrier is fixed to
+`P^A(check ℕ)`, rather than merely requiring some classical λ-model. -/
+structure InternalEngelerInterpretation (A : Type) [CompleteBooleanAlgebra A] : Prop where
+  dcpo_sup_upper :
+    ∀ (S : EngelerFamily A) (X), S X ≤
+      engelerSubsetB X (engelerSupB S)
+  dcpo_sup_least :
+    ∀ (S : EngelerFamily A) (Y),
+      (⨅ X : EngelerVA A, S X ⇨ engelerSubsetB X Y) ≤
+        engelerSubsetB (engelerSupB S) Y
+  application_continuous :
+    ∀ F : EngelerVA A, engelerInternallyContinuousB (engelerAppB F)
+  reflexive_retraction :
+    ∀ f : EngelerVA A → EngelerVA A, engelerInternallyContinuousB f →
+      ∀ X, engelerEqB (engelerAppB (engelerLamB f) X) (f X) = ⊤
+  continuous_lattice :
+    ∀ X : EngelerVA A, engelerContinuousSup X = X
+  checked_finite_way_below :
+    ∀ (K : Finset ℕ) (X : EngelerVA A),
+      finiteSubsetB K X ≤ engelerWayBelowB (checkedFinsetB K) X
+  finitary_base :
+    ∀ X : EngelerVA A, engelerBaseSup X = X
+  interp_sound :
+    ∀ {M N : Lam ℕ}, LamEq M N →
+      engelerEqB (A := A) (interpClosedEngelerVA M) (interpClosedEngelerVA N) = (⊤ : A)
+  check_church_true :
+    interpClosedEngelerVA (A := A) churchTrueN =
+      checkedEngeler (A := A) (engelerInterpClosed churchTrueN)
+  check_church_false :
+    interpClosedEngelerVA (A := A) churchFalseN =
+      checkedEngeler (A := A) (engelerInterpClosed churchFalseN)
+  check_church_num :
+    ∀ n, interpClosedEngelerVA (A := A) (churchNumN n) =
+      checkedEngeler (A := A) (engelerInterpClosed (churchNumN n))
+  church_bool_separate :
+    engelerEqB (A := A) (interpClosedEngelerVA churchTrueN)
+      (interpClosedEngelerVA churchFalseN) = (⊥ : A)
+  church_num_inj :
+    ∀ n m,
+      engelerEqB (A := A) (interpClosedEngelerVA (churchNumN n))
+          (interpClosedEngelerVA (churchNumN m)) = (⊤ : A) →
+        n = m
 
 /-- Theorem 43: two subsets of `ℕ` that are incomparable under `≤ₘ`.
 The Solution proof is `theorem_43_paper`, obtained from

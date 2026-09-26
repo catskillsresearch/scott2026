@@ -6,7 +6,6 @@ Authors: Lars Warren Ericson.
 
 import Scott2026.RandomVariables.Coin
 import Scott2026.LambdaModels.Engeler.Corollary34
-import Scott2026.LambdaModels.DomainTheory.InternalInterpretation
 import Scott2026.LambdaModels.DomainTheory.Theorem26
 
 /-!
@@ -21,56 +20,29 @@ putting those types in Challenge.
 
 namespace Scott2026
 
-/-- Statement of the Mathlib-facing substantive consequence of Theorem 26 and
-Corollary 34, kept as a named definition for Palomar's Challenge/Solution
-boundary. -/
+/-- The full internal `V^A` statement of Corollary 34, kept as a named
+definition for Palomar's Challenge/Solution boundary. -/
 def internal_interpretation_statement : Prop :=
   ∀ (A : Type) [CompleteBooleanAlgebra A] [Nontrivial A],
-    Nonempty (InternalInterpretation A)
+    isReflexiveDcpoB (engelerD (A := A)) (engelerR (A := A))
+        (engelerC (A := A)) (engelerQ (A := A))
+        (engelerFun (A := A)) (engelerLamB (A := A)) = ⊤ ∧
+      isContinuousLatticeSubsetB (engelerD (A := A)) = ⊤ ∧
+      isBaseSubsetB (pfinB (checkExt (A := A) PSet.omega))
+        (engelerD (A := A)) = ⊤ ∧
+      Corollary34Check (A := A) ∧
+      (AName.eqB (childΩ (interpClosedVA (A := A) churchTrue))
+        (childΩ (interpClosedVA churchFalse)) = ⊥) ∧
+      (∀ n m, AName.eqB (childΩ (interpClosedVA (A := A) (churchNum n)))
+        (childΩ (interpClosedVA (churchNum m))) = ⊤ → n = m)
 
-/-- Compared `A`-valued interpretation: soundness, Church Boolean separation,
-and Church numeral injectivity. The proof constructs the internal Engeler
-model in `V^A`. Comparator-locked alongside Theorem 43. -/
+/-- Corollary 34: the internal Engeler model in `V^A` is a reflexive
+continuous lattice with its finitary base, interpretation laws, distinct
+Church Booleans, and injective Church numerals. -/
 theorem csl2026_internal_interpretation :
     internal_interpretation_statement := by
   intro A _ _
-  refine ⟨{
-    D := EngelerCarrier (A := A)
-    V := Valuation ℕ (EngelerCarrier (A := A))
-    eqA := fun X Y => AName.eqB (childΩ X) (childΩ Y)
-    app := engelerAppVA (A := A)
-    lam := engelerLamVA (A := A)
-    interp := interpVA (A := A)
-    lookup := fun ρ x => ρ.toFun x
-    update := Valuation.update
-    empty := Valuation.default (finsetToCanonical (A := A) ∅)
-    eq_refl := fun _ => AName.eqB_self _
-    eq_symm := fun _ _ => AName.eqB_comm _ _
-    eq_trans := fun _ _ _ => AName.eqB_trans _ _ _
-    interp_var := fun _ _ => rfl
-    interp_app := fun _ _ _ => rfl
-    interp_abs := fun _ _ _ => rfl
-    interp_sound := fun ρ M N h => by
-      rw [interpVA_sound_full h ρ]
-      exact AName.eqB_self _
-    church_bool_separate := eqB_interpClosedVA_churchTrue_churchFalse (A := A)
-    church_num_inj := fun n m h => by
-      have hn :
-          interpClosedVA (A := A) (churchNumN n) =
-            interpClosedVA (churchNum n) := by
-        rw [interpClosedVA_churchNumN, interpClosedVA_churchNum,
-          churchNum_interpClosed_eq_churchNumN]
-      have hm :
-          interpClosedVA (A := A) (churchNumN m) =
-            interpClosedVA (churchNum m) := by
-        rw [interpClosedVA_churchNumN, interpClosedVA_churchNum,
-          churchNum_interpClosed_eq_churchNumN]
-      change AName.eqB
-        (childΩ (interpClosedVA (A := A) (churchNumN n)))
-        (childΩ (interpClosedVA (A := A) (churchNumN m))) = ⊤ at h
-      rw [hn, hm] at h
-      exact churchNum_interpClosedVA_injective (A := A) h
-  }⟩
+  exact corollary_34 (A := A)
 
 /-- Identity combinator `λx. x`, used to show `≤ₘ` is reflexive. -/
 def lamId : Lam ℕ :=

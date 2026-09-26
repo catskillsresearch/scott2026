@@ -18,10 +18,11 @@ random variables. The sorry-free `Scott2026/` library (~38,000 lines) covers
 $V^A$, the internal Engeler model, Theorems 26 and 30, Corollary 34, Lemma 35 /
 Proposition 36, the measure algebra $A(X)=\Sigma/\mathcal{N}$, Propositions
 39--42, Theorem 43, and Proposition 44. Continuous-lattice background is
-vendored from scott1972 (`vendor/scott1972`). Deliberate `sorry`s appear only
-in the Mathlib-only `Challenge.lean` (`csl2026_internal_interpretation`,
-`csl2026`, `proposition_36_i`); `Solution.lean` re-exports kernel-checked
-proofs. There
+vendored from scott1972 (`vendor/scott1972`). The deliberate `sorry`
+appears only in the Mathlib-only `Challenge.lean`; the
+Comparator hole is `csl2026`.
+`proposition_36_i` is a definition without a proof hole, and `Solution.lean`
+re-exports kernel-checked proofs. There
 are no project axioms beyond Mathlib's classical footprint. Dana Scott gave
 the author the paper; this formalization does not claim the paper's authors'
 participation or endorsement. Lean was written by AI agents
@@ -78,12 +79,15 @@ standard mathlib footprint `[propext, Classical.choice, Quot.sound]`.
 
 ## 2. Scope and layout
 
-The sorry-free development is about 38,000 lines across 38 Lean modules
+The sorry-free development is about 38,000 lines across the modules
 under `Scott2026/`, plus the vendored Scott 1972 continuous-lattice
-library. Deliberate proof holes occur only in the Mathlib-only
-`Challenge.lean`. That challenge face is a Mathlib-expressible subset of
-Proposition 27; the remaining paper-type theorems are kernel-checked in
-`Scott2026/` and re-exported by `Solution.lean`.
+library. The deliberate compared proof hole occurs only in the Mathlib-only
+`Challenge.lean`. Its compared declarations are Theorem 43 and its exact
+Engeler-oracle statement definition, `csl2026` and `proposition_36_i`.
+The full internal Corollary 34 remains kernel-checked as `corollary_34`,
+without a weaker Mathlib-only proxy. The remaining
+paper-type theorems are kernel-checked in `Scott2026/` and re-exported by
+`Solution.lean`.
 
 | Module cluster | Role |
 | --- | --- |
@@ -235,27 +239,33 @@ Further named results: `definition_25` / `interp`, `lemma_31`,
 `proposition_40_measure`, `lemma_41_measure` / `lemma_41_algebra`,
 `not_isAtomic_coinAlgebra`.
 
-Compared declarations in `Challenge.lean`: `csl2026_internal_interpretation`
-(the Boolean-valued interpretation and internal Engeler consequences of
-Theorem 26 and Corollary 34), `csl2026` (Theorem 43), and `proposition_36_i`.
-The Solution instantiates the internal-interpretation face with
-`interpClosedVA`; the proof of `csl2026` uses `csl2026_capstones`
+Compared declarations in `Challenge.lean`: `csl2026` (Theorem 43) and
+`proposition_36_i`. The full Corollary 34 is not selected because faithfully
+restating its `AName`-based internal predicates in a Mathlib-only Challenge
+would require replacing them with a weaker proxy. The proof of `csl2026`
+uses `csl2026_capstones`
 (`theorem26Full`, `corollary_34`, `theorem_43_paper`). Representative
 challenge statements:
 
 ```lean
-theorem csl2026_internal_interpretation :
-    internal_interpretation_statement := by
-  sorry
-
 theorem csl2026 : ∃ T₁ T₂ : Set ℕ,
     ¬proposition_36_i T₁ T₂ ∧ ¬proposition_36_i T₂ T₁ := by
   sorry
 
 def proposition_36_i (S₁ S₂ : Set ℕ) : Prop :=
-  ∃ M : Lam ℕ, ∃ hM : MapsNumerals M,
-    ∀ n, n ∈ S₁ ↔ mapsNumeralsFun M hM n ∈ S₂
+  ∃ M : Lam ℕ, MapsNumerals M ∧
+    ∃ d₁ d₂ : Set ℕ,
+      engelerIsOracle d₁ S₁ ∧
+      engelerIsOracle d₂ S₂ ∧
+      ∀ n,
+        engelerApp engelerPair d₂
+            (engelerInterpClosed (M.app (churchNumN n))) =
+          engelerApp engelerPair d₁ (engelerNumeral n)
 ```
+
+The simpler membership equivalence
+`n ∈ S₁ ↔ mapsNumeralsFun M hM n ∈ S₂` is the derived lemma
+`proposition_36_i_mem`, not the selected definition.
 
 ## Proof notes
 
@@ -509,10 +519,8 @@ intended meaning.
   `MeasureAlgebra`.
 - Engeler-only `lemma_35` / `proposition_36` / `proposition_42` /
   `theorem_43` keep weaker or special-case names.
-- `Challenge.lean` compares `csl2026_internal_interpretation`, `csl2026`
-  (Theorem 43), and `proposition_36_i`. The project-facing capstones
-  `theorem26Full`, `corollary_34`, and `theorem_43_paper` remain
-  kernel-checked in `Scott2026/`.
+- The Challenge compares Theorem 43 and its Proposition 36(i) relation.
+  All paper-facing library capstones remain kernel-checked.
 
 ## Build
 
