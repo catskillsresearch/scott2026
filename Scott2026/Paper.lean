@@ -54,6 +54,9 @@ theorem csl2026_internal_interpretation :
     interp_sound := fun ρ M N h => by
       rw [interpVA_sound_full h ρ]
       exact AName.eqB_self _
+    ground := engelerWithNumerals
+    ground_app := rfl
+    ground_lam := rfl
     church_bool_separate := eqB_interpClosedVA_churchTrue_churchFalse (A := A)
     church_num_inj := fun n m h => by
       have hn :
@@ -71,6 +74,29 @@ theorem csl2026_internal_interpretation :
         (childΩ (interpClosedVA (A := A) (churchNumN m))) = ⊤ at h
       rw [hn, hm] at h
       exact churchNum_interpClosedVA_injective (A := A) h
+    numeral_link := fun n m => by
+      constructor
+      · intro h
+        have hn :
+            interpClosedVA (A := A) (churchNumN n) =
+              interpClosedVA (churchNum n) := by
+          rw [interpClosedVA_churchNumN, interpClosedVA_churchNum,
+            churchNum_interpClosed_eq_churchNumN]
+        have hm :
+            interpClosedVA (A := A) (churchNumN m) =
+              interpClosedVA (churchNum m) := by
+          rw [interpClosedVA_churchNumN, interpClosedVA_churchNum,
+            churchNum_interpClosed_eq_churchNumN]
+        change AName.eqB
+            (childΩ (interpClosedVA (A := A) (churchNumN n)))
+            (childΩ (interpClosedVA (A := A) (churchNumN m))) = ⊤ at h
+        rw [hn, hm] at h
+        exact congrArg engelerWithNumerals.numeral
+          (churchNum_interpClosedVA_injective (A := A) h)
+      · intro h
+        have hnm := engelerWithNumerals.numeral_inj h
+        subst hnm
+        exact AName.eqB_self _
   }⟩
 
 /-- Identity combinator `λx. x`, used to show `≤ₘ` is reflexive. -/
