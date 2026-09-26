@@ -24,7 +24,7 @@ namespace Scott2026
 variable {X : Type*} [MeasurableSpace X] (N : NegligibilitySpace X) {Y : Type*}
 namespace L0
 
-def L0.mk (N : NegligibilitySpace X) (a : L0Fun X Y) : L0 N Y :=
+def mk (N : NegligibilitySpace X) (a : L0Fun X Y) : L0 N Y :=
   Quotient.mk (l0Setoid N Y) a
 
 

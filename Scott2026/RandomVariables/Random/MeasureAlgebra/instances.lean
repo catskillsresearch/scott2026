@@ -57,7 +57,8 @@ theorem inf_le_left (a b : _root_.Scott2026.MeasureAlgebra μ) : Le μ (inf μ a
   have : ((Quotient.out a).val ∩ (Quotient.out b).val) \
       (Quotient.out a).val = ∅ := by
     ext x; simp only [mem_empty_iff_false, mem_sdiff, mem_inter_iff]; tauto
-  simpa [this] using measure_empty
+  simp [this]
+
 
 theorem inf_le_right (a b : _root_.Scott2026.MeasureAlgebra μ) : Le μ (inf μ a b) b := by
   rw [show b = mk μ (Quotient.out b).val (Quotient.out b).property from
@@ -67,7 +68,8 @@ theorem inf_le_right (a b : _root_.Scott2026.MeasureAlgebra μ) : Le μ (inf μ 
   have : ((Quotient.out a).val ∩ (Quotient.out b).val) \
       (Quotient.out b).val = ∅ := by
     ext x; simp only [mem_empty_iff_false, mem_sdiff, mem_inter_iff]; tauto
-  simpa [this] using measure_empty
+  simp [this]
+
 
 theorem le_inf (a b c : _root_.Scott2026.MeasureAlgebra μ)
     (hab : Le μ a b) (hac : Le μ a c) : Le μ a (inf μ b c) := by
@@ -90,7 +92,8 @@ theorem le_sup_left (a b : _root_.Scott2026.MeasureAlgebra μ) : Le μ a (sup μ
   have : (Quotient.out a).val \
       ((Quotient.out a).val ∪ (Quotient.out b).val) = ∅ := by
     ext x; simp only [mem_empty_iff_false, mem_sdiff, mem_union]; tauto
-  simpa [this] using measure_empty
+  simp [this]
+
 
 theorem le_sup_right (a b : _root_.Scott2026.MeasureAlgebra μ) : Le μ b (sup μ a b) := by
   rw [show b = mk μ (Quotient.out b).val (Quotient.out b).property from
@@ -100,7 +103,8 @@ theorem le_sup_right (a b : _root_.Scott2026.MeasureAlgebra μ) : Le μ b (sup �
   have : (Quotient.out b).val \
       ((Quotient.out a).val ∪ (Quotient.out b).val) = ∅ := by
     ext x; simp only [mem_empty_iff_false, mem_sdiff, mem_union]; tauto
-  simpa [this] using measure_empty
+  simp [this]
+
 
 theorem sup_le (a b c : _root_.Scott2026.MeasureAlgebra μ)
     (hac : Le μ a c) (hbc : Le μ b c) : Le μ (sup μ a b) c := by
@@ -121,16 +125,18 @@ theorem le_top (a : _root_.Scott2026.MeasureAlgebra μ) : Le μ a (top μ) := by
   unfold top
   refine (le_mk μ).mpr ?_
   have : (Quotient.out a).val \ Set.univ = ∅ :=
-    diff_eq_empty.mpr (subset_univ _)
-  simpa [this] using measure_empty
+    sdiff_eq_empty.mpr (subset_univ _)
+  simp [this]
+
 
 theorem bot_le (a : _root_.Scott2026.MeasureAlgebra μ) : Le μ (bot μ) a := by
   rw [show a = mk μ (Quotient.out a).val (Quotient.out a).property from
     (mk_out μ a).symm]
   unfold bot
   refine (le_mk μ).mpr ?_
-  have : (∅ \ (Quotient.out a).val) = ∅ := empty_diff _
-  simpa [this] using measure_empty
+  have : (∅ \ (Quotient.out a).val) = ∅ := empty_sdiff _
+  simp [this]
+
 
 theorem inf_compl_le_bot (a : _root_.Scott2026.MeasureAlgebra μ) :
     Le μ (inf μ a (compl μ a)) (bot μ) := by
@@ -201,7 +207,8 @@ theorem le_sup_inf (a b c : _root_.Scott2026.MeasureAlgebra μ) :
       ((Quotient.out a).val ∪ ((Quotient.out b).val ∩ (Quotient.out c).val)) =
       ∅ := by
     ext x; simp only [mem_empty_iff_false, mem_sdiff, mem_inter_iff, mem_union]; tauto
-  simpa [this] using measure_empty
+  simp [this]
+
 
 theorem sSup_spec [IsFiniteMeasure μ] (S : Set (_root_.Scott2026.MeasureAlgebra μ)) :
     (∀ a ∈ S, Le μ a (sSup μ S)) ∧
@@ -235,7 +242,7 @@ theorem compl_compl_mk (a : _root_.Scott2026.MeasureAlgebra μ) : compl μ (comp
       mk μ (Quotient.out a).val (Quotient.out a).property := by
     refine (mk_eq_iff μ).mpr ?_
     have heq : ((Quotient.out a).valᶜ)ᶜ = (Quotient.out a).val := compl_compl _
-    simpa [heq, symmDiff_self]
+    simp [heq, symmDiff_self]
   exact h2.trans (mk_out μ a)
 
 theorem le_compl_of_le {a b : _root_.Scott2026.MeasureAlgebra μ} (h : Le μ a b) :
@@ -316,8 +323,8 @@ noncomputable instance instCompleteLattice [IsFiniteMeasure μ] :
   __ := instLattice μ
   sSup := sSup μ
   sInf := sInf μ
-  isLUB_sSup S := ⟨fun a ha => le_sSup μ S ha, fun b hb => sSup_le μ S hb⟩
-  isGLB_sInf S := ⟨fun a ha => sInf_le μ S ha, fun b hb => le_sInf μ S hb⟩
+  isLUB_sSup S := ⟨fun _a ha => le_sSup μ S ha, fun _b hb => sSup_le μ S hb⟩
+  isGLB_sInf S := ⟨fun _a ha => sInf_le μ S ha, fun _b hb => le_sInf μ S hb⟩
   top := top μ
   bot := bot μ
   le_top := le_top μ

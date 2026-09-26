@@ -238,7 +238,7 @@ theorem substCA_self [DecidableEq Var] (M : Lam Var) (x : Var) :
           simp [fv]
           exact hyx
         have hxM' : ¬ x ∉ M.fv := fun h => h hxM
-        simp [hxM', hyN, ih]
+        simp [hyN, ih]
       · simp [hxM]
   | app M N ihM ihN =>
     simp [substCA_app, ihM, ihN]
@@ -452,7 +452,7 @@ theorem churchNumBind_fv (f x : ℕ) : ∀ n, (churchNumBind f x n).fv = ∅ := 
   | zero =>
     simp [churchNumBind, Lam.fv]
   | succ n ih =>
-    simp only [churchNumBind, Lam.fv, ih, Finset.union_empty, Finset.empty_union]
+    simp only [churchNumBind, Lam.fv, ih, Finset.empty_union]
     ext y
     simp [Finset.mem_sdiff, Finset.mem_insert, Finset.mem_singleton]
     tauto
@@ -591,7 +591,7 @@ theorem churchIfN_reduce (B M N : Lam ℕ) (hB : B.fv = ∅) :
   have hred : LamEq (churchIfN.app B)
       (Lam.abs 1 (Lam.abs 2 (Lam.app (Lam.app B (Lam.var 1)) (Lam.var 2)))) := by
     refine (lamEq_beta_closed 0 _ B hB).trans ?_
-    simp [churchIfN, Lam.substNaive]
+    simp [Lam.substNaive]
     exact LamEq.refl _
   refine (LamEq.app_left (LamEq.app_left hred)).trans ?_
   have hβM : LamEq
@@ -764,7 +764,7 @@ theorem churchSucc_app_num (n : ℕ) :
         (Lam.app (Lam.var 1)
           (Lam.app (Lam.app (churchNumN n) (Lam.var 1)) (Lam.var 2))))) := by
   refine (lamEq_beta_closed 0 _ (churchNumN n) (churchNumN_fv n)).trans ?_
-  simp [churchSucc, Lam.substNaive]
+  simp [Lam.substNaive]
   exact LamEq.refl _
 
 theorem churchSucc_num (n : ℕ) :

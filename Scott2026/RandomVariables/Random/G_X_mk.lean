@@ -18,7 +18,7 @@ variable {X Y : Type*} [MeasurableSpace X]
 variable {X : Type*} [MeasurableSpace X] (N : NegligibilitySpace X)
 
 theorem G_X_mk (N : NegligibilitySpace X) (a : L0Fun X Y) (y : Y) :
-    G_X N (L0.L0.mk N a) y = AssociatedAlgebra.mk N (G_pre a.val y) :=
+    G_X N (L0.mk N a) y = AssociatedAlgebra.mk N (G_pre a.val y) :=
   rfl
 
 end Scott2026

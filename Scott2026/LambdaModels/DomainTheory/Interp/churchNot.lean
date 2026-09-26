@@ -21,7 +21,6 @@ namespace Scott2026
 
 open Set Function
 variable {Var : Type*} {D : Type*}
-variable [DecidableEq Var]
 variable [DecidableEq Var] [CompleteLattice D]
 
 /-- Church negation `λb. b ⊥ ⊤` on `Fin 2`. -/

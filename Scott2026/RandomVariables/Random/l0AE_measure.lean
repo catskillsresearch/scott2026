@@ -37,7 +37,8 @@ def l0AE_measure (μ : Measure X) (a b : L0Fun X Y) : Prop :=
 
 theorem l0AE_measure_refl (μ : Measure X) (a : L0Fun X Y) :
     l0AE_measure μ a a := by
-  simpa [l0AE_measure, l0Eq] using measure_empty
+  simp [l0AE_measure, l0Eq]
+
 
 theorem l0AE_measure_symm (μ : Measure X) {a b : L0Fun X Y}
     (h : l0AE_measure μ a b) : l0AE_measure μ b a := by

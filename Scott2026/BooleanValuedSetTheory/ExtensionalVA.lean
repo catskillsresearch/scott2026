@@ -433,8 +433,8 @@ theorem memB_domChild_extensionalPowerName_check (X : PSet.{u}) [Nontrivial A]
 noncomputable def extensionalPowerSetoid (X : AName.{u} A) :
     ASetoid (A := A) (ExtensionalPowerIdx X) where
   eq v w := eqB (extensionalPowerName X v) (extensionalPowerName X w)
-  symm v w := eqB_comm _ _
-  trans v w z := eqB_trans _ _ _
+  symm _v _w := eqB_comm _ _
+  trans _v _w _z := eqB_trans _ _ _
 
 /-- Proposition 28 strictness calculation on the paper's extensional
 presentation of `P^A(check X)`. -/

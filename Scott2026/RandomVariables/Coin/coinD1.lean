@@ -27,7 +27,7 @@ open Classical
 
 /-- Paper `d₁ ∈ P^A(check E)`: `G_X` of the fiberwise Lemma 35(ii) oracle. -/
 noncomputable def coinD1 : ASubset coinAlgebra ℕ :=
-  G_X_measure coinMeasure (L0.L0.mk_measure coinMeasure coinChi1Fun)
+  G_X_measure coinMeasure (L0.mk_measure coinMeasure coinChi1Fun)
 
 
 

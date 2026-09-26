@@ -25,14 +25,14 @@ def degreePairSetoid (a : A) : ASetoid (A := A) Bool where
     intro b1 b2 b3
     by_cases h12 : b1 = b2
     · by_cases h23 : b2 = b3
-      · simp [h12, h23, h12.trans h23]
+      · simp [h12, h23]
       · have h13 : b1 ≠ b3 := mt (fun h => h12.symm.trans h) h23
-        simp [h12, h23, h13]
+        simp [h12, h23]
     · by_cases h23 : b2 = b3
       · have h13 : b1 ≠ b3 := mt (fun h => h.trans h23.symm) h12
-        simp [h12, h23, h13]
+        simp [h23, h13]
       · by_cases h13 : b1 = b3
-        · simp [h12, h23, h13]
+        · simp [h23, h13]
         · simp [h12, h23, h13]
 
 

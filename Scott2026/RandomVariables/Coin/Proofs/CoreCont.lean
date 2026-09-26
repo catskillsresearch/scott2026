@@ -122,20 +122,20 @@ instance : IsProbabilityMeasure coinMeasure := by
   infer_instance
 
 theorem coinD1_eq_G_X_inv :
-    G_X_measure coinMeasure (L0.L0.mk_measure coinMeasure coinA1Fun) = coinD1 :=
+    G_X_measure coinMeasure (L0.mk_measure coinMeasure coinA1Fun) = coinD1 :=
   G_X_measure_inv_right coinMeasure coinD1
 
 theorem coinD2_eq_G_X_inv :
-    G_X_measure coinMeasure (L0.L0.mk_measure coinMeasure coinA2Fun) = coinD2 :=
+    G_X_measure coinMeasure (L0.mk_measure coinMeasure coinA2Fun) = coinD2 :=
   G_X_measure_inv_right coinMeasure coinD2
 
 theorem eqB_G_X_measure_mk {Y : Type*} [Countable Y]
     (a b : L0Fun CoinSpace Y) :
-    eqB (G_X_measure coinMeasure (L0.L0.mk_measure coinMeasure a))
-        (G_X_measure coinMeasure (L0.L0.mk_measure coinMeasure b)) =
+    eqB (G_X_measure coinMeasure (L0.mk_measure coinMeasure a))
+        (G_X_measure coinMeasure (L0.mk_measure coinMeasure b)) =
       MeasureAlgebra.mk coinMeasure (l0Eq a.val b.val)
         (measurableSet_l0Eq a.property b.property) := by
-  rw [eqB, G_X_measure_le, G_X_measure_le, L0.L0.le_measure_mk, L0.L0.le_measure_mk]
+  rw [eqB, G_X_measure_le, G_X_measure_le, L0.le_measure_mk, L0.le_measure_mk]
   change MeasureAlgebra.inf coinMeasure
       (MeasureAlgebra.mk coinMeasure (l0Le a.val b.val) _)
       (MeasureAlgebra.mk coinMeasure (l0Le b.val a.val) _) = _
@@ -146,7 +146,7 @@ theorem eqB_G_X_measure_mk {Y : Type*} [Countable Y]
   simp [this, symmDiff_self]
 theorem checkSet_eq_G_X (S : Set ℕ) :
     checkSet (A := coinAlgebra) S =
-      G_X_measure coinMeasure (L0.L0.mk_measure coinMeasure (constL0 S)) :=
+      G_X_measure coinMeasure (L0.mk_measure coinMeasure (constL0 S)) :=
   (lemma_41_measure (Y := ℕ) coinMeasure S).symm
 theorem l0App_coinChi1_numeral (n : ℕ) (p : CoinSpace) :
     l0App engelerPair coinChi1
@@ -173,35 +173,35 @@ theorem engelerApp_funMap (F X : Set ℕ) :
 
 theorem appCoin_d1_of (S : Set ℕ) :
     appCoin coinD1 (checkSet S) =
-      G_X_measure coinMeasure (L0.L0.mk_measure coinMeasure (appChi1L0 S)) := by
+      G_X_measure coinMeasure (L0.mk_measure coinMeasure (appChi1L0 S)) := by
   have h40 := proposition_40_measure (E := ℕ) coinMeasure engelerPair
-    (L0.L0.mk_measure coinMeasure coinChi1Fun)
-    (L0.L0.mk_measure coinMeasure (constL0 S))
+    (L0.mk_measure coinMeasure coinChi1Fun)
+    (L0.mk_measure coinMeasure (constL0 S))
   rw [← checkSet_eq_G_X] at h40
-  have happ := L0.L0.app_measure_mk coinMeasure engelerPair coinChi1Fun (constL0 S)
+  have happ := L0.app_measure_mk coinMeasure engelerPair coinChi1Fun (constL0 S)
   rw [happ] at h40
   exact h40.symm
 
 theorem appCoin_d2_of (S : Set ℕ) :
     appCoin coinD2 (checkSet S) =
-      G_X_measure coinMeasure (L0.L0.mk_measure coinMeasure (appChi2L0 S)) := by
+      G_X_measure coinMeasure (L0.mk_measure coinMeasure (appChi2L0 S)) := by
   have h40 := proposition_40_measure (E := ℕ) coinMeasure engelerPair
-    (L0.L0.mk_measure coinMeasure coinChi2Fun)
-    (L0.L0.mk_measure coinMeasure (constL0 S))
+    (L0.mk_measure coinMeasure coinChi2Fun)
+    (L0.mk_measure coinMeasure (constL0 S))
   rw [← checkSet_eq_G_X] at h40
-  have happ := L0.L0.app_measure_mk coinMeasure engelerPair coinChi2Fun (constL0 S)
+  have happ := L0.app_measure_mk coinMeasure engelerPair coinChi2Fun (constL0 S)
   rw [happ] at h40
   exact h40.symm
 
 theorem appCoin_d1_numeral (n : ℕ) :
     appCoin coinD1 (checkSet (engelerWithNumerals.numeral n)) =
-      G_X_measure coinMeasure (L0.L0.mk_measure coinMeasure
+      G_X_measure coinMeasure (L0.mk_measure coinMeasure
         (appChi1L0 (engelerWithNumerals.numeral n))) :=
   appCoin_d1_of (engelerWithNumerals.numeral n)
 
 theorem appCoin_d2_numeral (n : ℕ) :
     appCoin coinD2 (checkSet (engelerWithNumerals.numeral n)) =
-      G_X_measure coinMeasure (L0.L0.mk_measure coinMeasure
+      G_X_measure coinMeasure (L0.mk_measure coinMeasure
         (appChi2L0 (engelerWithNumerals.numeral n))) :=
   appCoin_d2_of (engelerWithNumerals.numeral n)
 
@@ -218,7 +218,7 @@ theorem coinD1_eqB_true (n : ℕ) :
     simp only [l0Eq, mem_ofPred, D1, appChi1L0, constL0, constRV]
     rw [l0App_coinChi1_numeral]
     exact chiNum_eq_boolTop (bits1 p) n
-  simp [hset, coinS1, D1, bits1, symmDiff_self]
+  simp [hset, D1, symmDiff_self]
 theorem coinD1_eqB_false (n : ℕ) :
     eqB (appCoin coinD1 (checkSet (engelerWithNumerals.numeral n)))
         (checkSet engelerWithNumerals.boolBot) = (memB n coinS1)ᶜ := by
@@ -249,7 +249,7 @@ theorem coinD2_eqB_true (n : ℕ) :
     simp only [l0Eq, mem_ofPred, D2, appChi2L0, constL0, constRV]
     rw [l0App_coinChi2_numeral]
     exact chiNum_eq_boolTop (bits2 p) n
-  simp [hset, coinS2, D2, bits2, symmDiff_self]
+  simp [hset, D2, symmDiff_self]
 theorem coinD2_eqB_false (n : ℕ) :
     eqB (appCoin coinD2 (checkSet (engelerWithNumerals.numeral n)))
         (checkSet engelerWithNumerals.boolBot) = (memB n coinS2)ᶜ := by
@@ -354,12 +354,12 @@ theorem interpClosed_mapsNumerals (M : Lam ℕ) (hM : MapsNumerals M) (n : ℕ) 
 
 theorem appCoin_d2_term (S : Set ℕ) :
     appCoin coinD2 (checkSet S) =
-      G_X_measure coinMeasure (L0.L0.mk_measure coinMeasure (appChi2L0 S)) :=
+      G_X_measure coinMeasure (L0.mk_measure coinMeasure (appChi2L0 S)) :=
   appCoin_d2_of S
 
 theorem appCoin_d1_term (S : Set ℕ) :
     appCoin coinD1 (checkSet S) =
-      G_X_measure coinMeasure (L0.L0.mk_measure coinMeasure (appChi1L0 S)) :=
+      G_X_measure coinMeasure (L0.mk_measure coinMeasure (appChi1L0 S)) :=
   appCoin_d1_of S
 
 theorem l0App_coinChi2_interp (M : Lam ℕ) (hM : MapsNumerals M) (n : ℕ)
@@ -388,7 +388,7 @@ theorem coinD2_app_maps_eqB (M : Lam ℕ) (hM : MapsNumerals M) (n : ℕ) :
       (agreeBit f n true ∪ agreeBit f n false) := by
     ext p
     simp only [l0Eq, mem_ofPred, mem_union, agreeBit, D1, D2, mem_inter_iff,
-      mem_ofPred_eq, appChi2L0, appChi1L0]
+      appChi2L0, appChi1L0]
     rw [l0App_coinChi2_interp M hM n, l0App_coinChi1_numeral]
     have hiff :
         chiNum engelerWithNumerals (bits2 p) (f n) =
@@ -402,13 +402,13 @@ theorem coinD2_app_maps_eqB (M : Lam ℕ) (hM : MapsNumerals M) (n : ℕ) :
       · simp [bits1, bits2, hp1, hp2] at hmem ⊢
       · simp [bits1, bits2, hp1, hp2] at hmem
       · simp [bits1, bits2, hp1, hp2] at hmem
-      · simp [hp1, hp2]
+      · simp
     · intro h
       apply hiff.mpr
       cases hp1 : p.1 n <;> cases hp2 : p.2 (f n)
       · simp [bits1, bits2, hp1, hp2] at h ⊢
-      · simp [bits1, bits2, hp1, hp2] at h ⊢
-      · simp [bits1, bits2, hp1, hp2] at h ⊢
+      · simp [hp1, hp2] at h ⊢
+      · simp [hp1, hp2] at h ⊢
       · simp [bits1, bits2, hp1, hp2] at h ⊢
   rw [inf_comm, coinS1_iff_coinS2_eq_mk]
   exact MeasureAlgebra.mk_congr coinMeasure hset
@@ -463,7 +463,7 @@ theorem coinD1_app_maps_eqB (M : Lam ℕ) (hM : MapsNumerals M) (n : ℕ) :
         (appChi2L0 (engelerWithNumerals.numeral n)).val =
       ((D2 n true ∩ D1 (f n) true) ∪ (D2 n false ∩ D1 (f n) false)) := by
     ext p
-    simp only [l0Eq, mem_ofPred, mem_union, D1, D2, mem_inter_iff, mem_ofPred_eq,
+    simp only [l0Eq, mem_ofPred, mem_union, D1, D2, mem_inter_iff,
       appChi1L0, appChi2L0]
     rw [l0App_coinChi1_interp M hM n, l0App_coinChi2_numeral]
     have hiff :
@@ -478,13 +478,13 @@ theorem coinD1_app_maps_eqB (M : Lam ℕ) (hM : MapsNumerals M) (n : ℕ) :
       · simp [bits1, bits2, hp1, hp2] at hmem ⊢
       · simp [bits1, bits2, hp1, hp2] at hmem
       · simp [bits1, bits2, hp1, hp2] at hmem
-      · simp [hp1, hp2]
+      · simp
     · intro h
       apply hiff.mpr
       cases hp2 : p.2 n <;> cases hp1 : p.1 (f n)
       · simp [bits1, bits2, hp1, hp2] at h ⊢
-      · simp [bits1, bits2, hp1, hp2] at h ⊢
-      · simp [bits1, bits2, hp1, hp2] at h ⊢
+      · simp [hp1, hp2] at h ⊢
+      · simp [hp1, hp2] at h ⊢
       · simp [bits1, bits2, hp1, hp2] at h ⊢
   rw [inf_comm, coinS2_iff_coinS1_eq_mk]
   exact MeasureAlgebra.mk_congr coinMeasure hset
@@ -498,23 +498,23 @@ theorem coinD1_app_maps_iInf_bot (M : Lam ℕ) (hM : MapsNumerals M) :
 
 theorem appCoin_of_inv (d : ASubset coinAlgebra ℕ) (S : Set ℕ) :
     appCoin d (checkSet S) =
-      G_X_measure coinMeasure (L0.L0.app_measure coinMeasure engelerPair
-        (L0.L0.mk_measure coinMeasure (G_X_measure_inv coinMeasure d))
-        (L0.L0.mk_measure coinMeasure (constL0 S))) := by
-  have hd : G_X_measure coinMeasure (L0.L0.mk_measure coinMeasure
+      G_X_measure coinMeasure (L0.app_measure coinMeasure engelerPair
+        (L0.mk_measure coinMeasure (G_X_measure_inv coinMeasure d))
+        (L0.mk_measure coinMeasure (constL0 S))) := by
+  have hd : G_X_measure coinMeasure (L0.mk_measure coinMeasure
       (G_X_measure_inv coinMeasure d)) = d :=
     G_X_measure_inv_right coinMeasure d
   have h := proposition_40_measure (E := ℕ) coinMeasure engelerPair
-    (L0.L0.mk_measure coinMeasure (G_X_measure_inv coinMeasure d))
-    (L0.L0.mk_measure coinMeasure (constL0 S))
+    (L0.mk_measure coinMeasure (G_X_measure_inv coinMeasure d))
+    (L0.mk_measure coinMeasure (constL0 S))
   rw [hd, ← checkSet_eq_G_X] at h
   exact h.symm
 
 theorem appCoin_of_inv_mk (d : ASubset coinAlgebra ℕ) (S : Set ℕ) :
     appCoin d (checkSet S) =
-      G_X_measure coinMeasure (L0.L0.mk_measure coinMeasure (invAppFun d S)) := by
+      G_X_measure coinMeasure (L0.mk_measure coinMeasure (invAppFun d S)) := by
   rw [appCoin_of_inv]
-  have happ := L0.L0.app_measure_mk coinMeasure engelerPair
+  have happ := L0.app_measure_mk coinMeasure engelerPair
     (G_X_measure_inv coinMeasure d) (constL0 S)
   rw [happ]
   rfl
@@ -638,7 +638,7 @@ theorem mapsAgreeSet_swap_null (M : Lam ℕ) (hM : MapsNumerals M) :
   (MeasureAlgebra.mk_eq_bot coinMeasure).mp (mapsAgreeSet_swap_mk_bot M hM)
 
 theorem paperReductionNull_null : coinMeasure paperReductionNull = 0 := by
-  haveI : Countable (Lam ℕ) := Function.Injective.countable lamEncode_injective
+  have : Countable (Lam ℕ) := Function.Injective.countable lamEncode_injective
   refine measure_iUnion_null fun M =>
     measure_union_null (mapsAgreeSet_null M.1 M.2) (mapsAgreeSet_swap_null M.1 M.2)
 
@@ -825,7 +825,7 @@ theorem exists_mem_paperGoodSet : ∃ x : CoinSpace, x ∈ paperGoodSet := by
   have : coinMeasure (Set.univ : Set CoinSpace) = 0 := by
     have h1 : coinMeasure paperGoodSetᶜ = 0 := paperGoodSet_conull
     rw [heq] at h1
-    simpa using h1
+    simp at h1
   exact zero_ne_one (this.symm.trans measure_univ)
 
 theorem isOracle_of_mem_boolValSet1 {x : CoinSpace} (hx : x ∈ boolValSet1)
@@ -912,7 +912,7 @@ theorem theorem_43_paper :
     have hmem : x ∈ mapsAgreeSet M hM := by
       refine mem_iInter.mpr fun n => ?_
       have hn := hforall n
-      simp [mapsAgreeSet, engelerApp_funMap]
+      simp [engelerApp_funMap]
       exact hn
     have : x ∈ paperReductionNull :=
       mem_iUnion.mpr ⟨⟨M, hM⟩, Or.inl hmem⟩
@@ -923,7 +923,7 @@ theorem theorem_43_paper :
     have hmem : x ∈ mapsAgreeSet_swap M hM := by
       refine mem_iInter.mpr fun n => ?_
       have hn := hforall n
-      simp [mapsAgreeSet_swap, engelerApp_funMap]
+      simp [engelerApp_funMap]
       exact hn
     have : x ∈ paperReductionNull :=
       mem_iUnion.mpr ⟨⟨M, hM⟩, Or.inr hmem⟩

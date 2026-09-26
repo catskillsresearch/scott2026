@@ -7,7 +7,11 @@ Authors: Lars Warren Ericson.
 import Mathlib.Order.CompleteLattice.Basic
 import Mathlib.Order.ScottContinuity
 import Mathlib.Data.Set.Finite.Basic
-import Mathlib.Data.Set.Lattice
+import Mathlib.Data.Set.Lattice.Bounded
+import Mathlib.Data.Set.Lattice.Disjoint
+import Mathlib.Data.Set.Lattice.Image
+import Mathlib.Data.Set.Lattice.Indexed
+import Mathlib.Data.Set.Lattice.Order
 import Mathlib.Data.Set.Countable
 import Scott1972.ContinuousLattice.WayBelow
 import Scott2026.LambdaModels.DomainTheory.IsDcpo
@@ -183,7 +187,7 @@ theorem proposition27_full (X : Type*) : Proposition27Statement X := by
     fun T => ⟨finite_subsets_directed T, ?_⟩, ?_⟩
   · exact ((sSup_eq_sUnion _).trans (sUnion_finite_subsets T)).symm
   · intro hX
-    letI : Countable X := hX
+    let : Countable X := hX
     exact finite_subsets_countable
 
 /-!

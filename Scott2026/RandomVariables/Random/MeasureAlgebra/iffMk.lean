@@ -18,6 +18,7 @@ open MeasureTheory Set
 variable {X : Type*} [MeasurableSpace X] (μ : Measure X) [IsFiniteMeasure μ]
 namespace MeasureAlgebra
 
+omit [IsFiniteMeasure μ] in
 theorem iff_mk [IsFiniteMeasure μ] (s t : Set X) (hs : MeasurableSet s)
     (ht : MeasurableSet t) :
     (mk μ s hs ⇨ mk μ t ht) ⊓ (mk μ t ht ⇨ mk μ s hs) =
@@ -32,6 +33,7 @@ theorem iff_mk [IsFiniteMeasure μ] (s t : Set X) (hs : MeasurableSet s)
       simp only [mem_union, mem_inter_iff, mem_compl_iff]
       tauto
     simp [this, symmDiff_self])
+omit [IsFiniteMeasure μ] in
 theorem iInf_mk [IsFiniteMeasure μ] {ι : Type*} [Countable ι]
     (s : ι → Set X) (hs : ∀ i, MeasurableSet (s i)) :
     (⨅ i, mk μ (s i) (hs i)) = mk μ (⋂ i, s i) (MeasurableSet.iInter hs) := by

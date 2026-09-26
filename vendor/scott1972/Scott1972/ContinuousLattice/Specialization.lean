@@ -137,7 +137,7 @@ theorem specializationLe_scott_iff {x y : D} :
 
 /-- The Scott topology of a partial order is `T₀`. -/
 theorem scottTopology_t0Space : @T0Space D scottTopologicalSpace := by
-  letI : TopologicalSpace D := scottTopologicalSpace
+  let : TopologicalSpace D := scottTopologicalSpace
   constructor
   intro x y hxy
   apply le_antisymm

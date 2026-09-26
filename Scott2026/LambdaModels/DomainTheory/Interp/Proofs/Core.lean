@@ -461,7 +461,7 @@ theorem churchTrue_interp_app (pair : Finset ℕ × ℕ → ℕ)
   have h0 : ((Valuation.empty.update (0 : Fin 2) F).update 1 X).toFun 0 = F :=
     Valuation.update_toFun_of_ne (Valuation.empty.update (0 : Fin 2) F)
       (x := 1) (y := 0) X Fin.zero_ne_one
-  simp [interp, h0]
+  simp [interp]
 
 theorem churchNot_interp_app (pair : Finset ℕ × ℕ → ℕ)
     (hpair : Function.Injective pair) (B : Set ℕ) :

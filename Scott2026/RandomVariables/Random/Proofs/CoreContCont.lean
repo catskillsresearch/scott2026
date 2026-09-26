@@ -102,11 +102,11 @@ We take measurability of all preimages of `B_y`, which generate that σ-algebra
 when `Y` is countable. -/
 theorem lemma_41_measure (μ : Measure X) [IsFiniteMeasure μ] [Countable Y]
     (S : Set Y) :
-    G_X_measure μ (L0.L0.mk_measure μ
+    G_X_measure μ (L0.mk_measure μ
         ⟨constRV (X := X) S, constRV_isL0 (X := X) S⟩) =
       checkSet (A := MeasureAlgebra μ) S := by
   let a : L0Fun X Y := ⟨constRV (X := X) S, constRV_isL0 (X := X) S⟩
-  change G_X_measure μ (L0.L0.mk_measure μ a) = checkSet (A := MeasureAlgebra μ) S
+  change G_X_measure μ (L0.mk_measure μ a) = checkSet (A := MeasureAlgebra μ) S
   funext y
   rw [G_X_measure_mk]
   by_cases hy : y ∈ S
@@ -122,18 +122,18 @@ theorem lemma_41_measure (μ : Measure X) [IsFiniteMeasure μ] [Countable Y]
     rw [MeasureAlgebra.mk_bot, checkSet_not_mem hy]
 theorem proposition_40_measure [DecidableEq E] [Countable E] (μ : Measure X)
     [IsFiniteMeasure μ] (pair : Finset E × E → E) (a b : L0Measure μ E) :
-    G_X_measure μ (L0.L0.app_measure μ pair a b) =
+    G_X_measure μ (L0.app_measure μ pair a b) =
       engelerAppA pair (G_X_measure μ a) (G_X_measure μ b) := by
   refine Quotient.inductionOn₂ a b fun a b => ?_
   funext q
   have happ :
-      L0.L0.app_measure μ pair (Quotient.mk (l0Setoid_measure μ E) a)
+      L0.app_measure μ pair (Quotient.mk (l0Setoid_measure μ E) a)
         (Quotient.mk (l0Setoid_measure μ E) b) =
-        L0.L0.mk_measure μ ⟨l0App pair a.val b.val,
+        L0.mk_measure μ ⟨l0App pair a.val b.val,
           l0App_isL0 pair a.property b.property⟩ :=
     rfl
   rw [happ]
-  have hG : G_X_measure μ (L0.L0.mk_measure μ
+  have hG : G_X_measure μ (L0.mk_measure μ
         ⟨l0App pair a.val b.val, l0App_isL0 pair a.property b.property⟩) q =
       MeasureAlgebra.mk μ (G_pre (l0App pair a.val b.val) q)
         (l0App_isL0 pair a.property b.property q) :=
@@ -148,7 +148,7 @@ theorem proposition_40_measure [DecidableEq E] [Countable E] (μ : Measure X)
       (a.property (pair (K, q))).inter
         (Finset.measurableSet_biInter K fun k _ => b.property k)
   refine (MeasureAlgebra.mk_congr (ht := hsU) μ hpre).trans ?_
-  haveI : Countable (Finset E) := inferInstance
+  have : Countable (Finset E) := inferInstance
   have hunion :
       MeasureAlgebra.mk μ
           (⋃ K : Finset E,
@@ -709,8 +709,9 @@ theorem not_isAtom_mk_of_proper_subset {X : Type*} [MeasurableSpace X]
   let b := MeasureAlgebra.mk μ t ht
   have hle : b ≤ a :=
     (MeasureAlgebra.le_mk μ).mpr (by
-      have : t \ s = ∅ := diff_eq_empty.mpr hsub
-      simpa [this] using measure_empty)
+      have : t \ s = ∅ := sdiff_eq_empty.mpr hsub
+      simp [this])
+
   have hne : b ≠ ⊥ := fun hb =>
     ht0 ((MeasureAlgebra.mk_eq_bot μ).mp (show b = MeasureAlgebra.bot μ from hb))
   have hna : ¬a ≤ b := by

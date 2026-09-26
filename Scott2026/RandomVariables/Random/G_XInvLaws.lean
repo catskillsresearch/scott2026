@@ -30,10 +30,10 @@ variable {X Y : Type*} [MeasurableSpace X]
 variable {X : Type*} [MeasurableSpace X] (N : NegligibilitySpace X)
 
 theorem G_X_le (N : NegligibilitySpace X) [Countable Y] (a b : L0 N Y) :
-    subsetB (G_X N a) (G_X N b) = L0.L0.le N a b := by
+    subsetB (G_X N a) (G_X N b) = L0.le N a b := by
   refine Quotient.inductionOn₂ a b fun a b => ?_
   unfold subsetB
-  simp only [G_X, L0.L0.le, L0.L0.mk, Quotient.lift_mk, Quotient.lift₂_mk]
+  simp only [G_X, L0.le, Quotient.lift_mk]
   have : (⨅ y, AssociatedAlgebra.mk N (G_pre a.val y) ⇨
         AssociatedAlgebra.mk N (G_pre b.val y)) =
       AssociatedAlgebra.mk N (⋂ y, (G_pre a.val y)ᶜ ∪ G_pre b.val y) := by
@@ -46,15 +46,15 @@ theorem G_X_le (N : NegligibilitySpace X) [Countable Y] (a b : L0 N Y) :
   constructor
   · intro hx y hy
     have hyx := mem_iInter.mp hx y
-    simp only [mem_union, mem_compl_iff, G_pre, posBasic, mem_preimage, mem_setOf] at hyx
+    simp only [mem_union, mem_compl_iff, G_pre, posBasic, mem_preimage, mem_ofPred] at hyx
     exact hyx.resolve_left (not_not.mpr hy)
   · intro hx
     refine mem_iInter.mpr fun y => ?_
-    simp only [mem_union, mem_compl_iff, G_pre, posBasic, mem_preimage, mem_setOf, l0Le] at hx ⊢
+    simp only [mem_union, mem_compl_iff, G_pre, posBasic, mem_preimage, mem_ofPred, l0Le] at hx ⊢
     exact or_iff_not_imp_left.mpr fun hy => hx (not_not.mp hy)
 
 theorem G_X_inv_right (N : NegligibilitySpace X) (b : ASubset (AssociatedAlgebra N) Y) :
-    G_X N (L0.L0.mk N (G_X_inv N b)) = b := by
+    G_X N (L0.mk N (G_X_inv N b)) = b := by
   funext y
   rw [G_X_mk]
   simp only [G_X_inv, G_pre, posBasic]
@@ -64,11 +64,11 @@ theorem G_X_inv_right (N : NegligibilitySpace X) (b : ASubset (AssociatedAlgebra
   rw [this, AssociatedAlgebra.mk_measRep, AssociatedAlgebra.mk_out]
 
 theorem G_X_inv_left (N : NegligibilitySpace X) [Countable Y] (a : L0 N Y) :
-    L0.L0.mk N (G_X_inv N (G_X N a)) = a := by
+    L0.mk N (G_X_inv N (G_X N a)) = a := by
   refine Quotient.inductionOn a fun a => Quotient.sound ?_
-  change l0AE N (G_X_inv N (G_X N (L0.L0.mk N a))) a
+  change l0AE N (G_X_inv N (G_X N (L0.mk N a))) a
   unfold l0AE
-  let a' := (G_X_inv N (G_X N (L0.L0.mk N a))).val
+  let a' := (G_X_inv N (G_X N (L0.mk N a))).val
   have hy : ∀ y, N.negligible (symmDiff
       (N.measRep (Quotient.out (AssociatedAlgebra.mk N (G_pre a.val y))))
       (G_pre a.val y)) := fun y =>

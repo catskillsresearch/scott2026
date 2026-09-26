@@ -59,6 +59,7 @@ variable {A : Type u} [CompleteBooleanAlgebra A] [Nontrivial A]
 noncomputable def typeAtom {X : Type u} (x : X) : AName.{u} A :=
   check (A := A) (typePSetCode x)
 
+omit [Nontrivial A] in
 theorem eqB_typeAtom_eq {X : Type u} {x y : X} (h : x = y) :
     eqB (typeAtom (A := A) x) (typeAtom (A := A) y) = ⊤ := by
   subst y
@@ -222,9 +223,9 @@ theorem oid_nameOfSetoid_eq_general {X : Type u}
     (oid (nameOfSetoid S)).eq x y = S.eq x y := by
   classical
   by_cases hA : Nontrivial A
-  · letI := hA
+  · let := hA
     exact oid_nameOfSetoid_eq S x y
-  · haveI : Subsingleton A := not_nontrivial_iff_subsingleton.mp hA
+  · have : Subsingleton A := not_nontrivial_iff_subsingleton.mp hA
     exact Subsingleton.elim _ _
 
 /-- Every bundled `A`-setoid is categorically isomorphic to the `Oid` of a

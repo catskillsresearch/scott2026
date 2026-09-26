@@ -24,7 +24,8 @@ theorem iSup_mk [IsFiniteMeasure μ] {ι : Type*} [Countable ι]
       ext x
       simp only [mem_empty_iff_false, mem_sdiff, mem_iUnion]
       tauto
-    simpa [this] using measure_empty
+    simp [this]
+
   · set u := ⨆ i, mk μ (s i) (hs i)
     have hu : u = mk μ (Quotient.out u).val (Quotient.out u).property :=
       (mk_out μ u).symm

@@ -53,8 +53,8 @@ theorem mem_chiNum_bits1 (p : CoinSpace) (n r : ℕ) :
       (p.1 n = false ∧ r ∈ engelerWithNumerals.boolBot) := by
   simp only [chiNum, bits1, mem_ofPred]
   cases hp : p.1 n
-  · simp [hp]
-  · simp [hp]
+  · simp
+  · simp
 
 theorem mem_chiNum_bits2 (p : CoinSpace) (n r : ℕ) :
     r ∈ chiNum engelerWithNumerals (bits2 p) n ↔
@@ -62,8 +62,8 @@ theorem mem_chiNum_bits2 (p : CoinSpace) (n r : ℕ) :
       (p.2 n = false ∧ r ∈ engelerWithNumerals.boolBot) := by
   simp only [chiNum, bits2, mem_ofPred]
   cases hp : p.2 n
-  · simp [hp]
-  · simp [hp]
+  · simp
+  · simp
 
 theorem measurableSet_mem_chiNum_bits1 (n r : ℕ) :
     MeasurableSet {p : CoinSpace | r ∈ chiNum engelerWithNumerals (bits1 p) n} := by

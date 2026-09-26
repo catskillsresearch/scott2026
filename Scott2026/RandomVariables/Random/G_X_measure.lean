@@ -42,11 +42,11 @@ noncomputable def G_X_measure (μ : Measure X) [Countable Y] (a : L0Measure μ Y
     ASubset (MeasureAlgebra μ) Y :=
   Quotient.lift
     (fun a y => MeasureAlgebra.mk μ (G_pre a.val y) (a.property y))
-    (fun a b h => funext fun y =>
+    (fun _a _b h => funext fun y =>
       (MeasureAlgebra.mk_eq_iff μ).mpr (G_pre_aeEq_measure μ h y)) a
 
 theorem G_X_measure_mk (μ : Measure X) [Countable Y] (a : L0Fun X Y) (y : Y) :
-    G_X_measure μ (L0.L0.mk_measure μ a) y =
+    G_X_measure μ (L0.mk_measure μ a) y =
       MeasureAlgebra.mk μ (G_pre a.val y) (a.property y) :=
   rfl
 

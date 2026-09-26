@@ -38,9 +38,11 @@ theorem constRV_isL0 (S : Set Y) : IsL0 (X := X) (constRV S) := by
   by_cases hy : y ∈ S
   · have : constRV (X := X) S ⁻¹' posBasic y = Set.univ := by
       ext x; simp [constRV, posBasic, hy]
-    simpa [this] using MeasurableSet.univ
+    simp [this]
+
   · have : constRV (X := X) S ⁻¹' posBasic y = ∅ := by
       ext x; simp [constRV, posBasic, hy]
-    simpa [this] using MeasurableSet.empty
+    simp [this]
+
 
 end Scott2026

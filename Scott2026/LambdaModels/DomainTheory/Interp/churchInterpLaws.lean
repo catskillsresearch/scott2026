@@ -22,7 +22,6 @@ namespace Scott2026
 open Set Function
 
 variable {Var : Type*} {D : Type*}
-variable [DecidableEq Var]
 variable [DecidableEq Var] [CompleteLattice D]
 
 theorem interp_closed_of_fv_empty (R : ReflexiveDcpo D) (M : Lam Var)
@@ -127,7 +126,7 @@ theorem churchNum_interp_succ (pair : Finset ℕ × ℕ → ℕ)
       (x := 1) (y := 0) X Fin.zero_ne_one
   have hX : ((Valuation.empty.update (0 : Fin 2) F).update 1 X).toFun 1 = X :=
     Valuation.update_toFun_self _ 1 X
-  simp [interp, h0, hX, hcn]
+  simp [interp, hcn]
 
 theorem churchNum_iter_interp (pair : Finset ℕ × ℕ → ℕ)
     (hpair : Function.Injective pair) (n : ℕ) :

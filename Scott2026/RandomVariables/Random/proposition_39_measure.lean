@@ -48,11 +48,11 @@ noncomputable def proposition_39_measure (μ : Measure X) [IsFiniteMeasure μ]
     APoset.StrictIso (l0Poset_measure (Y := Y) μ)
       (powerPoset (A := MeasureAlgebra μ) (X := Y)) where
   toFun := G_X_measure μ
-  invFun := fun b => L0.L0.mk_measure μ (G_X_measure_inv μ b)
+  invFun := fun b => L0.mk_measure μ (G_X_measure_inv μ b)
   left_inv := G_X_measure_inv_left μ
   right_inv := G_X_measure_inv_right μ
   preserve_le := fun a b => by
-    change subsetB (G_X_measure μ a) (G_X_measure μ b) = L0.L0.le_measure μ a b
+    change subsetB (G_X_measure μ a) (G_X_measure μ b) = L0.le_measure μ a b
     exact G_X_measure_le μ a b
 
 

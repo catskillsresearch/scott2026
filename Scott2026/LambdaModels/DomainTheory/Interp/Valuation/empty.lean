@@ -23,14 +23,14 @@ namespace Scott2026
 
 open Set Function
 variable {Var : Type*} {D : Type*}
-variable [DecidableEq Var]
 variable [DecidableEq Var] [CompleteLattice D]
 namespace Valuation
 
 /-- The empty valuation `∅`. Dummy values are unused on closed terms. -/
-def empty [CompleteLattice D] : Valuation Var D :=
+def empty : Valuation Var D :=
   default (⊥ : D)
 
+omit [DecidableEq Var] [CompleteLattice D] in
 @[simp] theorem empty_domain [CompleteLattice D] :
     (empty : Valuation Var D).domain = ∅ :=
   rfl

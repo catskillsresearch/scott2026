@@ -23,7 +23,7 @@ open MeasureTheory ProbabilityTheory Set unitInterval
 open scoped unitInterval ENNReal NNReal
 open Classical
 
-noncomputable def mapsAgreeSet_swap (M : Lam ℕ) (hM : MapsNumerals M) :
+noncomputable def mapsAgreeSet_swap (M : Lam ℕ) (_hM : MapsNumerals M) :
     Set CoinSpace :=
   ⋂ n, {x | engelerApp engelerPair (coinA1Fun.val x)
       (interpClosed engelerWithNumerals.toReflexiveDcpo (M.app (churchNumN n))) =

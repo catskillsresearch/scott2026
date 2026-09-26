@@ -266,10 +266,12 @@ the operator — it is purely order-theoretic. -/
 def scottExtend (e : X → Y) (f : X → E) (y : Y) : E :=
   sSup {d | ∃ V : Set Y, IsOpen V ∧ y ∈ V ∧ d = sInf (f '' (e ⁻¹' V))}
 
+omit [TopologicalSpace X] in
 theorem scottExtend_aux_nonempty (e : X → Y) (f : X → E) (y : Y) :
     {d | ∃ V : Set Y, IsOpen V ∧ y ∈ V ∧ d = sInf (f '' (e ⁻¹' V))}.Nonempty :=
   ⟨_, Set.univ, isOpen_univ, Set.mem_univ y, rfl⟩
 
+omit [TopologicalSpace X] in
 /-- The defining family of `scottExtend` is directed: open neighbourhoods are closed under
 intersection, and `⊓ f''(e⁻¹ ·)` is monotone in the neighbourhood (smaller set, larger inf). -/
 theorem scottExtend_aux_directed (e : X → Y) (f : X → E) (y : Y) :
@@ -304,12 +306,13 @@ theorem scottExtend_eq_of_continuous (hE : IsContinuousLattice E) (e : X → Y)
     have hxW : x ∈ f ⁻¹' {z : E | a ≪ z} := by rw [← hVeq]; exact hxV
     exact (hxW : a ≪ f x).le
 
+omit [TopologicalSpace X] in
 /-- The extension is Scott-continuous. For a Scott-open `U` and a point `y₀` with `g y₀ ∈ U`, the
 basis lemma gives `a ≪ g y₀` with `↟a ⊆ U`; since `g y₀` is a directed supremum, `a ≪ ⊓ f''(e⁻¹V)`
 for some open `V ∋ y₀`, and that value is `≤ g y'` for every `y' ∈ V`, so `V ⊆ g⁻¹U`. -/
 theorem scottExtend_continuous (hE : IsContinuousLattice E) (e : X → Y) (f : X → E) :
     @Continuous Y E _ scottTopologicalSpace (scottExtend e f) := by
-  letI : TopologicalSpace E := scottTopologicalSpace
+  let : TopologicalSpace E := scottTopologicalSpace
   rw [continuous_def]
   intro U hU
   rw [isOpen_iff_scottOpen] at hU
@@ -350,6 +353,7 @@ theorem continuous_eq_sSup_openInfs (hE : IsContinuousLattice E) {f' : Y → E}
     rintro d ⟨U, _hUo, hyU, rfl⟩
     exact sInf_le ⟨y, hyU, rfl⟩
 
+omit [TopologicalSpace X] in
 /-- **Maximality clause of Scott 1972, Proposition 3.8.** Any continuous solution `f'` of
 `f' ∘ e = f` lies below `scottExtend e f`. Following Scott: expand `f'` via
 `continuous_eq_sSup_openInfs`, restrict each meet from `U` to the embedded subspace `e(X) ∩ U`
@@ -366,6 +370,7 @@ theorem scottExtend_maximal (hE : IsContinuousLattice E) (e : X → Y) {f : X �
   rw [← h_ext x]
   exact sInf_le ⟨e x, hxU, rfl⟩
 
+omit [TopologicalSpace X] in
 /-- **Scott 1972, remark following 3.8.** `scottExtend e g` is also the maximal *sub*-solution: any
 continuous `f'` with `f' ∘ e ⊑ g` satisfies `f' ⊑ scottExtend e g`. Same proof as
 `scottExtend_maximal`, replacing the final equality `f' (e x) = f x` by the inequality
@@ -394,7 +399,7 @@ theorem proposition_3_8 (hE : IsContinuousLattice E) (e : X → Y) (he : IsEmbed
           ∀ y, f' y ≤ scottExtend e f y) :=
   ⟨scottExtend_continuous hE e f,
    fun x => scottExtend_eq_of_continuous hE e he f hf x,
-   fun f' hf' h_ext y => scottExtend_maximal hE e hf' h_ext y⟩
+   fun _f' hf' h_ext y => scottExtend_maximal hE e hf' h_ext y⟩
 
 end InjectiveExtension
 
@@ -404,7 +409,7 @@ any embedding `e` (`scottExtend_eq_of_continuous`) and is itself continuous
 (`scottExtend_continuous`). -/
 theorem proposition_2_11 {E : Type*} [CompleteLattice E] (hE : IsContinuousLattice E) :
     @IsInjectiveSpace E scottTopologicalSpace := by
-  letI : TopologicalSpace E := scottTopologicalSpace
+  let : TopologicalSpace E := scottTopologicalSpace
   intro X Y _ _ e he f
   exact ⟨⟨scottExtend e f, scottExtend_continuous hE e f⟩,
     fun x => scottExtend_eq_of_continuous hE e he f f.continuous x⟩

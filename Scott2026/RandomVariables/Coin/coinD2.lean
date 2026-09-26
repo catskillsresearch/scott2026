@@ -27,7 +27,7 @@ open Classical
 
 /-- Paper `d₂ ∈ P^A(check E)`. -/
 noncomputable def coinD2 : ASubset coinAlgebra ℕ :=
-  G_X_measure coinMeasure (L0.L0.mk_measure coinMeasure coinChi2Fun)
+  G_X_measure coinMeasure (L0.mk_measure coinMeasure coinChi2Fun)
 
 
 

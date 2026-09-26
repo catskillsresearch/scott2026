@@ -11,7 +11,6 @@ import Scott2026.RandomVariables.Random.IsL0
 namespace Scott2026
 
 theorem coinChi2_isL0 : IsL0 coinChi2 := fun q => by
-  change MeasurableSet (coinChi2 ⁻¹' posBasic q)
   have : coinChi2 ⁻¹' posBasic q = {p : CoinSpace | q ∈ chiOracle (bits2 p)} := by
     ext p
     simp [coinChi2, posBasic]

@@ -22,7 +22,7 @@ namespace L0
 noncomputable def equivPower_measure (μ : Measure X) [Countable Y] :
     L0Measure μ Y ≃ ASubset (MeasureAlgebra μ) Y where
   toFun := G_X_measure μ
-  invFun := fun b => L0.mk_measure μ (G_X_measure_inv μ b)
+  invFun := fun b => mk_measure μ (G_X_measure_inv μ b)
   left_inv := G_X_measure_inv_left μ
   right_inv := G_X_measure_inv_right μ
 

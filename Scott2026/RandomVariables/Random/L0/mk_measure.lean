@@ -30,7 +30,7 @@ open MeasureTheory Set
 variable {X : Type*} [MeasurableSpace X] {Y : Type*}
 namespace L0
 
-def L0.mk_measure (μ : MeasureTheory.Measure X) (a : L0Fun X Y) : _root_.Scott2026.L0Measure μ Y :=
+def mk_measure (μ : MeasureTheory.Measure X) (a : L0Fun X Y) : _root_.Scott2026.L0Measure μ Y :=
   Quotient.mk (l0Setoid_measure μ Y) a
 
 

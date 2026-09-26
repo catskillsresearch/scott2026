@@ -16,7 +16,6 @@ import Scott2026.LambdaModels.DomainTheory.Interp.Valuation.update
 namespace Scott2026
 
 variable {Var : Type*} {D : Type*}
-variable [DecidableEq Var]
 variable [DecidableEq Var] [CompleteLattice D]
 
 theorem interp_update_scott (R : ReflexiveDcpo D) (M : Lam Var)

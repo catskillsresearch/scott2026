@@ -36,6 +36,7 @@ instance : CoeFun (Valuation Var D) (fun _ => Var → D) where
     (ρ.update x d).domain = insert x ρ.domain :=
   rfl
 
+omit [DecidableEq Var] in
 theorem ext {ρ σ : Valuation Var D} (hd : ρ.domain = σ.domain)
     (hf : ρ.toFun = σ.toFun) : ρ = σ := by
   cases ρ

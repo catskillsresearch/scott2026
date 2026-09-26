@@ -34,25 +34,28 @@ variable {X : Type*} [MeasurableSpace X] (N : NegligibilitySpace X)
 /-- Definition 37: `ℒ⁰`-valued order. -/
 def l0Le (a b : X → Set Y) : Set X := {x | a x ⊆ b x}
 
+omit [MeasurableSpace X] in
 theorem l0Le_refl (a : X → Set Y) : l0Le a a = Set.univ := by
   ext x; simp [l0Le]
 
+omit [MeasurableSpace X] in
 theorem l0Le_trans (a b c : X → Set Y) : l0Le a b ∩ l0Le b c ⊆ l0Le a c := by
   intro x hx
   simp [l0Le] at hx ⊢
   exact hx.1.trans hx.2
 
+omit [MeasurableSpace X] in
 theorem l0Le_eq_iInter (a b : X → Set Y) :
     l0Le a b = ⋂ y : Y, (a ⁻¹' posBasic y)ᶜ ∪ b ⁻¹' posBasic y := by
   ext x
   constructor
   · intro hx
     refine mem_iInter.mpr fun y => ?_
-    simp only [mem_union, mem_compl_iff, mem_preimage, posBasic, mem_setOf, l0Le] at hx ⊢
+    simp only [mem_union, mem_compl_iff, mem_preimage, posBasic, mem_ofPred, l0Le] at hx ⊢
     exact or_iff_not_imp_left.mpr fun hy => hx (not_not.mp hy)
   · intro hx y hy
     have hyx := mem_iInter.mp hx y
-    simp only [mem_union, mem_compl_iff, mem_preimage, posBasic, mem_setOf] at hyx
+    simp only [mem_union, mem_compl_iff, mem_preimage, posBasic, mem_ofPred] at hyx
     exact hyx.resolve_left (not_not.mpr hy)
 
 theorem measurableSet_l0Le [Countable Y] {a b : X → Set Y} (ha : IsL0 a) (hb : IsL0 b) :
@@ -60,6 +63,7 @@ theorem measurableSet_l0Le [Countable Y] {a b : X → Set Y} (ha : IsL0 a) (hb :
   rw [l0Le_eq_iInter]
   exact MeasurableSet.iInter fun y => (ha y).compl.union (hb y)
 
+omit [MeasurableSpace X] in
 theorem l0Eq_eq_le (a b : X → Set Y) : l0Eq a b = l0Le a b ∩ l0Le b a := by
   ext x
   simp [l0Eq, l0Le]

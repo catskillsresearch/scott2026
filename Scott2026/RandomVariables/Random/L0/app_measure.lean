@@ -34,19 +34,19 @@ open MeasureTheory Set
 variable {X : Type*} [MeasurableSpace X] {E : Type*}
 namespace L0
 
-noncomputable def L0.app_measure [DecidableEq E] [Countable E] (μ : MeasureTheory.Measure X)
+noncomputable def app_measure [DecidableEq E] [Countable E] (μ : MeasureTheory.Measure X)
     (pair : Finset E × E → E) (a b : _root_.Scott2026.L0Measure μ E) : _root_.Scott2026.L0Measure μ E :=
   Quotient.lift₂
-    (fun a b => L0.mk_measure μ
+    (fun a b => mk_measure μ
       ⟨l0App pair a.val b.val, l0App_isL0 pair a.property b.property⟩)
     (fun a b a' b' ha hb => by
       refine Quotient.sound ?_
       exact l0App_ae_measure μ pair ha hb) a b
 
-theorem L0.app_measure_mk [DecidableEq E] [Countable E] (μ : Measure X)
+theorem app_measure_mk [DecidableEq E] [Countable E] (μ : Measure X)
     (pair : Finset E × E → E) (a b : L0Fun X E) :
-    L0.app_measure μ pair (L0.L0.mk_measure μ a) (L0.L0.mk_measure μ b) =
-      L0.L0.mk_measure μ ⟨l0App pair a.val b.val,
+    app_measure μ pair (mk_measure μ a) (mk_measure μ b) =
+      mk_measure μ ⟨l0App pair a.val b.val,
         l0App_isL0 pair a.property b.property⟩ :=
   rfl
 

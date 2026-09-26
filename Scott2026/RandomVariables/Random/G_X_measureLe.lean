@@ -23,11 +23,10 @@ variable {X Y : Type*} [MeasurableSpace X] {μ : Measure X}
 
 theorem G_X_measure_le (μ : Measure X) [IsFiniteMeasure μ] [Countable Y]
     (a b : L0Measure μ Y) :
-    subsetB (G_X_measure μ a) (G_X_measure μ b) = L0.L0.le_measure μ a b := by
+    subsetB (G_X_measure μ a) (G_X_measure μ b) = L0.le_measure μ a b := by
   refine Quotient.inductionOn₂ a b fun a b => ?_
   unfold subsetB
-  simp only [G_X_measure, L0.L0.le_measure, L0.L0.mk_measure, Quotient.lift_mk,
-    Quotient.lift₂_mk]
+  simp only [G_X_measure, L0.le_measure, Quotient.lift_mk]
   have : (⨅ y, MeasureAlgebra.mk μ (G_pre a.val y) (a.property y) ⇨
         MeasureAlgebra.mk μ (G_pre b.val y) (b.property y)) =
       MeasureAlgebra.mk μ (⋂ y, (G_pre a.val y)ᶜ ∪ G_pre b.val y)

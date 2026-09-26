@@ -117,7 +117,7 @@ noncomputable def interpDKRel
             rw [eqB_comm (encodeLamDKB V K (asLamDK 𝓜.D V K M))
               (encodeLamDKB V K N)]
 
-@[simp] theorem InternalReflexiveModel.interpDKRel_val
+@[simp] theorem interpDKRel_val
     (𝓜 : InternalReflexiveModel (A := A))
     (V K : AName.{u} A) (hK : subsetB K 𝓜.D = ⊤)
     (hV : (oid V).IsTotal)

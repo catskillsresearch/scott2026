@@ -22,7 +22,6 @@ namespace Scott2026
 
 open Set Function
 variable {Var : Type*} {D : Type*}
-variable [DecidableEq Var]
 variable [DecidableEq Var] [CompleteLattice D]
 
 /-- Scott-open `U_m = {X | m ∈ Φ(X)}` containing `⟦c_m⟧` and no other numeral. -/

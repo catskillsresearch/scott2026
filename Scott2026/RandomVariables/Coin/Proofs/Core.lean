@@ -441,7 +441,7 @@ theorem coinMeasure_agreeSlice (f : ℕ → ℕ) (K : Finset ℕ)
 
 theorem exists_injOn_infinite {f : ℕ → ℕ} (hf : (Set.range f).Infinite) :
     ∃ g : ℕ → ℕ, Function.Injective (f ∘ g) := by
-  haveI : Infinite (Set.range f) := hf.to_subtype
+  have : Infinite (Set.range f) := hf.to_subtype
   let e := Infinite.natEmbedding (Set.range f)
   refine ⟨fun n => Classical.choose (e n).property, ?_⟩
   intro i j hij
@@ -727,7 +727,7 @@ theorem mem_agreeSet_swap_bits (f : ℕ → ℕ) (p : CoinSpace) :
   simp [agreeSet_swap, bits1, bits2]
 
 theorem reductionNullSet_null : coinMeasure reductionNullSet = 0 := by
-  haveI : Countable (Lam ℕ) := Function.Injective.countable lamEncode_injective
+  have : Countable (Lam ℕ) := Function.Injective.countable lamEncode_injective
   refine measure_iUnion_null fun M => measure_iUnion_null fun h => ?_
   exact measure_union_null (proposition_42 (mapsNumeralsFun M h)).2.2.1
     (proposition_42 (mapsNumeralsFun M h)).2.2.2

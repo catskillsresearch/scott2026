@@ -297,7 +297,7 @@ noncomputable def homBComp {X Y Z : AName.{u} A} (g : homB Y Z) (f : homB X Y) :
   Quotient.liftOn₂ g f
     (fun g f => Quotient.mk _
       ⟨compB g.1 f.1 X Z, isHom_comp f.2 g.2⟩)
-    (fun g₁ f₁ g₂ f₂ hg hf =>
+    (fun _g₁ _f₁ _g₂ _f₂ hg hf =>
       Quotient.sound (compB_congr hf hg))
 
 theorem oidHomQ_id (X : AName.{u} A) :

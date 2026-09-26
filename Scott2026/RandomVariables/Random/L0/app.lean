@@ -28,10 +28,10 @@ variable {X : Type*} [MeasurableSpace X] (N : NegligibilitySpace X) {Y : Type*}
 namespace L0
 
 /-- Quotiented pointwise application `[a] · [b] = [a · b]`. -/
-noncomputable def L0.app [DecidableEq E] [Countable E] (N : NegligibilitySpace X)
+noncomputable def app [DecidableEq E] [Countable E] (N : NegligibilitySpace X)
     (pair : Finset E × E → E) (a b : L0 N E) : L0 N E :=
   Quotient.lift₂
-    (fun a b => L0.mk N ⟨l0App pair a.val b.val, l0App_isL0 pair a.property b.property⟩)
+    (fun a b => mk N ⟨l0App pair a.val b.val, l0App_isL0 pair a.property b.property⟩)
     (fun a b a' b' ha hb => by
       refine Quotient.sound ?_
       exact l0App_ae N pair ha hb) a b

@@ -22,6 +22,7 @@ open scoped ENNReal
 variable {X Y : Type*} [MeasurableSpace X]
 variable {X : Type*} [MeasurableSpace X] (N : NegligibilitySpace X)
 
+omit [MeasurableSpace X] in
 theorem l0Le_subset_of_ae (a a' b b' : X → Set Y) :
     symmDiff (l0Le a b) (l0Le a' b') ⊆ (l0Eq a a')ᶜ ∪ (l0Eq b b')ᶜ := by
   intro x hx

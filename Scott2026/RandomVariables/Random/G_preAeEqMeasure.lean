@@ -26,7 +26,7 @@ theorem G_pre_aeEq_measure (μ : Measure X) {a b : L0Fun X Y}
     intro x hx
     simp only [mem_compl_iff, l0Eq]
     intro heq
-    simp only [G_pre, posBasic, mem_symmDiff, mem_preimage, mem_setOf] at hx
+    simp only [G_pre, posBasic, mem_symmDiff, mem_preimage, mem_ofPred] at hx
     rw [heq] at hx
     exact hx.elim (fun h => h.2 h.1) (fun h => h.2 h.1)
   exact measure_mono_null hsub h

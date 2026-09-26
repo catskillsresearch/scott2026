@@ -49,7 +49,7 @@ def encodeLamDK {Var Const : Type u} (f : Var → PSet.{u})
 
 /-- Ground set `Λ(D,Var,K)`; `D` is part of the notation while the syntax
 depends only on `Var` and `K`. -/
-def pLamDKSet (D Var K : PSet.{u}) : PSet.{u} :=
+def pLamDKSet (_D Var K : PSet.{u}) : PSet.{u} :=
   PSet.mk (LamDK Var.Type K.Type) (encodeLamDK Var.Func K.Func)
 
 variable {A : Type u} [CompleteBooleanAlgebra A]
@@ -76,12 +76,12 @@ noncomputable def lamDKVal (V K : AName.{u} A) :
 
 /-- `Λ(D,V,K)^A`. The parameter `D` records the ambient denotational domain;
 well-formed uses require `K ⊆ D`. -/
-noncomputable def lamDKB (D V K : AName.{u} A) : AName.{u} A :=
+noncomputable def lamDKB (_D V K : AName.{u} A) : AName.{u} A :=
   mk (LamDK V.idx K.idx) (encodeLamDKB V K) (lamDKVal V K)
 
 /-- Boolean value of the paper's constant-bearing inductive clause. -/
 noncomputable def lamDKInductiveB
-    (D V K X : AName.{u} A) : A :=
+    (_D V K X : AName.{u} A) : A :=
   lamInductiveB V X ⊓
     ⨅ d : AName.{u} A, memB d K ⇨
       ⨆ p : AName.{u} A, memB p X ⊓ eqB p (lamConstB d)

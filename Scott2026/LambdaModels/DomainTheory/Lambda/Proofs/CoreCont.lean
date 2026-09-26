@@ -71,7 +71,7 @@ theorem churchIsZero_app (n : ℕ) :
     LamEq (churchIsZero.app (churchNumN n))
       (((churchNumN n).app (Lam.abs 1 churchFalseN')).app churchTrueN') := by
   refine (lamEq_beta_closed 0 _ (churchNumN n) (churchNumN_fv n)).trans ?_
-  simp [churchIsZero, Lam.substNaive]
+  simp [Lam.substNaive]
   exact LamEq.refl _
 
 theorem churchIsZero_zero :
@@ -196,7 +196,7 @@ theorem churchPred_app_num (n : ℕ) :
     rfl
   rw [hdef]
   refine (lamEq_beta_closed 0 _ (churchNumN n) (churchNumN_fv n)).trans ?_
-  simp [Lam.substNaive, churchShift_fv, churchPredBase_fv, churchId_fv]
+  simp [Lam.substNaive]
   exact LamEq.refl _
 
 theorem churchNumN_renamed (n : ℕ) :

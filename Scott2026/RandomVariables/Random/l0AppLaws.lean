@@ -21,13 +21,14 @@ open MeasureTheory Set
 variable {X E : Type*} [MeasurableSpace X]
 variable {X : Type*} [MeasurableSpace X] (N : NegligibilitySpace X)
 
+omit [MeasurableSpace X] in
 theorem l0App_preimage [DecidableEq E] (pair : Finset E × E → E)
     (a b : X → Set E) (q : E) :
     l0App pair a b ⁻¹' posBasic q =
       ⋃ K : Finset E,
         (a ⁻¹' posBasic (pair (K, q))) ∩ ⋂ k ∈ K, b ⁻¹' posBasic k := by
   ext x
-  simp only [l0App, posBasic, mem_preimage, mem_setOf, mem_iUnion, mem_inter_iff,
+  simp only [l0App, posBasic, mem_preimage, mem_ofPred, mem_iUnion, mem_inter_iff,
     mem_iInter, engelerApp]
   constructor
   · intro ⟨K, hK, hp⟩

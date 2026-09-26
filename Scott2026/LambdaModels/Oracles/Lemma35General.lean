@@ -193,7 +193,7 @@ theorem churchNum_interpClosed_succ {D : Type*} [CompleteLattice D]
       (x := 1) (y := 0) X Fin.zero_ne_one
   have hX : ((Valuation.empty.update (0 : Fin 2) F).update 1 X).toFun 1 = X :=
     Valuation.update_toFun_self _ 1 X
-  simp [interp, h0, hX, hcn]
+  simp [hcn]
 
 theorem churchNumN_interpClosed_succ {D : Type*} [CompleteLattice D]
     (R : ReflexiveDcpo D) (n : ℕ) :
@@ -223,7 +223,7 @@ theorem churchNumN_interpClosed_succ {D : Type*} [CompleteLattice D]
       (x := 1) (y := 0) X (by decide)
   have hX : ((Valuation.empty.update (0 : ℕ) F).update 1 X).toFun 1 = X :=
     Valuation.update_toFun_self _ 1 X
-  simp [interp, h0, hX, hcn]
+  simp [hcn]
 
 /-- Closed interpretations of `churchNum` (`Fin 2`) and `churchNumN` (`ℕ`)
 agree: binders are only names. -/

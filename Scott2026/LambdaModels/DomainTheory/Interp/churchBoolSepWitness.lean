@@ -21,7 +21,6 @@ namespace Scott2026
 
 open Set Function
 variable {Var : Type*} {D : Type*}
-variable [DecidableEq Var]
 variable [DecidableEq Var] [CompleteLattice D]
 
 /-- Witness `pair(∅, pair({0}, 0))` used to separate Church Booleans. -/

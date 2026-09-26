@@ -640,7 +640,7 @@ theorem interpVA_agree (M : Lam Var)
     intro y hy
     by_cases hyx : y = x
     · subst hyx
-      simp [interpVA, Valuation.update]
+      simp [Valuation.update]
     · simpa [Valuation.update_toFun_of_ne ρ d hyx, Valuation.update_toFun_of_ne σ d hyx] using
         h y (Finset.mem_sdiff.mpr ⟨hy, mt Finset.mem_singleton.mp hyx⟩)
 

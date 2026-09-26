@@ -27,10 +27,10 @@ namespace Scott2026
 variable {X : Type*} [MeasurableSpace X] (N : NegligibilitySpace X) {Y : Type*}
 namespace L0
 
-noncomputable def L0.le (N : NegligibilitySpace X) (a b : _root_.Scott2026.L0 N Y) :
+noncomputable def le (N : NegligibilitySpace X) (a b : _root_.Scott2026.L0 N Y) :
     AssociatedAlgebra N :=
   Quotient.lift₂ (fun a b => AssociatedAlgebra.mk N (l0Le a.val b.val))
-    (fun a b a' b' ha hb =>
+    (fun _a _b _a' _b' ha hb =>
       (AssociatedAlgebra.mk_eq_iff N).mpr (l0Le_aeEq N ha hb)) a b
 
 

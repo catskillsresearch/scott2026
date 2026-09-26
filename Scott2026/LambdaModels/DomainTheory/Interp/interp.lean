@@ -22,7 +22,6 @@ namespace Scott2026
 
 open Set Function
 variable {Var : Type*} {D : Type*}
-variable [DecidableEq Var]
 variable [DecidableEq Var] [CompleteLattice D]
 
 def interp (R : ReflexiveDcpo D) : Lam Var → Valuation Var D → D

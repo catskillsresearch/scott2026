@@ -14,7 +14,6 @@ import Scott2026.LambdaModels.DomainTheory.Interp.Valuation.update
 namespace Scott2026
 
 variable {Var : Type*} {D : Type*}
-variable [DecidableEq Var]
 variable [DecidableEq Var] [CompleteLattice D]
 
 /-- Interpretations agree when valuations agree on `fv(M)`. -/
@@ -40,7 +39,7 @@ theorem interp_agree (R : ReflexiveDcpo D) (M : Lam Var)
     intro y hy
     by_cases hyx : y = x
     · subst hyx
-      simp [interp, Valuation.update]
+      simp [Valuation.update]
     · have := h y (Finset.mem_sdiff.mpr ⟨hy, mt Finset.mem_singleton.mp hyx⟩)
       simpa [Valuation.update_toFun_of_ne ρ d hyx, Valuation.update_toFun_of_ne σ d hyx] using this
 

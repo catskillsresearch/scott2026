@@ -32,7 +32,7 @@ SORRY_PATHS="Scott2026 Solution.lean"
 # remains forbidden.
 PATCHED="$(mktemp -d)"
 cp -a "$TOOLKIT/." "$PATCHED/"
-python3 - "$PATCHED/palomar_preflight.sh" <<'PY'
+python3 - "$PATCHED/palomar_preflight.sh" <<'PATCHPY'
 import sys
 from pathlib import Path
 
@@ -127,14 +127,18 @@ while stack:
 print(f\"OK: Challenge closure has {checked} project file(s).\")
 PY
 """
-if old not in text:
+if old in text:
+    text = text.replace(old, new, 1)
+    print("OK: Challenge import check accepts the Challenge module tree.")
+elif "Challenge import discipline (Mathlib or Challenge)" in text:
+    print("OK: toolkit already accepts the Challenge module tree.")
+else:
     raise SystemExit(
         "palomar-preflight challenge_imports block changed; "
         "update scripts/palomar_preflight.sh to match the pin"
     )
-path.write_text(text.replace(old, new, 1), encoding="utf-8")
-print("OK: Challenge import check accepts the Challenge module tree.")
-PY
+path.write_text(text, encoding="utf-8")
+PATCHPY
 TOOLKIT="$PATCHED"
 
 # Match formalization.yaml vendor revision to FROZEN.txt (scott_models model).

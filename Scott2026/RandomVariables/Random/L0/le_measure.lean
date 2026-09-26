@@ -35,16 +35,16 @@ open MeasureTheory Set
 variable {X : Type*} [MeasurableSpace X] {Y : Type*}
 namespace L0
 
-noncomputable def L0.le_measure (μ : MeasureTheory.Measure X) [Countable Y]
+noncomputable def le_measure (μ : MeasureTheory.Measure X) [Countable Y]
     (a b : _root_.Scott2026.L0Measure μ Y) : _root_.Scott2026.MeasureAlgebra μ :=
   Quotient.lift₂
     (fun a b => MeasureAlgebra.mk μ (l0Le a.val b.val)
       (measurableSet_l0Le a.property b.property))
-    (fun a b a' b' ha hb =>
+    (fun _a _b _a' _b' ha hb =>
       (MeasureAlgebra.mk_eq_iff μ).mpr (l0Le_aeEq_measure μ ha hb)) a b
 
-theorem L0.le_measure_mk (μ : Measure X) [Countable Y] (a b : L0Fun X Y) :
-    L0.le_measure μ (L0.L0.mk_measure μ a) (L0.L0.mk_measure μ b) =
+theorem le_measure_mk (μ : Measure X) [Countable Y] (a b : L0Fun X Y) :
+    le_measure μ (mk_measure μ a) (mk_measure μ b) =
       MeasureAlgebra.mk μ (l0Le a.val b.val)
         (measurableSet_l0Le a.property b.property) :=
   rfl

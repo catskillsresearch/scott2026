@@ -37,9 +37,9 @@ variable {Y : Type*}
 /-- Lemma 38: `L⁰` is an `A(X)`-poset. -/
 noncomputable def l0Poset (N : NegligibilitySpace X) :
     APoset (A := AssociatedAlgebra N) (_root_.Scott2026.L0 N Y) where
-  le := L0.L0.le N
-  trans := L0.L0.le_trans N
-  le_le_refl := L0.L0.le_le_refl N
+  le := L0.le N
+  trans := L0.le_trans N
+  le_le_refl := L0.le_le_refl N
 
 
 

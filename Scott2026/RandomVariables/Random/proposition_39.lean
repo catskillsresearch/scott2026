@@ -40,11 +40,11 @@ variable {X : Type*} [MeasurableSpace X] (N : NegligibilitySpace X)
 noncomputable def proposition_39 (N : NegligibilitySpace X) [Countable Y] :
     APoset.StrictIso (l0Poset (Y := Y) N) (powerPoset (A := AssociatedAlgebra N) (X := Y)) where
   toFun := G_X N
-  invFun := fun b => L0.L0.mk N (G_X_inv N b)
+  invFun := fun b => L0.mk N (G_X_inv N b)
   left_inv := G_X_inv_left N
   right_inv := G_X_inv_right N
   preserve_le := fun a b => by
-    change subsetB (G_X N a) (G_X N b) = L0.L0.le N a b
+    change subsetB (G_X N a) (G_X N b) = L0.le N a b
     exact G_X_le N a b
 
 

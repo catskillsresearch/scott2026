@@ -39,7 +39,7 @@ variable {X : Type*} [MeasurableSpace X] (N : NegligibilitySpace X)
 noncomputable def G_X (N : NegligibilitySpace X) (a : L0 N Y) :
     ASubset (AssociatedAlgebra N) Y :=
   Quotient.lift (fun a y => AssociatedAlgebra.mk N (G_pre a.val y))
-    (fun a b h => funext fun y =>
+    (fun _a _b h => funext fun y =>
       (AssociatedAlgebra.mk_eq_iff N).mpr (G_pre_aeEq N h y)) a
 
 

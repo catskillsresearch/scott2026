@@ -104,14 +104,14 @@ theorem le_top (a : AssociatedAlgebra N) : Le N a (top N) := by
   unfold top
   refine (le_mk N).mpr ?_
   have : Quotient.out a \ Set.univ = ∅ :=
-    diff_eq_empty.mpr (subset_univ _)
+    sdiff_eq_empty.mpr (subset_univ _)
   simpa [this] using N.empty
 
 theorem bot_le (a : AssociatedAlgebra N) : Le N (bot N) a := by
   rw [show a = mk N (Quotient.out a) from (mk_out N a).symm]
   unfold bot
   refine (le_mk N).mpr ?_
-  have : (∅ \ Quotient.out a) = ∅ := empty_diff _
+  have : (∅ \ Quotient.out a) = ∅ := empty_sdiff _
   simpa [this] using N.empty
 
 theorem inf_compl_le_bot (a : AssociatedAlgebra N) :
@@ -183,7 +183,6 @@ theorem sSup_spec (S : Set (AssociatedAlgebra N)) :
 
 theorem compl_compl_mk (a : AssociatedAlgebra N) : compl N (compl N a) = a := by
   unfold compl
-  change mk N (Quotient.out (mk N (Quotient.out a)ᶜ))ᶜ = a
   have h : mk N (Quotient.out (mk N (Quotient.out a)ᶜ))ᶜ =
       mk N ((Quotient.out a)ᶜ)ᶜ :=
     (mk_eq_iff N).mpr (aeEq_compl N (aeEq_out N))
@@ -264,8 +263,8 @@ noncomputable instance instCompleteLattice : CompleteLattice (AssociatedAlgebra 
   __ := instLattice N
   sSup := sSup N
   sInf := sInf N
-  isLUB_sSup S := ⟨fun a ha => le_sSup N S ha, fun b hb => sSup_le N S hb⟩
-  isGLB_sInf S := ⟨fun a ha => sInf_le N S ha, fun b hb => le_sInf N S hb⟩
+  isLUB_sSup S := ⟨fun _a ha => le_sSup N S ha, fun _b hb => sSup_le N S hb⟩
+  isGLB_sInf S := ⟨fun _a ha => sInf_le N S ha, fun _b hb => le_sInf N S hb⟩
   top := top N
   bot := bot N
   le_top := le_top N

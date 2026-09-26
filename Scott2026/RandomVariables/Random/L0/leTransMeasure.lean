@@ -21,13 +21,13 @@ variable {X : Type*} [MeasurableSpace X] (μ : MeasureTheory.Measure X)
 
 namespace L0
 
-theorem L0.le_trans_measure (μ : MeasureTheory.Measure X) [IsFiniteMeasure μ] [Countable Y]
+theorem le_trans_measure (μ : MeasureTheory.Measure X) [IsFiniteMeasure μ] [Countable Y]
     (a b c : _root_.Scott2026.L0Measure μ Y) :
     MeasureAlgebra.Le μ
-      (MeasureAlgebra.inf μ (L0.le_measure μ a b) (L0.le_measure μ b c))
-      (L0.le_measure μ a c) := by
+      (MeasureAlgebra.inf μ (le_measure μ a b) (le_measure μ b c))
+      (le_measure μ a c) := by
   refine Quotient.inductionOn₃ a b c fun a b c => ?_
-  simp only [L0.le_measure, L0.mk_measure, Quotient.lift₂_mk]
+  simp only [le_measure, Quotient.lift₂_mk]
   rw [MeasureAlgebra.inf_mk]
   change MeasureAlgebra.Le μ
     (MeasureAlgebra.mk μ (l0Le a.val b.val ∩ l0Le b.val c.val) _)
@@ -37,14 +37,15 @@ theorem L0.le_trans_measure (μ : MeasureTheory.Measure X) [IsFiniteMeasure μ] 
     ext x
     simp only [mem_empty_iff_false, mem_sdiff, mem_inter_iff, l0Le]
     exact iff_false_intro fun ⟨⟨hab, hbc⟩, hn⟩ => hn (Set.Subset.trans hab hbc)
-  simpa [this] using measure_empty
+  simp [this]
 
-theorem L0.le_le_refl_measure (μ : MeasureTheory.Measure X) [IsFiniteMeasure μ] [Countable Y]
+
+theorem le_le_refl_measure (μ : MeasureTheory.Measure X) [IsFiniteMeasure μ] [Countable Y]
     (a b : _root_.Scott2026.L0Measure μ Y) :
-    MeasureAlgebra.Le μ (L0.le_measure μ a b)
-      (MeasureAlgebra.inf μ (L0.le_measure μ a a) (L0.le_measure μ b b)) := by
+    MeasureAlgebra.Le μ (le_measure μ a b)
+      (MeasureAlgebra.inf μ (le_measure μ a a) (le_measure μ b b)) := by
   refine Quotient.inductionOn₂ a b fun a b => ?_
-  simp only [L0.le_measure, Quotient.lift₂_mk]
+  simp only [le_measure, Quotient.lift₂_mk]
   rw [MeasureAlgebra.inf_mk]
   have hle : l0Le a.val a.val ∩ l0Le b.val b.val = Set.univ := by
     rw [l0Le_refl, l0Le_refl, inter_self]
@@ -52,7 +53,8 @@ theorem L0.le_le_refl_measure (μ : MeasureTheory.Measure X) [IsFiniteMeasure μ
   have : l0Le a.val b.val \ (l0Le a.val a.val ∩ l0Le b.val b.val) = ∅ := by
     rw [hle]
     exact sdiff_eq_empty.2 (subset_univ _)
-  simpa [this] using measure_empty
+  simp [this]
+
 
 end L0
 

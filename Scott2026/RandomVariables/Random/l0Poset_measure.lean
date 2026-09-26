@@ -38,9 +38,9 @@ variable {Y : Type*}
 /-- Lemma 38 on `MeasureAlgebra`: `L⁰` is an `A(X)`-poset. -/
 noncomputable def l0Poset_measure (μ : Measure X) [IsFiniteMeasure μ] [Countable Y] :
     APoset (A := _root_.Scott2026.MeasureAlgebra μ) (_root_.Scott2026.L0Measure μ Y) where
-  le := L0.L0.le_measure μ
-  trans := L0.L0.le_trans_measure μ
-  le_le_refl := L0.L0.le_le_refl_measure μ
+  le := L0.le_measure μ
+  trans := L0.le_trans_measure μ
+  le_le_refl := L0.le_le_refl_measure μ
 
 
 
