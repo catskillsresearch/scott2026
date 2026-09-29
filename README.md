@@ -1,4 +1,5 @@
 [![Lean 4](https://img.shields.io/github/actions/workflow/status/catskillsresearch/scott2026/build.yml?label=Lean%204)](https://github.com/catskillsresearch/scott2026/actions/workflows/build.yml)
+[![Palomar](https://img.shields.io/badge/Palomar-2026--09--28--000003-0f766e.svg)](https://palomar-registry.org/entry?id=PALOMAR-2026-09-28-000003&version=1)
 
 # scott2026
 
@@ -15,8 +16,9 @@ higher-type programming.
 Lattices) is vendored in `vendor/scott1972` and compiled as this package's
 `Scott1972` library (`srcDir`), not as a Lake path/git dependency — Palomar's
 landrun sandbox may write only under `.lake/`. Frozen SHA: `vendor/FROZEN.txt`.
-This repo is still submitted to
-[Palomar](https://palomar-registry.org/about) on its own for the 2026 paper
+This repo is registered with
+[Palomar](https://palomar-registry.org/about) on its own for the 2026 paper as
+[PALOMAR-2026-09-28-000003](https://palomar-registry.org/entry?id=PALOMAR-2026-09-28-000003&version=1)
 (see `PROVENANCE.md`).
 
 The pin is `leanprover/lean4:v4.35.0-rc3` (`lean-toolchain`). Mathlib is
