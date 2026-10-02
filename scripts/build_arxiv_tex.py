@@ -41,6 +41,9 @@ LISTING_CHUNK_LINES = 400
 AUTHOR = "Lars Warren Ericson"
 COMPANY = "Catskills Research Company"
 GITHUB_URL = r"https://github.com/catskillsresearch/scott2026"
+PALOMAR_URL = (
+    r"https://palomar-registry.org/entry?id=PALOMAR-2026-09-28-000003&version=1"
+)
 ORCID = "0000-0001-8299-9361"
 EMAIL = "lars.ericson@catskillsresearch.com"
 
@@ -406,7 +409,8 @@ def build_title_page(abstract_latex: str) -> str:
           \\small
           \\textbf{{ORCID:}} {ORCID} \\\\
           \\textbf{{Primary Category:}} cs.LO (Logic in Computer Science) \\\\
-          \\textbf{{Secondary Categories:}} math.LO (Logic); cs.PL (Programming Languages)
+          \\textbf{{Secondary Categories:}} math.LO (Logic); cs.PL (Programming Languages) \\\\
+          \\textbf{{Palomar Registration:}} \\url{{{PALOMAR_URL}}}
         \\end{{center}}
 
         \\begin{{abstract}}

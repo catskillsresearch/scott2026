@@ -5,6 +5,7 @@
 *Interpreting Lambda Calculus in Domain-Valued Random Variables*, LIPIcs,
 Vol. 363, CSL 2026, Article 48.
 **Repository.** https://github.com/catskillsresearch/scott2026
+**Palomar.** [PALOMAR-2026-09-28-000003](https://palomar-registry.org/entry?id=PALOMAR-2026-09-28-000003&version=1), version 1
 
 ---
 
@@ -534,6 +535,14 @@ bash scripts/build_arxiv_pdf.sh
 
 Regenerate `arxiv_with_code.md` when `arxiv.md` or listed sources change:
 `bash scripts/generate_arxiv_with_code.sh`.
+
+## Palomar registry
+
+The compared statements are registered with Palomar as
+**PALOMAR-2026-09-28-000003**, version 1
+\cite{Pal26}. That registry entry records a Mathlib-only statement of
+this formalization, by Lars Warren Ericson. The compared declarations are
+Theorem 43 (`csl2026`) and the Engeler-oracle relation `proposition_36_i`.
 
 ## Acknowledgments
 
