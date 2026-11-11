@@ -128,7 +128,7 @@ def drop_github_nav(text: str) -> str:
 def normalize_appendix_headings(text: str) -> str:
     text = re.sub(
         r"^#\s+Appendix A: (?:Complete Lean source|Lean module index)\s*$",
-        "## Lean module index",
+        "## Complete Lean source",
         text,
         flags=re.MULTILINE,
     )
@@ -314,26 +314,78 @@ def inject_placeholders(latex: str, placeholders: dict[str, str]) -> str:
     return out
 
 
+def break_long_alnum(text: str, width: int = 10) -> str:
+    """Insert allowbreaks inside long unbroken words (e.g. Negligibility).
+
+    CamelCase tokens are left alone; they get structural breaks later.
+    """
+
+    def chunk(match: re.Match[str]) -> str:
+        token = match.group(0)
+        if len(token) <= width:
+            return token
+        # Leave CamelCase / acronyms for the structural pass.
+        if re.search(r"[a-z][A-Z]", token) or re.search(r"[A-Z]{2,}[a-z]", token):
+            return token
+        parts = [token[i : i + width] for i in range(0, len(token), width)]
+        return "\\allowbreak{}".join(parts)
+
+    return re.sub(r"[A-Za-z0-9]{%d,}" % (width + 1), chunk, text)
+
+
+def break_path_text(inner: str, *, chunk_long: bool = False) -> str:
+    """Allow line breaks in repository-relative Lean paths."""
+    # Chunk long tokens first so later ``\allowbreak`` commands are not
+    # themselves matched as alphanumeric runs.
+    if chunk_long:
+        inner = break_long_alnum(inner)
+    inner = inner.replace("/", "/\\allowbreak{}")
+    inner = inner.replace(r"\_", r"\_\allowbreak{}")
+    inner = re.sub(r"(?<=[a-z])(?=[A-Z])", r"\\allowbreak{}", inner)
+    inner = re.sub(r"(?<=[A-Z])(?=[A-Z][a-z])", r"\\allowbreak{}", inner)
+    inner = inner.replace(".lean", ".\\allowbreak{}lean")
+    inner = re.sub(r"\.(?=[A-Za-z])", r".\\allowbreak{}", inner)
+    return inner
+
+
 def break_texttt_paths(latex: str) -> str:
     """Allow line breaks after `/` and `_` in \\texttt paths and identifiers."""
 
     def fix(match: re.Match[str]) -> str:
-        inner = match.group(1)
-        inner = inner.replace("/", "/\\allowbreak{}")
-        inner = inner.replace(r"\_", r"\_\allowbreak{}")
-        inner = re.sub(r"(?<=[a-z])(?=[A-Z])", r"\\allowbreak{}", inner)
-        inner = re.sub(r"(?<=[A-Z])(?=[A-Z][a-z])", r"\\allowbreak{}", inner)
-        inner = inner.replace(".lean", ".\\allowbreak{}lean")
-        inner = re.sub(r"\.(?=[A-Za-z])", r".\\allowbreak{}", inner)
-        return "\\texttt{" + inner + "}"
+        return "\\texttt{" + break_path_text(match.group(1)) + "}"
 
     return re.sub(r"\\texttt\{([^{}]*)\}", fix, latex)
+
+
+def break_lean_path_headings(latex: str) -> str:
+    """Breakable appendix subsection titles that are Lean paths.
+
+    Avoid ``\\par`` / ``\\raggedright`` here: pandoc wraps headings in
+    ``\\hypertarget{...}{...}``, which cannot contain ``\\par``.
+    """
+
+    def fix(match: re.Match[str]) -> str:
+        raw = match.group(2)
+        broken = break_path_text(raw, chunk_long=True)
+        plain = raw.replace(r"\_", "_").replace(r"\allowbreak{}", "")
+        return (
+            f"{match.group(1)}"
+            f"\\texorpdfstring{{{broken}}}{{{plain}}}"
+            f"{match.group(3)}"
+        )
+
+    return re.sub(
+        r"(\\(?:sub)*section\{)(Scott2026(?:\.lean|/[^{}]+))(\})",
+        fix,
+        latex,
+    )
 
 
 def cleanup_pandoc_latex(latex: str) -> str:
     latex = latex.replace("\\pandocbounded{", "{")
     latex = re.sub(r"\\tightlist\n?", "", latex)
     latex = break_texttt_paths(latex)
+    latex = break_lean_path_headings(latex)
     for cmd in ("section", "subsection", "subsubsection", "paragraph"):
         latex = re.sub(
             rf"(\\{cmd}\{{)\d+(?:\.\d+)*\.?\s+",
@@ -347,12 +399,17 @@ def cleanup_pandoc_latex(latex: str) -> str:
     )
     latex = re.sub(
         r"\\section\{Appendix A: (?:Complete Lean source|Lean module index)\}",
-        r"\\section{Lean module index}",
+        r"\\section{Complete Lean source}",
         latex,
     )
     latex = re.sub(
-        r"\\section\{Appendix A\. Lean module index\}",
-        r"\\section{Lean module index}",
+        r"\\section\{Appendix A\. (?:Complete Lean source|Lean module index)\}",
+        r"\\section{Complete Lean source}",
+        latex,
+    )
+    latex = re.sub(
+        r"\\section\{Lean module index\}",
+        r"\\section{Complete Lean source}",
         latex,
     )
     latex = re.sub(r"\n{3,}", "\n\n", latex)
@@ -360,10 +417,16 @@ def cleanup_pandoc_latex(latex: str) -> str:
 
 
 def insert_appendix_command(latex: str) -> str:
-    marker = r"\section{Lean module index}"
+    marker = r"\section{Complete Lean source}"
     if marker not in latex:
         raise RuntimeError(f"missing {marker!r} in LaTeX output")
-    return latex.replace(marker, r"\appendix" + "\n" + marker, 1)
+    # \sloppy lets long path subsection titles and listing lines wrap
+    # instead of producing Overfull \hbox failures in the build gate.
+    return latex.replace(
+        marker,
+        r"\appendix" + "\n" + r"\sloppy" + "\n" + marker,
+        1,
+    )
 
 
 def insert_list_of_figures(latex: str) -> str:

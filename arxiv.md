@@ -28,8 +28,8 @@ are no project axioms beyond Mathlib's classical footprint. Dana Scott gave
 the author the paper; this formalization does not claim the paper's authors'
 participation or endorsement. Lean was written by AI agents
 under the author's direction and review. Proof summaries include short Lean
-fragments; the full library is indexed with links to
-https://github.com/catskillsresearch/scott2026.
+fragments; the full library appears as a complete Lean source appendix in
+the PDF, and on https://github.com/catskillsresearch/scott2026.
 
 ## 1. Introduction
 
